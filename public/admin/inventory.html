@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-main { margin-right: 160px; padding-bottom: 2rem; }
+    .screen-footer { position:fixed; bottom:0; left:0; right:160px; background:#1a2540; color:rgba(255,255,255,.45); font-size:.7rem; padding:.3rem 1.25rem; z-index:120; text-align:right; border-top:1px solid rgba(255,255,255,.07); letter-spacing:.01em; }
+
+    /* -- Right Shortcut Panel -- */
+    .sc-panel { position:fixed;top:0;right:0;width:160px;height:100vh;background:linear-gradient(180deg,#1d3557 0%,#162840 100%);border-left:2px solid rgba(244,162,97,.25);display:flex;flex-direction:column;z-index:150;overflow:hidden;box-shadow:-4px 0 18px rgba(0,0,0,.18); }
+    .sc-panel-title { background:rgba(0,0,0,.3);color:var(--accent);font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:1rem 1rem .85rem;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.4rem; }
+    .sc-section-label { font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);padding:1rem 1rem .4rem; }
+    .sc-item { display:flex;flex-direction:row;align-items:center;gap:.4rem;cursor:pointer;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);width:calc(100% - 16px);margin:0 8px 5px;border-radius:7px;padding:.38rem .65rem;color:inherit;text-align:left;white-space:nowrap;transition:background .18s,transform .15s,box-shadow .18s; }
+    .sc-item:hover { background:rgba(244,162,97,.15);border-color:rgba(244,162,97,.4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2); }
+    .sc-item:active { transform:translateY(0); }
+    .sc-key { color:var(--accent);font-size:.8rem;font-weight:800;font-family:'Courier New',monospace;flex-shrink:0; }
+    .sc-sep { color:rgba(255,255,255,.25);font-size:.75rem;flex-shrink:0; }
+    .sc-desc { font-size:.75rem;color:rgba(255,255,255,.7);font-weight:500; }
+    .sc-footer { margin-top:auto;padding:.85rem 1rem;font-size:.6rem;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.07);text-align:center;line-height:1.7;letter-spacing:.04em; }
+
+    /* -- Breadcrumb path -- */
+    .tree-path { display:flex; align-items:center; gap:.2rem; padding:.42rem 1rem; background:#eef2f9; border-radius:8px; margin-bottom:.5rem; font-size:.78rem; min-height:2rem; border:1px solid #dde6f5; flex-wrap:wrap; }
+    .tree-path-seg { color:var(--secondary); font-weight:600; cursor:pointer; padding:.1rem .25rem; border-radius:4px; transition:background .12s; }
+    .tree-path-seg:hover { background:#dde5ff; text-decoration:underline; }
+    .tree-path-sep { color:#a0aac8; font-size:.75rem; }
+    .tree-path-current { font-weight:700; color:#1a2035; padding:.1rem .25rem; }
+
+    /* -- Stock Tree -- */
+    .stock-tree { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.07); overflow:hidden; }
+    .tree-header { display:grid; grid-template-columns:1fr 148px 118px 90px 100px 90px; background:var(--secondary); color:#fff; padding:.48rem 1rem; font-size:.82rem; font-weight:700; gap:.25rem; }
+    .tree-row { display:grid; grid-template-columns:1fr 148px 118px 90px 100px 90px; padding:.22rem 1rem; border-bottom:1px solid #f0f4fb; align-items:center; gap:.25rem; font-size:.84rem; transition:background .1s; user-select:none; }
+    .tree-row:last-child { border-bottom:none; }
+    .tree-group-row { background:#f4f7fc; cursor:pointer; font-weight:700; }
+    .tree-group-row:hover { background:#e8eef9; }
+    .tree-item-row { cursor:default; }
+    .tree-item-row:hover { background:#f8faff; }
+    .tree-row.cursor { background:#dde8ff !important; }
+    .tree-name-cell { display:flex; align-items:center; gap:.3rem; min-width:0; overflow:hidden; }
+    .tree-arrow { font-size:.65rem; color:var(--secondary); width:.9rem; flex-shrink:0; display:inline-block; text-align:center; }
+    .tree-group-label { color:var(--secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:capitalize; }
+    .tree-group-count { font-size:.72rem; color:#8090a8; margin-left:.3rem; white-space:nowrap; flex-shrink:0; font-weight:400; }
+    .item-name { font-weight:700; color:#1a2035; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:capitalize; }
+    .item-alias { font-size:.75rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tree-col { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tree-empty { text-align:center; padding:3rem; color:#aaa; font-size:.9rem; }
+    .tree-hint { font-size:.72rem; color:#b0bac8; text-align:right; padding:.4rem 1rem; background:#f8faff; border-top:1px solid #f0f4fb; }
+
+    /* -- Tally Modal -- */
+    .tally-overlay { position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center; }
+    .tally-overlay.open { display:flex; }
+    .tally-window { position:relative;width:880px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;background:#f4f6fa;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden;font-family:'Segoe UI',sans-serif; }
+    .tally-titlebar { background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.25rem;flex-shrink:0;border-radius:14px 14px 0 0; }
+    .tally-titlebar span { font-size:.88rem;font-weight:700; }
+    .tally-titlebar .t-x { background:none;border:none;color:rgba(255,255,255,.55);font-size:1.1rem;cursor:pointer;line-height:1;padding:0 .2rem;transition:color .15s; }
+    .tally-titlebar .t-x:hover { color:#fff; }
+    .tally-body { display:flex;flex:1;overflow:hidden;position:relative; }
+    .tally-left { flex:1;min-width:0;padding:1.25rem 1.5rem;overflow-y:auto;background:#fff;border-right:1px solid #e2e8f0; }
+    .tally-right { width:320px;flex-shrink:0;padding:1.1rem 1.25rem;background:#f8faff;overflow-y:auto;border-right:1px solid #e2e8f0; }
+    .t-row { display:flex;align-items:center;margin-bottom:.32rem;min-height:1.9rem; }
+    .t-spacer { height:.55rem;border-bottom:1px solid #edf0f7;margin-bottom:.55rem; }
+    .t-label { font-size:.82rem;font-weight:600;color:#3a4560;width:138px;flex-shrink:0;line-height:1.3;text-transform:capitalize; }
+    .t-label.italic { font-style:italic;font-weight:400;color:#7a8499; }
+    .t-label.sm { flex:0 0 auto;white-space:nowrap;margin-left:.5rem; }
+    .t-label.muted { color:#a0a8bc;font-weight:400; }
+    .t-colon { font-size:.82rem;color:#8090a8;margin-right:.4rem;flex-shrink:0; }
+    .t-input { border:none;border-bottom:1.5px solid #d0d8e8;background:transparent;padding:.12rem .35rem 0;font-size:.86rem;font-weight:500;color:#1a2035;outline:none;flex:1 1 0;min-width:50px;transition:border-color .18s;text-transform:capitalize;caret-color:var(--secondary); }
+    .t-input::selection { background:transparent;color:inherit; }
+    .t-input:focus { border-bottom:2px solid var(--secondary); }
+    .t-input.no-cap { text-transform:none; }
+    .t-input.num { flex:none;width:88px;text-align:right;text-transform:none; }
+    .t-select { border:none;border-bottom:1.5px solid #d0d8e8;background:transparent;padding:.18rem .35rem;font-size:.86rem;color:#1a2035;outline:none;flex:1;cursor:pointer;transition:border-color .18s;text-transform:capitalize; }
+    .t-select:focus { border-bottom:2px solid var(--secondary); }
+    .t-under { border:none;border-bottom:1.5px solid #d0d8e8;background:transparent;padding:.18rem .35rem;font-size:.86rem;font-weight:600;color:#1a2035;cursor:pointer;flex:1;user-select:none;transition:all .18s;border-radius:0; }
+    .t-under:focus { outline:none;border-bottom:2px solid var(--secondary); }
+    .t-under.active { background:var(--secondary);color:#fff;border-radius:6px;border-bottom-color:var(--secondary);padding:.18rem .55rem; }
+    .t-stat-title { font-size:.9rem;font-weight:800;color:#1a2035;border-bottom:2px solid #e2e8f0;padding-bottom:.5rem;margin-bottom:.7rem;text-transform:capitalize; }
+    .t-sub-head { font-size:.76rem;font-weight:700;color:var(--secondary);border-left:3px solid var(--accent);padding-left:.45rem;margin:.75rem 0 .35rem;text-transform:capitalize; }
+    .tally-right .t-label { width:108px; }
+    .t-group-panel { position:absolute;top:0;right:0;width:240px;height:100%;background:#fff;border-left:2px solid #e2e8f0;box-shadow:-8px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column;z-index:20; }
+    .t-gp-title { background:var(--secondary);color:#fff;font-size:.82rem;font-weight:700;padding:.55rem .9rem;letter-spacing:.03em; }
+    .t-gp-search { background:#f0f4ff;border-bottom:1px solid #e2e8f0;padding:.3rem .9rem;font-size:.8rem;color:#3a4560;font-style:italic;min-height:1.6rem;line-height:1.6rem; }
+    .t-gp-create { background:#eef2ff;color:var(--secondary);font-size:.8rem;font-weight:700;padding:.35rem .9rem;cursor:pointer;border-bottom:1px solid #e2e8f0;transition:background .15s; }
+    .t-gp-create:hover { background:#dde5ff; }
+    .t-gp-list { flex:1;overflow-y:auto; }
+    .t-gp-item { padding:.32rem .9rem;font-size:.82rem;cursor:pointer;color:#2a3550;border-bottom:1px solid #f0f4fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s;text-transform:capitalize; }
+    .t-gp-item:hover { background:#eef2ff; }
+    .t-gp-item.selected { background:var(--accent);color:#fff;font-weight:700; }
+    .tally-footer { background:#fff;border-top:1px solid #e2e8f0;padding:.6rem 1.25rem;display:flex;gap:.75rem;align-items:center;flex-shrink:0; }
+    .t-hint { font-size:.72rem;color:#a0aac0;margin-left:auto;letter-spacing:.01em; }
+
+    /* Group creation modal */
+    .t-gm-body-pad { padding:1.25rem 1.5rem; }
+    .t-sub-head-bar { background:#f0f4ff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:.45rem 1.5rem;font-size:.72rem;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.07em; }
+
+    /* Confirm bar */
+    .confirm-bar { position:absolute;bottom:0;left:0;right:0;background:#1d3557;color:#fff;padding:.55rem 1.6rem;display:flex;align-items:center;gap:1.5rem;justify-content:flex-end;border-top:2px solid var(--accent);z-index:50;box-shadow:0 -4px 18px rgba(0,0,0,.28); }
+    .confirm-bar.confirm-delete { background:#7f1d1d;border-top-color:#e63946; }
+    .confirm-label { font-size:.92rem;font-weight:700;color:var(--accent);letter-spacing:.05em; }
+    .confirm-bar.confirm-delete .confirm-label { color:#fca5a5; }
+    .confirm-btn { background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:.28rem .95rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;transition:background .15s,border-color .15s;display:flex;align-items:center;gap:.35rem; }
+    .confirm-btn:hover { background:rgba(255,255,255,.18); }
+    .confirm-yes:hover { background:rgba(46,213,115,.25);border-color:#2ed573; }
+    .confirm-no:hover { background:rgba(255,71,87,.2);border-color:#ff4757; }
+    .confirm-key { font-family:'Courier New',monospace;font-size:.78rem;font-weight:800;color:var(--accent);text-decoration:underline;text-underline-offset:2px; }
+    .confirm-bar.confirm-delete .confirm-key { color:#fca5a5; }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>&#9881;&#65039; BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">&#128202; Dashboard</a>
+      <div class="nav-section">Inventory</div>
+      <a href="/admin/inventory.html" class="active">&#128230; Parts &amp; Stock</a>
+      <a href="/admin/purchases.html">&#128704; Purchases</a>
+      <div class="nav-section">Sales</div>
+      <a href="/admin/orders.html">&#128203; Orders</a>
+      <a href="/admin/customers.html">&#128101; Customers</a>
+      <a href="/admin/enquiries.html">&#128172; Enquiries</a>
+      <div class="nav-section">Accounts</div>
+      <a href="/admin/accounts.html">&#128210; Ledger</a>
+      <a href="/admin/journal.html">&#128221; Journal</a>
+      <div class="nav-section">Reports</div>
+      <a href="/admin/reports.html">&#128200; Reports</a>
+      <div class="nav-section">Actions</div>
+      <a href="#" id="sidebar-logout">&#128682; Logout</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header"><h1>&#128230; Parts &amp; Inventory</h1></div>
+    <div class="filter-bar" style="margin-bottom:.6rem;border-radius:10px">
+      <input type="text" id="searchQ" placeholder="Search parts..." style="padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;width:220px">
+      <select id="filterCat"><option value="">All Groups</option></select>
+      <select id="filterBrand"><option value="">All Brands</option></select>
+      <label><input type="checkbox" id="filterLow" onchange="applyFilters()"> Low Stock Only</label>
+      <button class="btn-sm btn-view" onclick="applyFilters()">Filter</button>
+    </div>
+
+    <!-- Breadcrumb path -->
+    <div id="treePath" class="tree-path"></div>
+
+    <div class="stock-tree">
+      <div class="tree-header">
+        <div>Name</div>
+        <div>Brand</div>
+        <div>Part No.</div>
+        <div>Price</div>
+        <div>Stock</div>
+        <div>Status</div>
+      </div>
+      <div id="treeBody"><div class="tree-empty">Loading…</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- Right Shortcut Panel -->
+<aside class="sc-panel">
+  <div class="sc-panel-title">&#x2328; Quick Keys</div>
+  <div class="sc-section-label">Create</div>
+  <button class="sc-item" onclick="openAdd()">
+    <span class="sc-key"><u style="text-underline-offset:2px">C</u></span>
+    <span class="sc-sep">-</span>
+    <span class="sc-desc">New Item</span>
+  </button>
+  <button class="sc-item" onclick="openGroup()">
+    <span class="sc-key" style="text-decoration:underline double;text-underline-offset:2px">G</span>
+    <span class="sc-sep">-</span>
+    <span class="sc-desc">New Group</span>
+  </button>
+  <div class="sc-footer">BS&nbsp;Motors<br>Inventory&nbsp;Module</div>
+</aside>
+
+<!-- === Stock Item Modal === -->
+<div class="tally-overlay" id="partModal">
+  <div class="tally-window">
+    <div class="tally-titlebar">
+      <span id="modalTitle">Stock Item Creation</span>
+      <button type="button" class="t-x" onclick="closePartModal()">&#x2715;</button>
+    </div>
+
+    <form id="partForm" autocomplete="off">
+      <input type="hidden" id="editId">
+      <input type="hidden" id="fCategory" value="Primary">
+      <input type="hidden" id="fModels" value="">
+
+      <div class="tally-body">
+        <!-- LEFT PANE -->
+        <div class="tally-left">
+          <div class="t-row">
+            <span class="t-label">Name</span>
+            <span class="t-colon">:</span>
+            <input class="t-input" type="text" id="fNameEn" required autocomplete="off">
+            <span class="t-label sm">Brand</span>
+            <span class="t-colon">:</span>
+            <div class="t-under" id="brandDisplay" tabindex="0" onkeydown="handleBrandKey(event)" onclick="if(brandPanelOpen)closeBrandPanel();else openBrandPanel();" style="width:120px;flex:none"><span id="brandValue">—</span></div>
+            <input type="hidden" id="fBrand">
+            <datalist id="brandList"></datalist>
+          </div>
+          <div id="fNameEnWarn" style="display:none;color:#e63946;font-size:.72rem;font-weight:600;padding:.05rem .35rem .1rem 148px;">&#9888; Same item name already exists</div>
+          <div class="t-row">
+            <span class="t-label italic">(alias)</span>
+            <span class="t-colon">:</span>
+            <input class="t-input" type="text" id="fNameHi">
+          </div>
+          <div class="t-spacer"></div>
+          <div class="t-row">
+            <span class="t-label">Under</span>
+            <span class="t-colon">:</span>
+            <div class="t-under" id="underDisplay" tabindex="0" onclick="toggleGroupPanel()" onkeydown="handleUnderKey(event)">
+              &#9670; <span id="underValue">Primary</span>
+            </div>
+          </div>
+          <div class="t-row">
+            <span class="t-label">Units</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="fUnit" style="flex:none;width:120px">
+              <option value="Pcs">&#9670; Pcs</option>
+              <option value="Kit">Kit</option>
+            </select>
+          </div>
+          <div class="t-row">
+            <span class="t-label">Part No.</span>
+            <span class="t-colon">:</span>
+            <input class="t-input no-cap" type="text" id="fSku">
+          </div>
+          <div class="t-spacer"></div>
+          <div class="t-row">
+            <span class="t-label">Selling Price (&#8377;)</span>
+            <span class="t-colon">:</span>
+            <input class="t-input num" type="number" id="fPrice" step="0.01" min="0" value="0" required>
+          </div>
+          <div class="t-row">
+            <span class="t-label">Purchase Price (&#8377;)</span>
+            <span class="t-colon">:</span>
+            <input class="t-input num" type="number" id="fPurchasePrice" step="0.01" min="0" value="0">
+          </div>
+          <div class="t-row">
+            <span class="t-label">Opening Stock</span>
+            <span class="t-colon">:</span>
+            <input class="t-input num" type="number" id="fStock" min="0" value="0">
+          </div>
+          <div class="t-spacer"></div>
+          <div class="t-row">
+            <span class="t-label">Part Image</span>
+            <span class="t-colon">:</span>
+            <input type="file" id="fImage" accept="image/*" style="font-size:.78rem;flex:1">
+          </div>
+          <div id="activeToggle" style="display:none">
+            <div class="t-spacer"></div>
+            <div class="t-row">
+              <span class="t-label">Active</span>
+              <span class="t-colon">:</span>
+              <select class="t-select" id="fActiveSelect" style="flex:none;width:80px">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANE -->
+        <div class="tally-right">
+          <div class="t-stat-title">Statutory Details</div>
+          <div class="t-row">
+            <span class="t-label">GST Applicability</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="fGstApply">
+              <option>&#9670; Applicable</option>
+              <option>Not Applicable</option>
+            </select>
+          </div>
+          <div class="t-sub-head">HSN/SAC &amp; Related Details</div>
+          <div class="t-row">
+            <span class="t-label">HSN/SAC Details</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="fHsnMode" onchange="updateHsnFields()">
+              <option value="group">As Per Group</option>
+              <option value="specify">Specify Here</option>
+            </select>
+          </div>
+          <div id="hsnSpecifyRows" style="display:none">
+            <div class="t-row">
+              <span class="t-label muted">HSN/SAC</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="fHsn">
+            </div>
+            <div class="t-row">
+              <span class="t-label muted">Description</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="fDesc">
+            </div>
+          </div>
+          <div class="t-sub-head">GST Rate &amp; Related Details</div>
+          <div class="t-row">
+            <span class="t-label">GST Rate Details</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="fGstMode" onchange="updateGstFields()">
+              <option value="group">As Per Group</option>
+              <option value="specify">Specify Here</option>
+            </select>
+          </div>
+          <div id="gstSpecifyRows" style="display:none">
+            <div class="t-row">
+              <span class="t-label muted">Taxability Type</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="fTaxType">
+            </div>
+            <div class="t-row">
+              <span class="t-label muted">GST Rate</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input num" type="number" id="fGstRate" value="0" step="0.01" min="0" style="width:52px;flex:none;">
+              <span style="font-size:.82rem;margin-left:.3rem;color:#aaa">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BRAND PANEL (inside modal) -->
+        <div class="t-group-panel" id="brandPanel" style="display:none">
+          <div class="t-gp-title">List Of Brands</div>
+          <div class="t-gp-search" id="bPanelSearch" style="display:none"></div>
+          <div class="t-gp-create" onclick="openBrandCreate()">+ Add New Brand</div>
+          <div id="brandCreateBox" style="display:none;flex-direction:column;padding:.5rem .7rem;background:#eef4ff;border-bottom:2px solid #c3d5f8;gap:.22rem;flex-shrink:0;">
+            <div style="font-size:.7rem;font-weight:700;color:var(--secondary);letter-spacing:.06em;text-transform:uppercase;">New Brand</div>
+            <input id="newBrandInput" class="t-input no-cap" type="text" placeholder="Enter brand name…" autocomplete="off" style="width:100%;font-size:.82rem;">
+            <div style="font-size:.67rem;color:#8a99b5;">Enter — Accept &nbsp;|&nbsp; Esc — Cancel</div>
+          </div>
+          <div class="t-gp-list" id="brandPanelList"></div>
+        </div>
+
+        <!-- GROUP PANEL (inside modal) -->
+        <div class="t-group-panel" id="groupPanel" style="display:none">
+          <div class="t-gp-title" id="gPanelTitle">List Of Groups</div>
+          <div class="t-gp-search" id="gPanelSearch" style="display:none"></div>
+          <div class="t-gp-create" onclick="openGroup()">+ Create New Group</div>
+          <div class="t-gp-list" id="groupPanelList"></div>
+        </div>
+      </div>
+
+      <div class="tally-footer">
+        <span class="t-hint">Enter &mdash; Next Field &nbsp;|&nbsp; Alt+A &mdash; Accept &nbsp;|&nbsp; Alt+D &mdash; Delete &nbsp;|&nbsp; Esc &mdash; Quit</span>
+      </div>
+    </form>
+
+    <div class="confirm-bar" id="confirmBar" style="display:none">
+      <span class="confirm-label" id="confirmLabel">Accept ?</span>
+      <button class="confirm-btn confirm-yes" onclick="confirmAction(true)"><span class="confirm-key">Y</span> Yes</button>
+      <button class="confirm-btn confirm-no" onclick="confirmAction(false)"><span class="confirm-key">N</span> No</button>
+    </div>
+  </div>
+</div>
+
+<!-- === Group Creation Modal === -->
+<div class="tally-overlay" id="groupModal">
+  <div class="tally-window" style="width:620px">
+    <div class="tally-titlebar">
+      <span id="groupModalTitle">Stock Group Creation</span>
+      <button type="button" class="t-x" onclick="closeGroupModal()">&#x2715;</button>
+    </div>
+    <form id="groupForm">
+      <input type="hidden" id="gEditId">
+      <div class="tally-body">
+        <!-- gUnder Panel -->
+        <div class="t-group-panel" id="gUnderPanel" style="display:none">
+          <div class="t-gp-title">List Of Groups</div>
+          <div class="t-gp-search" id="gUPanelSearch" style="display:none"></div>
+          <div class="t-gp-create" onclick="openGUnderCreate()">+ Create New Group</div>
+          <div id="gUnderCreateBox" style="display:none;flex-direction:column;padding:.5rem .7rem;background:#eef4ff;border-bottom:2px solid #c3d5f8;gap:.22rem;flex-shrink:0;">
+            <div style="font-size:.7rem;font-weight:700;color:var(--secondary);letter-spacing:.06em;text-transform:uppercase;">New Group</div>
+            <input id="newGUnderInput" class="t-input no-cap" type="text" placeholder="Enter group name…" autocomplete="off" style="width:100%;font-size:.82rem;">
+            <div style="font-size:.67rem;color:#8a99b5;">Enter — Accept &nbsp;|&nbsp; Esc — Cancel</div>
+          </div>
+          <div class="t-gp-list" id="gUnderPanelList"></div>
+        </div>
+        <div style="flex:1;overflow-y:auto;max-height:72vh">
+        <div class="t-gm-body-pad">
+          <div class="t-row">
+            <span class="t-label">Name</span>
+            <span class="t-colon">:</span>
+            <input class="t-input" type="text" id="gName" required autocomplete="off">
+          </div>
+          <div id="gNameWarn" style="display:none;color:#e63946;font-size:.72rem;font-weight:600;padding:.05rem .35rem .1rem 148px;">&#9888; Same group name already exists</div>
+          <div class="t-row">
+            <span class="t-label">Under</span>
+            <span class="t-colon">:</span>
+            <div class="t-under" id="gUnderDisplay" tabindex="0" onkeydown="handleGUnderKey(event)"><span id="gUnderValue">&#9670; Primary</span></div>
+            <input type="hidden" id="gUnder" value="Primary">
+          </div>
+        </div>
+        <div class="t-sub-head-bar">Statutory Details</div>
+        <div class="t-gm-body-pad">
+          <div class="t-row">
+            <span class="t-label">GST Applicability</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="gGstApply">
+              <option value="applicable">&#9670; Applicable</option>
+              <option value="not">Not Applicable</option>
+            </select>
+          </div>
+          <div class="t-sub-head">HSN/SAC &amp; Related Details</div>
+          <div class="t-row">
+            <span class="t-label">HSN/SAC Details</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="gHsnMode" onchange="updateGHsnFields()">
+              <option value="group">As Per Company</option>
+              <option value="specify">Specify Here</option>
+            </select>
+          </div>
+          <div id="gHsnRows" style="display:none">
+            <div class="t-row">
+              <span class="t-label muted">HSN/SAC</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="gHsn">
+            </div>
+            <div class="t-row">
+              <span class="t-label muted">Description</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="gGDesc">
+            </div>
+          </div>
+          <div class="t-sub-head">GST Rate &amp; Related Details</div>
+          <div class="t-row">
+            <span class="t-label">GST Rate Details</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="gGstMode" onchange="updateGGstFields()">
+              <option value="group">As Per Company</option>
+              <option value="specify">Specify Here</option>
+            </select>
+          </div>
+          <div id="gGstRows" style="display:none">
+            <div class="t-row">
+              <span class="t-label muted">Taxability Type</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input" type="text" id="gTaxType">
+            </div>
+            <div class="t-row">
+              <span class="t-label muted">GST Rate</span>
+              <span class="t-colon" style="color:#b0bac8">:</span>
+              <input class="t-input num" type="number" id="gGstRate" value="0" step="0.01" min="0" style="width:52px;flex:none;">
+              <span style="font-size:.82rem;margin-left:.3rem;color:#aaa">%</span>
+            </div>
+          </div>
+        </div>
+        </div><!-- end inner scroll -->
+      </div><!-- end tally-body -->
+      <div class="tally-footer">
+        <span class="t-hint">Enter &mdash; Next Field &nbsp;|&nbsp; Alt+A &mdash; Accept &nbsp;|&nbsp; Alt+D &mdash; Delete &nbsp;|&nbsp; Esc &mdash; Quit</span>
+      </div>
+    </form>
+    <div class="confirm-bar" id="gConfirmBar" style="display:none">
+      <span class="confirm-label" id="gConfirmLabel">Accept ?</span>
+      <button class="confirm-btn confirm-yes" onclick="confirmAction(true)"><span class="confirm-key">Y</span> Yes</button>
+      <button class="confirm-btn confirm-no" onclick="confirmAction(false)"><span class="confirm-key">N</span> No</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen-footer">&#x2191;&#x2193; Navigate &nbsp;|&nbsp; Ctrl+&#x23CE; Alter &nbsp;|&nbsp; Esc Back &nbsp;|&nbsp; Alt+C New Item &nbsp;|&nbsp; Alt+G New Group</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+// ── State ──
+let groups = [];
+let allParts = [];
+let allBrands = [];
+let filteredParts = [];
+let _groupPath = ['Primary']; // drill-down breadcrumb
+let _cursor = 0;
+let _visibleRows = [];
+let groupPanelOpen = false;
+let groupHighlightIdx = -1;
+let groupSearchQuery = '';
+let brandPanelOpen = false;
+let brandHighlightIdx = -1;
+let brandSearchQuery = '';
+let gUnderPanelOpen = false;
+let gUnderHighlightIdx = -1;
+let gUnderSearchQuery = '';
+
+// ── Init ──
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  await loadAll();
+  document.getElementById('searchQ').addEventListener('keypress', e => {
+    if (e.key === 'Enter') applyFilters();
+  });
+}
+
+async function loadAll() {
+  const safe = p => p.then(d => Array.isArray(d) ? d : []).catch(() => []);
+  const [grpData, partsData, brandsData] = await Promise.all([
+    safe(API.get('/api/admin/groups')),
+    safe(API.get('/api/admin/parts')),
+    safe(API.get('/api/admin/brands'))
+  ]);
+  groups = grpData;
+  allParts = partsData;
+  allBrands = brandsData;
+  filteredParts = allParts;
+  rebuildFilterBars();
+  renderTree();
+}
+
+async function applyFilters() {
+  const q = document.getElementById('searchQ').value.trim();
+  const cat = document.getElementById('filterCat').value;
+  const brand = document.getElementById('filterBrand').value;
+  const low = document.getElementById('filterLow').checked;
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (cat) params.set('category', cat);
+  if (brand) params.set('brand', brand);
+  if (low) params.set('low_stock', '1');
+  filteredParts = await API.get('/api/admin/parts?' + params).catch(() => []);
+  if (!Array.isArray(filteredParts)) filteredParts = [];
+  _cursor = 0;
+  renderTree();
+}
+
+function rebuildFilterBars() {
+  const catSel = document.getElementById('filterCat');
+  const brandSel = document.getElementById('filterBrand');
+  const brandList = document.getElementById('brandList');
+  catSel.innerHTML = '<option value="">All Groups</option>';
+  brandSel.innerHTML = '<option value="">All Brands</option>';
+  brandList.innerHTML = '';
+  const allGroupNames = ['Primary', ...groups.map(g => g.name)].sort();
+  allGroupNames.forEach(n => catSel.appendChild(Object.assign(document.createElement('option'), { value: n, textContent: n })));
+  const brands = [...new Set(allParts.map(p => p.brand).filter(Boolean))].sort();
+  brands.forEach(b => {
+    brandSel.appendChild(Object.assign(document.createElement('option'), { value: b, textContent: b }));
+    brandList.appendChild(Object.assign(document.createElement('option'), { value: b }));
+  });
+}
+
+// ── Drill-down tree ──
+function currentGroup() { return _groupPath[_groupPath.length - 1]; }
+
+function countGroupItems(groupName) {
+  const subGroups = groups.filter(g => (g.parent || 'Primary') === groupName);
+  const direct = filteredParts.filter(p => (p.category || 'Primary') === groupName).length;
+  return direct + subGroups.reduce((s, g) => s + countGroupItems(g.name), 0);
+}
+
+function buildDrillDown() {
+  const cur = currentGroup();
+  const subGroups = groups
+    .filter(g => (g.parent || 'Primary') === cur)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const items = filteredParts
+    .filter(p => (p.category || 'Primary') === cur)
+    .sort((a, b) => a.name_en.localeCompare(b.name_en));
+  return [
+    ...subGroups.map(g => ({ type: 'group', name: g.name, group: g, total: countGroupItems(g.name) })),
+    ...items.map(p => ({ type: 'item', part: p }))
+  ];
+}
+
+function h(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderBreadcrumb() {
+  const el = document.getElementById('treePath');
+  if (!el) return;
+  el.innerHTML = _groupPath.map((seg, i) => {
+    if (i === _groupPath.length - 1) return `<span class="tree-path-current">${h(seg)}</span>`;
+    return `<span class="tree-path-seg" onclick="navigateToPathIndex(${i})">${h(seg)}</span><span class="tree-path-sep"> &#8250; </span>`;
+  }).join('');
+}
+
+function renderTree() {
+  _visibleRows = buildDrillDown();
+  if (_cursor >= _visibleRows.length) _cursor = Math.max(0, _visibleRows.length - 1);
+  renderBreadcrumb();
+
+  if (!_visibleRows.length) {
+    document.getElementById('treeBody').innerHTML = '<div class="tree-empty">No items in this group</div>';
+    return;
+  }
+
+  document.getElementById('treeBody').innerHTML = _visibleRows.map((row, i) => {
+    const cur = i === _cursor ? ' cursor' : '';
+    if (row.type === 'group') {
+      return `<div class="tree-row tree-group-row${cur}" data-idx="${i}" onclick="handleRowClick(${i})">
+        <div class="tree-name-cell">
+          <span class="tree-arrow">&#9658;</span>
+          <span class="tree-group-label">${h(row.name)}</span>
+          <span class="tree-group-count">${row.total} item${row.total !== 1 ? 's' : ''}</span>
+        </div>
+        <div></div><div></div><div></div><div></div><div></div>
+      </div>`;
+    } else {
+      const p = row.part;
+      const sc = p.stock <= 5 ? '#e63946' : p.stock <= 10 ? '#e67e22' : '#2d6a4f';
+      const badge = p.is_active ? 'status-delivered' : 'status-cancelled';
+      return `<div class="tree-row tree-item-row${cur}" data-idx="${i}" data-id="${p.id}" onclick="handleRowClick(${i})">
+        <div class="tree-name-cell" style="padding-left:1.2rem">
+          <div style="min-width:0">
+            <div class="item-name">${h(p.name_en)}</div>
+
+          </div>
+        </div>
+        <div class="tree-col">${p.brand ? h(p.brand) : '&mdash;'}</div>
+        <div class="tree-col"><code>${(p.sku && !p.sku.startsWith('AUTO-')) ? h(p.sku) : ''}</code></div>
+        <div class="tree-col" style="font-weight:700">&#8377;${parseFloat(p.price).toFixed(2)}</div>
+        <div class="tree-col"><span style="font-weight:800;color:${sc}">${p.stock}</span> <span style="font-size:.76rem;color:#999">${h(p.unit)}</span></div>
+        <div class="tree-col"><span class="status-badge ${badge}" style="cursor:pointer;user-select:none" title="Click to toggle" onmousedown="event.preventDefault()" onclick="event.stopPropagation();togglePartStatus(${p.id},${p.is_active})">${p.is_active ? 'Active' : 'Inactive'}</span></div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function handleRowClick(idx) {
+  _cursor = idx;
+  const row = _visibleRows[idx];
+  if (row && row.type === 'group') drillIntoGroup(row.name);
+  else renderTree();
+}
+
+function drillIntoGroup(name) {
+  _groupPath.push(name);
+  _cursor = 0;
+  renderTree();
+}
+
+function drillUp() {
+  if (_groupPath.length > 1) { _groupPath.pop(); _cursor = 0; renderTree(); }
+}
+
+function navigateToPathIndex(idx) {
+  _groupPath = _groupPath.slice(0, idx + 1);
+  _cursor = 0;
+  renderTree();
+}
+
+function scrollCursorIntoView() {
+  const el = document.querySelector('.tree-row.cursor');
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// ── Group Panel (Under selector in item modal) ──
+function getGroupNames() {
+  return ['Primary', ...groups.map(g => g.name)].sort((a, b) => {
+    if (a === 'Primary') return -1;
+    if (b === 'Primary') return 1;
+    return a.localeCompare(b);
+  });
+}
+
+function getFilteredGroupNames() {
+  const all = getGroupNames();
+  if (!groupSearchQuery) return all;
+  return all.filter(g => g.toLowerCase().includes(groupSearchQuery.toLowerCase()));
+}
+
+function renderGroupPanel() {
+  const filtered = getFilteredGroupNames();
+  if (groupHighlightIdx < 0 || groupHighlightIdx >= filtered.length) groupHighlightIdx = 0;
+
+  // Search indicator
+  const searchEl = document.getElementById('gPanelSearch');
+  const titleEl = document.getElementById('gPanelTitle');
+  if (groupSearchQuery) {
+    searchEl.style.display = 'block';
+    searchEl.textContent = '/ ' + groupSearchQuery;
+    titleEl.textContent = 'List Of Groups';
+  } else {
+    searchEl.style.display = 'none';
+    titleEl.textContent = 'List Of Groups';
+  }
+
+  document.getElementById('groupPanelList').innerHTML = filtered.length
+    ? filtered.map((g, i) =>
+        `<div class="t-gp-item${i === groupHighlightIdx ? ' selected' : ''}" onclick="selectGroupFromPanel(${i})">${g === 'Primary' ? '&#9670; ' : ''}${h(g)}</div>`
+      ).join('')
+    : `<div style="padding:.5rem .9rem;font-size:.8rem;color:#aaa;font-style:italic">No match</div>`;
+
+  const sel = document.querySelector('#groupPanelList .selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+
+function selectGroupFromPanel(idx) {
+  const filtered = getFilteredGroupNames();
+  if (filtered[idx]) selectGroup(filtered[idx]);
+}
+
+function toggleGroupPanel() {
+  groupPanelOpen = !groupPanelOpen;
+  const panel = document.getElementById('groupPanel');
+  const disp = document.getElementById('underDisplay');
+  if (groupPanelOpen) {
+    groupSearchQuery = '';
+    const cur = document.getElementById('fCategory').value || 'Primary';
+    const filtered = getFilteredGroupNames();
+    groupHighlightIdx = Math.max(0, filtered.indexOf(cur));
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
+    disp.classList.add('active');
+    renderGroupPanel();
+    const sel = panel.querySelector('.selected');
+    if (sel) sel.scrollIntoView({ block: 'center' });
+  } else {
+    groupSearchQuery = '';
+    panel.style.display = 'none';
+    disp.classList.remove('active');
+  }
+}
+
+function handleUnderKey(e) {
+  e.stopImmediatePropagation();
+  if (_confirmMode) { e.preventDefault(); return; }
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (groupPanelOpen) { groupSearchQuery = ''; toggleGroupPanel(); }
+    return;
+  }
+
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (groupSearchQuery.length > 0) {
+      groupSearchQuery = groupSearchQuery.slice(0, -1);
+      groupHighlightIdx = 0;
+      if (!groupPanelOpen) {
+        groupPanelOpen = true;
+        const p = document.getElementById('groupPanel');
+        p.style.display = 'flex'; p.style.flexDirection = 'column';
+        document.getElementById('underDisplay').classList.add('active');
+      }
+      renderGroupPanel();
+    } else {
+      if (groupPanelOpen) { groupSearchQuery = ''; toggleGroupPanel(); }
+      navigatePrev(document.getElementById('underDisplay'));
+    }
+    return;
+  }
+
+  if (e.key === ' ') { e.preventDefault(); toggleGroupPanel(); return; }
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (groupPanelOpen) {
+      const filtered = getFilteredGroupNames();
+      if (filtered[groupHighlightIdx]) selectGroup(filtered[groupHighlightIdx]);
+    } else {
+      navigateNext(document.getElementById('underDisplay'), e);
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!groupPanelOpen) { toggleGroupPanel(); return; }
+    const filtered = getFilteredGroupNames();
+    if (e.key === 'ArrowDown') groupHighlightIdx = Math.min(groupHighlightIdx + 1, filtered.length - 1);
+    else groupHighlightIdx = Math.max(groupHighlightIdx - 1, 0);
+    renderGroupPanel();
+    return;
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (!groupPanelOpen) toggleGroupPanel();
+    return;
+  }
+
+  // Letter search — auto-opens panel and filters
+  if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    groupSearchQuery += e.key;
+    groupHighlightIdx = 0;
+    if (!groupPanelOpen) {
+      // Open panel without toggling via toggleGroupPanel (which resets query)
+      groupPanelOpen = true;
+      const panel = document.getElementById('groupPanel');
+      document.getElementById('underDisplay').classList.add('active');
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+    }
+    renderGroupPanel();
+    return;
+  }
+}
+
+function selectGroup(name) {
+  groupSearchQuery = '';
+  document.getElementById('fCategory').value = name;
+  document.getElementById('underValue').textContent = name;
+  groupPanelOpen = false;
+  document.getElementById('groupPanel').style.display = 'none';
+  document.getElementById('underDisplay').classList.remove('active');
+  document.getElementById('fUnit').focus();
+}
+
+document.getElementById('underDisplay').addEventListener('blur', function() {
+  if (!groupPanelOpen) return;
+  setTimeout(function() {
+    if (!document.getElementById('groupPanel').contains(document.activeElement)) {
+      groupPanelOpen = false; groupSearchQuery = '';
+      document.getElementById('groupPanel').style.display = 'none';
+      document.getElementById('underDisplay').classList.remove('active');
+    }
+  }, 0);
+});
+
+document.getElementById('partModal').addEventListener('mousedown', e => {
+  if (!groupPanelOpen) return;
+  const panel = document.getElementById('groupPanel');
+  const under = document.getElementById('underDisplay');
+  if (!panel.contains(e.target) && !under.contains(e.target)) {
+    groupPanelOpen = false; groupSearchQuery = '';
+    panel.style.display = 'none';
+    under.classList.remove('active');
+  }
+});
+
+// ── Modal Open/Close ──
+function resetForm() {
+  document.getElementById('partForm').reset();
+  document.getElementById('editId').value = '';
+  document.getElementById('fCategory').value = 'Primary';
+  document.getElementById('underValue').textContent = 'Primary';
+  document.getElementById('fGstApply').selectedIndex = 0;
+  document.getElementById('fBrand').value = '';
+  document.getElementById('brandValue').textContent = '—';
+  groupPanelOpen = false; groupSearchQuery = '';
+  document.getElementById('groupPanel').style.display = 'none';
+  document.getElementById('underDisplay').classList.remove('active');
+  document.getElementById('fHsnMode').value = 'group'; updateHsnFields();
+  document.getElementById('fGstMode').value = 'group'; updateGstFields();
+  document.getElementById('fNameEnWarn').style.display = 'none';
+}
+
+function openAdd() {
+  resetForm();
+  document.getElementById('modalTitle').textContent = 'Stock Item Creation';
+  document.getElementById('activeToggle').style.display = 'none';
+  // Default to current browsing group
+  const cur = currentGroup();
+  document.getElementById('fCategory').value = cur;
+  document.getElementById('underValue').textContent = cur;
+  document.getElementById('partModal').classList.add('open');
+  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
+}
+
+function openEdit(p) {
+  resetForm();
+  document.getElementById('modalTitle').textContent = 'Stock Item Alteration';
+  document.getElementById('editId').value = p.id;
+  document.getElementById('fNameEn').value = p.name_en;
+  document.getElementById('fNameHi').value = p.name_hi || '';
+  document.getElementById('fSku').value = (p.sku && !p.sku.startsWith('AUTO-')) ? p.sku : '';
+  document.getElementById('fCategory').value = p.category || 'Primary';
+  document.getElementById('underValue').textContent = p.category || 'Primary';
+  document.getElementById('fBrand').value = p.brand || '';
+  document.getElementById('brandValue').textContent = p.brand || '—';
+  document.getElementById('fModels').value = p.compatible_models || '';
+  document.getElementById('fPrice').value = p.price;
+  document.getElementById('fPurchasePrice').value = p.purchase_price || 0;
+  document.getElementById('fStock').value = p.stock;
+  document.getElementById('fUnit').value = (p.unit === 'pc' || p.unit === 'Pcs') ? 'Pcs' : (p.unit || 'Pcs');
+  document.getElementById('fDesc').value = p.description || '';
+  document.getElementById('fActiveSelect').value = p.is_active ? '1' : '0';
+  document.getElementById('activeToggle').style.display = 'block';
+  document.getElementById('partModal').classList.add('open');
+  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
+}
+
+async function togglePartStatus(id, currentActive) {
+  const res = await API.put('/api/admin/parts/' + id, { is_active: currentActive ? 0 : 1 });
+  if (res.ok) { await loadAll(); API.toast(currentActive ? 'Marked Inactive' : 'Marked Active'); }
+  else API.toast(res.message || 'Error', 'error');
+}
+
+function openEditById(id) {
+  const p = allParts.find(x => x.id === id) || filteredParts.find(x => x.id === id);
+  if (p) openEdit(p);
+}
+
+// ── Brand Panel ──
+function getAllBrands() {
+  const fromParts = allParts.map(p => p.brand).filter(Boolean);
+  return [...new Set([...allBrands, ...fromParts])].sort((a, b) => a.localeCompare(b));
+}
+function getFilteredBrands() {
+  const q = brandSearchQuery.toLowerCase();
+  const all = getAllBrands();
+  return q ? all.filter(b => b.toLowerCase().includes(q)) : all;
+}
+function renderBrandPanel() {
+  const filtered = getFilteredBrands();
+  if (brandHighlightIdx >= filtered.length) brandHighlightIdx = -1;
+  const srch = document.getElementById('bPanelSearch');
+  if (brandSearchQuery) { srch.textContent = brandSearchQuery; srch.style.display = ''; }
+  else srch.style.display = 'none';
+  document.getElementById('brandPanelList').innerHTML = filtered.length
+    ? filtered.map((b, i) =>
+        `<div class="t-gp-item${i === brandHighlightIdx ? ' selected' : ''}" onmousedown="event.preventDefault();selectBrand('${b.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">` +
+        h(b) + `</div>`
+      ).join('')
+    : `<div style="padding:.5rem .9rem;font-size:.8rem;color:#aaa;font-style:italic">No brands yet</div>`;
+  const sel = document.querySelector('#brandPanelList .selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+function openBrandPanel() {
+  if (brandPanelOpen) return;
+  brandPanelOpen = true; brandHighlightIdx = -1;
+  document.getElementById('brandDisplay').classList.add('active');
+  const p = document.getElementById('brandPanel');
+  p.style.display = 'flex'; p.style.flexDirection = 'column';
+  renderBrandPanel();
+}
+function closeBrandCreate() {
+  document.getElementById('brandCreateBox').style.display = 'none';
+  document.getElementById('newBrandInput').value = '';
+}
+function openBrandCreate() {
+  if (!brandPanelOpen) openBrandPanel();
+  const box = document.getElementById('brandCreateBox');
+  box.style.display = 'flex'; box.style.flexDirection = 'column';
+  document.getElementById('newBrandInput').focus();
+}
+function closeBrandPanel() {
+  brandPanelOpen = false; brandHighlightIdx = -1;
+  closeBrandCreate();
+  document.getElementById('bPanelSearch').style.display = 'none';
+  document.getElementById('brandDisplay').classList.remove('active');
+  document.getElementById('brandPanel').style.display = 'none';
+}
+function selectBrand(name) {
+  document.getElementById('fBrand').value = name;
+  document.getElementById('brandValue').textContent = name || '—';
+  brandSearchQuery = '';
+  closeBrandPanel();
+  navigateNext(document.getElementById('brandDisplay'));
+}
+function handleBrandKey(e) {
+  e.stopImmediatePropagation();
+  if (_confirmMode) { e.preventDefault(); return; }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (brandPanelOpen) { brandSearchQuery = ''; closeBrandPanel(); }
+    return;
+  }
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (brandSearchQuery.length > 0) {
+      brandSearchQuery = brandSearchQuery.slice(0, -1);
+      if (!brandPanelOpen) openBrandPanel();
+      brandHighlightIdx = 0;
+      renderBrandPanel();
+    } else {
+      if (brandPanelOpen) closeBrandPanel();
+      navigatePrev(document.getElementById('brandDisplay'));
+    }
+    return;
+  }
+  if (e.key === ' ') { e.preventDefault(); if (!brandPanelOpen) openBrandPanel(); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (brandPanelOpen) {
+      const filtered = getFilteredBrands();
+      if (filtered[brandHighlightIdx]) selectBrand(filtered[brandHighlightIdx]);
+      else navigateNext(document.getElementById('brandDisplay'));
+    } else { navigateNext(document.getElementById('brandDisplay')); }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!brandPanelOpen) { openBrandPanel(); return; }
+    brandHighlightIdx = Math.min(brandHighlightIdx + 1, getFilteredBrands().length - 1);
+    renderBrandPanel(); return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    brandHighlightIdx = Math.max(brandHighlightIdx - 1, 0);
+    renderBrandPanel(); return;
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (!brandPanelOpen) openBrandPanel();
+    return;
+  }
+  if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    brandSearchQuery += e.key;
+    brandHighlightIdx = 0;
+    if (!brandPanelOpen) openBrandPanel();
+    renderBrandPanel();
+  }
+}
+
+function closePartModal() {
+  hideConfirm();
+  brandSearchQuery = '';
+  closeBrandPanel();
+  document.getElementById('partModal').classList.remove('open');
+  groupPanelOpen = false; groupSearchQuery = '';
+  document.getElementById('groupPanel').style.display = 'none';
+  document.getElementById('underDisplay').classList.remove('active');
+}
+
+// ── gUnder Panel (group modal Under field) ──
+function getGUnderNames() {
+  const exclude = document.getElementById('gName').value.trim();
+  return ['Primary', ...groups.filter(g => g.name !== exclude).map(g => g.name)].sort((a, b) => a === 'Primary' ? -1 : b === 'Primary' ? 1 : a.localeCompare(b));
+}
+function getFilteredGUnderNames() {
+  const q = gUnderSearchQuery.toLowerCase();
+  const all = getGUnderNames();
+  return q ? all.filter(g => g.toLowerCase().includes(q)) : all;
+}
+function renderGUnderPanel() {
+  const filtered = getFilteredGUnderNames();
+  if (gUnderHighlightIdx >= filtered.length) gUnderHighlightIdx = -1;
+  const srch = document.getElementById('gUPanelSearch');
+  if (gUnderSearchQuery) { srch.textContent = gUnderSearchQuery; srch.style.display = ''; }
+  else srch.style.display = 'none';
+  document.getElementById('gUnderPanelList').innerHTML = filtered.length
+    ? filtered.map((g, i) =>
+        `<div class="t-gp-item${i === gUnderHighlightIdx ? ' selected' : ''}" onmousedown="event.preventDefault();selectGUnder('${g.replace(/'/g,"\\'")}')">` +
+        h(g) + `</div>`
+      ).join('')
+    : `<div style="padding:.5rem .9rem;font-size:.8rem;color:#aaa;font-style:italic">No groups</div>`;
+  const sel = document.querySelector('#gUnderPanelList .selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+function openGUnderPanel() {
+  if (gUnderPanelOpen) return;
+  gUnderPanelOpen = true; gUnderHighlightIdx = -1;
+  document.getElementById('gUnderDisplay').classList.add('active');
+  const p = document.getElementById('gUnderPanel');
+  p.style.display = 'flex'; p.style.flexDirection = 'column';
+  renderGUnderPanel();
+}
+function closeGUnderCreate() {
+  document.getElementById('gUnderCreateBox').style.display = 'none';
+  document.getElementById('newGUnderInput').value = '';
+}
+function openGUnderCreate() {
+  if (!gUnderPanelOpen) openGUnderPanel();
+  const box = document.getElementById('gUnderCreateBox');
+  box.style.display = 'flex'; box.style.flexDirection = 'column';
+  document.getElementById('newGUnderInput').focus();
+}
+function closeGUnderPanel() {
+  gUnderPanelOpen = false; gUnderHighlightIdx = -1; gUnderSearchQuery = '';
+  closeGUnderCreate();
+  document.getElementById('gUPanelSearch').style.display = 'none';
+  document.getElementById('gUnderDisplay').classList.remove('active');
+  document.getElementById('gUnderPanel').style.display = 'none';
+}
+function selectGUnder(name) {
+  document.getElementById('gUnder').value = name;
+  document.getElementById('gUnderValue').textContent = name === 'Primary' ? '◆ Primary' : name;
+  gUnderSearchQuery = '';
+  closeGUnderPanel();
+  navigateGroupNext(document.getElementById('gUnderDisplay'));
+}
+function handleGUnderKey(e) {
+  e.stopImmediatePropagation();
+  if (_confirmMode) { e.preventDefault(); return; }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (gUnderPanelOpen) { gUnderSearchQuery = ''; closeGUnderPanel(); }
+    return;
+  }
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (gUnderSearchQuery.length > 0) {
+      gUnderSearchQuery = gUnderSearchQuery.slice(0, -1);
+      if (!gUnderPanelOpen) openGUnderPanel();
+      gUnderHighlightIdx = 0; renderGUnderPanel();
+    } else {
+      if (gUnderPanelOpen) closeGUnderPanel();
+      navigateGroupPrev(document.getElementById('gUnderDisplay'));
+    }
+    return;
+  }
+  if (e.key === ' ') { e.preventDefault(); if (!gUnderPanelOpen) openGUnderPanel(); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (gUnderPanelOpen) {
+      const filtered = getFilteredGUnderNames();
+      if (filtered[gUnderHighlightIdx]) selectGUnder(filtered[gUnderHighlightIdx]);
+      else navigateGroupNext(document.getElementById('gUnderDisplay'));
+    } else { navigateGroupNext(document.getElementById('gUnderDisplay')); }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!gUnderPanelOpen) { openGUnderPanel(); return; }
+    gUnderHighlightIdx = Math.min(gUnderHighlightIdx + 1, getFilteredGUnderNames().length - 1);
+    renderGUnderPanel(); return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    gUnderHighlightIdx = Math.max(gUnderHighlightIdx - 1, 0);
+    renderGUnderPanel(); return;
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (!gUnderPanelOpen) openGUnderPanel();
+    return;
+  }
+  if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    gUnderSearchQuery += e.key;
+    gUnderHighlightIdx = 0;
+    if (!gUnderPanelOpen) openGUnderPanel();
+    renderGUnderPanel();
+  }
+}
+
+// ── Group Modal ──
+function updateGHsnFields() {
+  document.getElementById('gHsnRows').style.display = document.getElementById('gHsnMode').value === 'specify' ? '' : 'none';
+}
+function updateGGstFields() {
+  document.getElementById('gGstRows').style.display = document.getElementById('gGstMode').value === 'specify' ? '' : 'none';
+}
+
+function resetGroupForm(excludeName) {
+  document.getElementById('gEditId').value = '';
+  document.getElementById('gName').value = '';
+  document.getElementById('gHsnMode').value = 'group'; updateGHsnFields();
+  document.getElementById('gGstMode').value = 'group'; updateGGstFields();
+  document.getElementById('gGstApply').value = 'applicable';
+  document.getElementById('gHsn').value = '';
+  document.getElementById('gGDesc').value = '';
+  document.getElementById('gTaxType').value = '';
+  document.getElementById('gGstRate').value = '0';
+  document.getElementById('gUnder').value = 'Primary';
+  document.getElementById('gUnderValue').textContent = '◆ Primary';
+  closeGUnderPanel();
+  hideConfirm();
+  document.getElementById('gNameWarn').style.display = 'none';
+}
+
+function openGroup() {
+  resetGroupForm();
+  document.getElementById('groupModalTitle').textContent = 'Stock Group Creation';
+  document.getElementById('groupModal').classList.add('open');
+  setTimeout(() => document.getElementById('gName').focus(), 120);
+}
+
+function openGroupEdit(groupObj) {
+  resetGroupForm(groupObj.name);
+  document.getElementById('gEditId').value = groupObj.id;
+  document.getElementById('gName').value = groupObj.name;
+  const parent = groupObj.parent || 'Primary';
+  document.getElementById('gUnder').value = parent;
+  document.getElementById('gUnderValue').textContent = parent === 'Primary' ? '◆ Primary' : parent;
+  document.getElementById('groupModalTitle').textContent = 'Stock Group Alteration';
+  document.getElementById('groupModal').classList.add('open');
+  setTimeout(() => document.getElementById('gName').focus(), 120);
+}
+
+function closeGroupModal() {
+  hideConfirm();
+  closeGUnderPanel();
+  document.getElementById('groupModal').classList.remove('open');
+}
+
+async function saveGroup() {
+  const id = document.getElementById('gEditId').value;
+  const name = document.getElementById('gName').value.trim();
+  const parent = document.getElementById('gUnder').value || 'Primary';
+  if (!name) { API.toast('Enter a group name', 'warning'); return; }
+  if (!id && groups.find(g => g.name.toLowerCase() === name.toLowerCase())) {
+    API.toast('Group already exists', 'warning'); return;
+  }
+  const res = id
+    ? await API.put('/api/admin/groups/' + id, { name, parent })
+    : await API.post('/api/admin/groups', { name, parent });
+  if (res.ok) {
+    closeGroupModal();
+    await loadAll();
+    API.toast(id ? 'Group updated!' : `Group "${name}" created!`);
+  } else {
+    API.toast(res.message || 'Error', 'error');
+  }
+}
+
+// ── Confirm System ──
+let _confirmMode = null;
+let _confirmBarEl = null;
+let _confirmCallbacks = null;
+
+function showConfirm(mode, barEl, callbacks) {
+  _confirmMode = mode;
+  _confirmBarEl = barEl;
+  _confirmCallbacks = callbacks;
+  const labels = { save: 'Accept ?', quit: 'Quit ?', delete: 'Delete ?' };
+  barEl.querySelector('.confirm-label').textContent = labels[mode] || 'Confirm ?';
+  barEl.className = 'confirm-bar' + (mode === 'delete' ? ' confirm-delete' : '');
+  barEl.style.display = 'flex';
+}
+
+function hideConfirm() {
+  _confirmMode = null;
+  if (_confirmBarEl) { _confirmBarEl.style.display = 'none'; _confirmBarEl = null; }
+  _confirmCallbacks = null;
+}
+
+function confirmAction(yes) {
+  const cb = _confirmCallbacks;
+  hideConfirm();
+  if (cb) { yes ? cb.onYes() : cb.onNo(); }
+}
+
+function showPartSaveConfirm() {
+  showConfirm('save', document.getElementById('confirmBar'), {
+    onYes: () => document.getElementById('partForm').requestSubmit(),
+    onNo: () => { const all = getFocusableList(); if (all.length) all[0].focus(); }
+  });
+}
+
+function showPartQuitConfirm() {
+  showConfirm('quit', document.getElementById('confirmBar'), {
+    onYes: closePartModal,
+    onNo: () => { if (_lastFocused) _lastFocused.focus(); }
+  });
+}
+
+function showGroupSaveConfirm() {
+  showConfirm('save', document.getElementById('gConfirmBar'), {
+    onYes: saveGroup,
+    onNo: () => { const all = getFocusableGroupList(); if (all.length) all[0].focus(); }
+  });
+}
+
+function showGroupQuitConfirm() {
+  showConfirm('quit', document.getElementById('gConfirmBar'), {
+    onYes: closeGroupModal,
+    onNo: () => { if (_lastGroupFocused) _lastGroupFocused.focus(); }
+  });
+}
+
+function showGroupDeleteConfirm() {
+  showConfirm('delete', document.getElementById('gConfirmBar'), {
+    onYes: async () => {
+      const id = document.getElementById('gEditId').value;
+      try {
+        const res = await API.delete('/api/admin/groups/' + id);
+        if (res.ok) { closeGroupModal(); await loadAll(); API.toast('Group deleted'); }
+        else API.toast(res.message || 'Error', 'error');
+      } catch(e) { API.toast('Server error — restart the server', 'error'); }
+    },
+    onNo: () => { if (_lastGroupFocused) _lastGroupFocused.focus(); }
+  });
+}
+
+function showDeleteConfirm() {
+  showConfirm('delete', document.getElementById('confirmBar'), {
+    onYes: async () => {
+      const id = document.getElementById('editId').value;
+      try {
+        const res = await API.delete('/api/admin/parts/' + id);
+        if (res.ok) { closePartModal(); await loadAll(); API.toast('Part deleted'); }
+        else API.toast(res.message || 'Error', 'error');
+      } catch(e) { API.toast('Server error — restart the server', 'error'); }
+    },
+    onNo: () => { if (_lastFocused) _lastFocused.focus(); }
+  });
+}
+
+// ── Form Submit ──
+document.getElementById('partForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  const fd = new FormData();
+  fd.append('name_en', document.getElementById('fNameEn').value);
+  fd.append('name_hi', document.getElementById('fNameHi').value);
+  fd.append('sku', document.getElementById('fSku').value);
+  fd.append('category', document.getElementById('fCategory').value);
+  fd.append('brand', document.getElementById('fBrand').value);
+  fd.append('compatible_models', document.getElementById('fModels').value);
+  fd.append('price', document.getElementById('fPrice').value);
+  fd.append('purchase_price', document.getElementById('fPurchasePrice').value);
+  fd.append('stock', document.getElementById('fStock').value);
+  fd.append('unit', document.getElementById('fUnit').value);
+  fd.append('description', document.getElementById('fDesc') ? document.getElementById('fDesc').value : '');
+  if (id) fd.append('is_active', document.getElementById('fActiveSelect').value);
+  const img = document.getElementById('fImage').files[0];
+  if (img) fd.append('image', img);
+  const res = id
+    ? await API.req('PUT', '/api/admin/parts/' + id, fd)
+    : await API.req('POST', '/api/admin/parts', fd);
+  if (res.ok) { API.toast(id ? 'Part updated!' : 'Part added!'); closePartModal(); loadAll(); }
+  else API.toast(res.message || 'Error', 'error');
+});
+
+// ── Tally Form Navigation ──
+const FORM_SEL = 'input:not([type="hidden"]):not([type="file"]):not([disabled]), select:not([disabled]), .t-under';
+let _lastFocused = null;
+let _lastGroupFocused = null;
+
+function updateHsnFields() {
+  document.getElementById('hsnSpecifyRows').style.display = document.getElementById('fHsnMode').value === 'specify' ? '' : 'none';
+}
+function updateGstFields() {
+  document.getElementById('gstSpecifyRows').style.display = document.getElementById('fGstMode').value === 'specify' ? '' : 'none';
+}
+
+function getFocusableList() {
+  const skip = new Set();
+  if (!document.getElementById('fHsnMode') || document.getElementById('fHsnMode').value === 'group') { skip.add('fHsn'); skip.add('fDesc'); }
+  if (!document.getElementById('fGstMode') || document.getElementById('fGstMode').value === 'group') { skip.add('fTaxType'); skip.add('fGstRate'); }
+  return Array.from(document.getElementById('partForm').querySelectorAll(FORM_SEL))
+    .filter(el => !skip.has(el.id) && el.offsetParent !== null);
+}
+
+function getFocusableGroupList() {
+  const skip = new Set();
+  if (document.getElementById('gHsnMode').value === 'group') { skip.add('gHsn'); skip.add('gGDesc'); }
+  if (document.getElementById('gGstMode').value === 'group') { skip.add('gTaxType'); skip.add('gGstRate'); }
+  return Array.from(document.getElementById('groupForm').querySelectorAll(FORM_SEL))
+    .filter(el => !skip.has(el.id) && el.offsetParent !== null);
+}
+
+function navigateNext(fromEl, evt) {
+  const all = getFocusableList();
+  const idx = all.indexOf(fromEl);
+  if (idx >= 0 && idx < all.length - 1) all[idx + 1].focus();
+  else if (idx === all.length - 1) { if (evt) evt.stopPropagation(); showPartSaveConfirm(); }
+}
+
+function navigatePrev(fromEl) {
+  const all = getFocusableList();
+  const idx = fromEl ? all.indexOf(fromEl) : all.length;
+  const target = all[Math.max(0, idx - 1)];
+  if (target && target !== fromEl) target.focus();
+}
+
+function navigateGroupNext(fromEl, evt) {
+  const all = getFocusableGroupList();
+  const idx = all.indexOf(fromEl);
+  if (idx >= 0 && idx < all.length - 1) all[idx + 1].focus();
+  else if (idx === all.length - 1) { if (evt) evt.stopPropagation(); showGroupSaveConfirm(); }
+}
+
+function navigateGroupPrev(fromEl) {
+  const all = getFocusableGroupList();
+  const idx = fromEl ? all.indexOf(fromEl) : all.length;
+  const target = all[Math.max(0, idx - 1)];
+  if (target && target !== fromEl) target.focus();
+}
+
+document.getElementById('partForm').addEventListener('focusin', e => {
+  if (e.target.matches && e.target.matches(FORM_SEL)) _lastFocused = e.target;
+});
+document.getElementById('groupForm').addEventListener('focusin', e => {
+  if (e.target.matches && e.target.matches(FORM_SEL)) _lastGroupFocused = e.target;
+});
+
+function wireFormNav(formId, nextFn, prevFn) {
+  document.querySelectorAll(`#${formId} input[type="text"], #${formId} input[type="number"]`).forEach(input => {
+    input.addEventListener('mousedown', function() { this._clickedWhileFocused = (document.activeElement === this); });
+    input.addEventListener('focus', function() {
+      if (this._clickedWhileFocused) this._navMode = false;
+      else { this._navMode = true; this.select(); }
+      this._clickedWhileFocused = false;
+    });
+    input.addEventListener('blur', function() { this._navMode = false; this._clickedWhileFocused = false; });
+    input.addEventListener('keydown', function(e) {
+      if (_confirmMode) { e.preventDefault(); return; }
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { this._navMode = false; return; }
+      if (e.key === 'Enter') { e.preventDefault(); nextFn(this, e); return; }
+      if (e.key === 'Backspace') {
+        if (this._navMode) { e.preventDefault(); prevFn(this); }
+        else if (this.value === '') { e.preventDefault(); prevFn(this); }
+        return;
+      }
+      if (e.key.length === 1) this._navMode = false;
+    });
+  });
+  document.querySelectorAll(`#${formId} select`).forEach(sel => {
+    sel.addEventListener('keydown', function(e) {
+      if (_confirmMode) { e.preventDefault(); return; }
+      if (e.key === 'Enter') { e.preventDefault(); nextFn(this, e); return; }
+      if (e.key === 'Backspace') { e.preventDefault(); prevFn(this); }
+    });
+  });
+}
+
+// ── Brand + gUnder panel wiring ──
+document.getElementById('brandDisplay').addEventListener('blur', function() {
+  setTimeout(() => { if (!document.getElementById('brandPanel').contains(document.activeElement)) closeBrandPanel(); }, 150);
+});
+document.getElementById('brandDisplay').addEventListener('focus', function() {
+  if (brandSearchQuery && !brandPanelOpen) openBrandPanel();
+});
+document.getElementById('newBrandInput').addEventListener('keydown', async function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    const val = this.value.trim();
+    if (val) {
+      try {
+        const res = await API.post('/api/admin/brands', { name: val });
+        if (res.ok) {
+          if (!allBrands.includes(val)) allBrands.push(val);
+          allBrands.sort((a, b) => a.localeCompare(b));
+        }
+      } catch(err) {}
+      document.getElementById('fBrand').value = val;
+      document.getElementById('brandValue').textContent = val;
+      brandSearchQuery = '';
+      closeBrandPanel();
+      closeBrandCreate();
+      document.getElementById('brandDisplay').focus();
+      navigateNext(document.getElementById('brandDisplay'));
+    } else {
+      closeBrandCreate();
+      document.getElementById('brandDisplay').focus();
+    }
+    return;
+  }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeBrandCreate(); document.getElementById('brandDisplay').focus(); return; }
+  e.stopImmediatePropagation();
+});
+document.getElementById('gUnderDisplay').addEventListener('blur', function() {
+  setTimeout(() => { if (!document.getElementById('gUnderPanel').contains(document.activeElement)) closeGUnderPanel(); }, 0);
+});
+document.getElementById('newGUnderInput').addEventListener('keydown', async function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    const val = this.value.trim();
+    if (val) {
+      try {
+        const res = await API.post('/api/admin/groups', { name: val, parent: 'Primary' });
+        if (res.ok) { await loadAll(); selectGUnder(val); }
+        else { API.toast(res.message || 'Error', 'error'); }
+      } catch(err) { API.toast('Server error', 'error'); }
+    } else { closeGUnderCreate(); document.getElementById('gUnderDisplay').focus(); }
+    return;
+  }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeGUnderCreate(); document.getElementById('gUnderDisplay').focus(); return; }
+  e.stopImmediatePropagation();
+});
+
+// ── Name duplicate check (registered before wireFormNav so stopImmediatePropagation blocks it) ──
+document.getElementById('fNameEn').addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  const val = this.value.trim();
+  if (!val) return;
+  const editId = parseInt(document.getElementById('editId').value) || 0;
+  const dup = allParts.find(p => p.name_en.toLowerCase() === val.toLowerCase() && p.id !== editId);
+  if (dup) {
+    e.preventDefault(); e.stopImmediatePropagation();
+    document.getElementById('fNameEnWarn').style.display = '';
+    return;
+  }
+  document.getElementById('fNameEnWarn').style.display = 'none';
+});
+document.getElementById('fNameEn').addEventListener('input', function() {
+  document.getElementById('fNameEnWarn').style.display = 'none';
+});
+
+document.getElementById('gName').addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  const val = this.value.trim();
+  if (!val) return;
+  const editId = parseInt(document.getElementById('gEditId').value) || 0;
+  const dup = groups.find(g => g.name.toLowerCase() === val.toLowerCase() && g.id !== editId);
+  if (dup) {
+    e.preventDefault(); e.stopImmediatePropagation();
+    document.getElementById('gNameWarn').style.display = '';
+    return;
+  }
+  document.getElementById('gNameWarn').style.display = 'none';
+});
+document.getElementById('gName').addEventListener('input', function() {
+  document.getElementById('gNameWarn').style.display = 'none';
+});
+
+wireFormNav('partForm', navigateNext, navigatePrev);
+wireFormNav('groupForm', navigateGroupNext, navigateGroupPrev);
+
+// ── Confirm capture listener (runs before all element handlers) ──
+document.addEventListener('keydown', function(e) {
+  if (!_confirmMode) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const k = e.key.toLowerCase();
+  if (k === 'y' || e.key === 'Enter') confirmAction(true);
+  else if (k === 'n') confirmAction(false);
+  else if (e.key === 'Escape') { _confirmMode === 'quit' ? confirmAction(true) : confirmAction(false); }
+}, true);
+
+// ── Global Keyboard Handler ──
+document.addEventListener('keydown', e => {
+  if (_confirmMode) return;
+
+  const inInput = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
+  const modalOpen = document.getElementById('partModal').classList.contains('open');
+  const groupModalOpen = document.getElementById('groupModal').classList.contains('open');
+
+  // Ctrl+Enter — Alter (open edit for selected item)
+  if (e.ctrlKey && !e.altKey && e.key === 'Enter' && !modalOpen && !groupModalOpen) {
+    e.preventDefault();
+    const row = _visibleRows[_cursor];
+    if (!row) return;
+    if (row.type === 'item') openEditById(row.part.id);
+    else if (row.type === 'group' && row.group) openGroupEdit(row.group);
+    return;
+  }
+
+  // Alt shortcuts
+  if (e.altKey && !e.ctrlKey) {
+    const k = e.key.toLowerCase();
+    if (k === 'c' && !inInput && !modalOpen && !groupModalOpen) { e.preventDefault(); openAdd(); return; }
+    if (k === 'g' && !inInput && !modalOpen && !groupModalOpen) { e.preventDefault(); openGroup(); return; }
+    if (k === 'c' && modalOpen) {
+      const focused = document.activeElement;
+      if (focused && focused.id === 'brandDisplay') { e.preventDefault(); openBrandCreate(); return; }
+      if (focused && focused.id === 'underDisplay') { e.preventDefault(); openGroup(); return; }
+    }
+    if (k === 'c' && groupModalOpen) {
+      const focused = document.activeElement;
+      if (focused && focused.id === 'gUnderDisplay') { e.preventDefault(); openGUnderCreate(); return; }
+    }
+    if (k === 'a') {
+      e.preventDefault();
+      if (modalOpen) showPartSaveConfirm();
+      else if (groupModalOpen) showGroupSaveConfirm();
+      return;
+    }
+    if (k === 'd' && modalOpen) {
+      const id = document.getElementById('editId').value;
+      if (!id) return;
+      e.preventDefault();
+      showDeleteConfirm();
+      return;
+    }
+    if (k === 'd' && groupModalOpen) {
+      const id = document.getElementById('gEditId').value;
+      if (!id) return;
+      e.preventDefault();
+      showGroupDeleteConfirm();
+      return;
+    }
+    return;
+  }
+
+  // List navigation when no modal open and not in input
+  if (!modalOpen && !groupModalOpen && !inInput) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _cursor = Math.min(_cursor + 1, _visibleRows.length - 1);
+      renderTree(); scrollCursorIntoView(); return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _cursor = Math.max(_cursor - 1, 0);
+      renderTree(); scrollCursorIntoView(); return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const row = _visibleRows[_cursor];
+      if (row && row.type === 'group') drillIntoGroup(row.name);
+      return;
+    }
+  }
+
+  // Escape
+  if (e.key === 'Escape') {
+    if (groupPanelOpen) { toggleGroupPanel(); return; }
+    if (groupModalOpen) { showGroupQuitConfirm(); return; }
+    if (modalOpen) { showPartQuitConfirm(); return; }
+    if (!inInput && _groupPath.length > 1) { drillUp(); return; }
+  }
+
+  // Backspace nav inside modals
+  if (e.key === 'Backspace' && !inInput && modalOpen) { e.preventDefault(); navigatePrev(_lastFocused); return; }
+  if (e.key === 'Backspace' && !inInput && groupModalOpen) { e.preventDefault(); navigateGroupPrev(_lastGroupFocused); return; }
+});
+
+init();
+</script>
+</body>
+</html>

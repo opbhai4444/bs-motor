@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div>
+      <a href="/admin/index.html" class="active">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div>
+      <a href="/admin/inventory.html">📦 Parts & Stock</a>
+      <a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div>
+      <a href="/admin/orders.html">📋 Orders</a>
+      <a href="/admin/customers.html">👥 Customers</a>
+      <a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div>
+      <a href="/admin/accounts.html">📒 Ledger</a>
+      <a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div>
+      <a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div>
+      <a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>Dashboard</h1>
+      <div class="user-info">Welcome, <strong id="adminName"></strong> &nbsp;|&nbsp; <span id="todayDate"></span></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value" id="s-parts">—</div><div class="stat-label">Active Parts</div></div>
+      <div class="stat-card primary"><div class="stat-icon">📋</div><div class="stat-value" id="s-orders">—</div><div class="stat-label">Total Orders</div></div>
+      <div class="stat-card danger"><div class="stat-icon">⏳</div><div class="stat-value" id="s-pending">—</div><div class="stat-label">Pending Orders</div></div>
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="s-customers">—</div><div class="stat-label">Customers</div></div>
+      <div class="stat-card success"><div class="stat-icon">💰</div><div class="stat-value" id="s-today">—</div><div class="stat-label">Today's Sales</div></div>
+      <div class="stat-card success"><div class="stat-icon">📅</div><div class="stat-value" id="s-month">—</div><div class="stat-label">Month Sales</div></div>
+      <div class="stat-card danger"><div class="stat-icon">⚠️</div><div class="stat-value" id="s-lowstock">—</div><div class="stat-label">Low Stock</div></div>
+    </div>
+    <div class="section-title">Recent Orders</div>
+    <table class="data-table">
+      <thead><tr><th>Order No</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+      <tbody id="recentOrders"></tbody>
+    </table>
+  </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const s = await API.get('/api/admin/stats');
+  document.getElementById('s-parts').textContent = s.totalParts;
+  document.getElementById('s-orders').textContent = s.totalOrders;
+  document.getElementById('s-pending').textContent = s.pendingOrders;
+  document.getElementById('s-customers').textContent = s.totalCustomers;
+  document.getElementById('s-today').textContent = '₹'+parseFloat(s.todaySales).toFixed(0);
+  document.getElementById('s-month').textContent = '₹'+parseFloat(s.monthSales).toFixed(0);
+  document.getElementById('s-lowstock').textContent = s.lowStock;
+  document.getElementById('recentOrders').innerHTML = s.recentOrders.map(o=>`
+    <tr>
+      <td><strong>${o.order_no}</strong></td>
+      <td>${o.customer_name}</td>
+      <td>₹${parseFloat(o.total).toFixed(2)}</td>
+      <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+      <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+      <td><a href="/admin/orders.html" class="btn-sm btn-view">View</a></td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:#999;padding:1.5rem">No orders yet</td></tr>';
+}
+init();
+</script>
+</body>
+</html>

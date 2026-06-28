@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div><a href="/admin/orders.html">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accounts.html">📒 Ledger</a><a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html" class="active">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>📈 Reports</h1>
+      <select id="periodSel" onchange="loadAll()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="365">Last 12 months</option>
+      </select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:2rem" id="plCards"></div>
+
+    <div class="report-card" style="margin-bottom:2rem">
+      <h3 style="margin-bottom:1rem;font-weight:800">Daily Revenue & Orders</h3>
+      <div style="position:relative;height:280px"><canvas id="salesChart"></canvas></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <div class="report-card">
+        <h3 style="font-weight:800;margin-bottom:1rem">Top Selling Parts</h3>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#f8f9fa"><th style="padding:0.5rem;text-align:left">Part</th><th style="padding:0.5rem;text-align:center">Sold</th><th style="padding:0.5rem;text-align:right">Revenue</th></tr></thead>
+          <tbody id="topPartsBody"></tbody>
+        </table>
+      </div>
+      <div class="report-card">
+        <h3 style="font-weight:800;margin-bottom:1rem">Stock Value by Category</h3>
+        <div style="position:relative;height:240px"><canvas id="stockChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="report-card">
+      <h3 style="font-weight:800;margin-bottom:1rem">⚠️ Low Stock Alert (≤5 units)</h3>
+      <div id="lowStockList"></div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+let salesChartInst=null, stockChartInst=null;
+
+async function init() {
+  const user=await AdminNav.init();
+  if(!user)return;
+  loadAll();
+}
+
+async function loadAll() {
+  const days=document.getElementById('periodSel').value;
+  const [sales,topParts,pl,stock]=await Promise.all([
+    API.get('/api/admin/reports/sales?days='+days),
+    API.get('/api/admin/reports/top-parts?days='+days),
+    API.get('/api/admin/reports/profit-loss?days='+days),
+    API.get('/api/admin/reports/stock')
+  ]);
+
+  const plData=[
+    {label:'Revenue',val:pl.revenue,color:'#1565c0'},
+    {label:'Cost of Goods',val:pl.cogs,color:'#e67e22'},
+    {label:'Gross Profit',val:pl.gross_profit,color:'#2d6a4f'},
+    {label:'Expenses',val:pl.expenses,color:'#c62828'},
+    {label:'Net Profit',val:pl.net_profit,color:parseFloat(pl.net_profit||0)>=0?'#2d6a4f':'#c62828'}
+  ];
+  document.getElementById('plCards').innerHTML=plData.map(d=>`
+    <div class="stat-card" style="border-top-color:${d.color}">
+      <div class="stat-label">${d.label}</div>
+      <div class="stat-value" style="font-size:1.35rem;color:${d.color}">₹${Math.abs(parseFloat(d.val||0)).toFixed(0)}</div>
+    </div>`).join('');
+
+  if(salesChartInst)salesChartInst.destroy();
+  salesChartInst=new Chart(document.getElementById('salesChart').getContext('2d'),{
+    data:{
+      labels:sales.map(s=>s.date),
+      datasets:[
+        {type:'bar',label:'Revenue (₹)',data:sales.map(s=>s.revenue),backgroundColor:'rgba(30,100,170,0.2)',borderColor:'#1e64aa',borderWidth:2,yAxisID:'y'},
+        {type:'line',label:'Orders',data:sales.map(s=>s.orders),borderColor:'#e67e22',backgroundColor:'rgba(230,126,34,0.1)',tension:0.3,yAxisID:'y1'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'}},scales:{y:{position:'left',beginAtZero:true,ticks:{callback:v=>'₹'+v}},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}
+  });
+
+  document.getElementById('topPartsBody').innerHTML=topParts.slice(0,10).map((p,i)=>`
+    <tr style="background:${i%2?'transparent':'#fafafa'}">
+      <td style="padding:0.5rem"><span style="color:#999;font-size:0.8rem">${i+1}.</span> ${p.name_en}</td>
+      <td style="padding:0.5rem;text-align:center;font-weight:700">${p.total_qty}</td>
+      <td style="padding:0.5rem;text-align:right;font-weight:800;color:var(--secondary)">₹${parseFloat(p.revenue).toFixed(0)}</td>
+    </tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:#999;padding:1rem">No sales data</td></tr>';
+
+  const catGroups={};
+  for(const p of stock){const cat=p.category||'Other';if(!catGroups[cat])catGroups[cat]=0;catGroups[cat]+=parseFloat(p.stock_value||0);}
+  const cats=Object.keys(catGroups),vals=Object.values(catGroups);
+  const palette=['#1565c0','#2d6a4f','#e67e22','#c62828','#6a1b9a','#00838f','#558b2f','#d84315'];
+  if(stockChartInst)stockChartInst.destroy();
+  stockChartInst=new Chart(document.getElementById('stockChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:cats,datasets:[{data:vals,backgroundColor:palette.slice(0,cats.length),borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'},tooltip:{callbacks:{label:c=>`${c.label}: ₹${parseFloat(c.raw).toFixed(0)}`}}}}
+  });
+
+  const low=stock.filter(p=>p.stock<=5&&p.is_active);
+  document.getElementById('lowStockList').innerHTML=low.length?`
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#fff3cd"><th style="padding:0.5rem">SKU</th><th style="padding:0.5rem">Name</th><th style="padding:0.5rem">Category</th><th style="padding:0.5rem;text-align:center">Stock</th><th style="padding:0.5rem;text-align:right">Value</th></tr></thead>
+      <tbody>${low.map(p=>`<tr><td style="padding:0.5rem"><code>${p.sku}</code></td><td style="padding:0.5rem;font-weight:600">${p.name_en}</td><td style="padding:0.5rem">${p.category||'—'}</td><td style="padding:0.5rem;text-align:center"><span style="color:#e63946;font-weight:800">${p.stock}</span></td><td style="padding:0.5rem;text-align:right">₹${parseFloat(p.stock_value||0).toFixed(0)}</td></tr>`).join('')}</tbody>
+    </table>`:'<p style="color:#2d6a4f;text-align:center;padding:1rem">All parts have sufficient stock.</p>';
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="bsm-navbar">
+  <a href="/consumer/index.html" class="brand">BS <span>Motors</span></a>
+  <nav>
+    <a href="/consumer/index.html">Parts</a>
+    <a href="/consumer/cart.html">Cart</a>
+    <a href="/consumer/orders.html">My Orders</a>
+    <a href="/consumer/contact.html">Contact</a>
+  </nav>
+  <div class="nav-right">
+    <button id="lang-toggle">हिंदी</button>
+    <a href="/consumer/profile.html" id="nav-user" style="color:var(--accent);font-size:0.9rem;display:none"></a>
+    <a href="/consumer/login.html" id="nav-login" style="color:var(--accent);font-weight:700;font-size:0.9rem">Login</a>
+    <a href="#" id="nav-logout" style="color:#e0e0e0;font-size:0.85rem;display:none">Logout</a>
+  </div>
+</nav>
+<div class="page-wrap section">
+  <div class="section-title">👤 My Profile</div>
+  <div style="max-width:500px;background:#fff;border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+    <form id="profileForm">
+      <div class="form-group"><label>Name</label><input type="text" id="pName" required></div>
+      <div class="form-group"><label>Email</label><input type="email" id="pEmail" disabled style="background:#f8f9fa"></div>
+      <div class="form-group"><label>Phone</label><input type="tel" id="pPhone"></div>
+      <div class="form-group"><label>Address</label><textarea id="pAddress" rows="2"></textarea></div>
+      <div class="form-group">
+        <label>Language Preference</label>
+        <select id="pLang"><option value="en">English</option><option value="hi">हिंदी</option></select>
+      </div>
+      <button type="submit" class="btn-primary">Save Changes</button>
+    </form>
+  </div>
+</div>
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/consumer-nav.js"></script>
+<script>
+async function init() {
+  const user = await ConsumerNav.requireLogin();
+  if (!user) return;
+  I18n.init();
+  const p = await API.get('/api/consumer/profile');
+  document.getElementById('pName').value = p.name;
+  document.getElementById('pEmail').value = p.email;
+  document.getElementById('pPhone').value = p.phone||'';
+  document.getElementById('pAddress').value = p.address||'';
+  document.getElementById('pLang').value = p.lang||'en';
+}
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const res = await API.put('/api/consumer/profile', {
+    name: document.getElementById('pName').value,
+    phone: document.getElementById('pPhone').value,
+    address: document.getElementById('pAddress').value,
+    lang: document.getElementById('pLang').value
+  });
+  if (res.ok) API.toast('Profile updated!');
+  else API.toast('Error saving','error');
+});
+init();
+</script>
+</body>
+</html>

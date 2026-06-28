@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-size:2.5rem">🔧</div>
+      <h2>BS Motors</h2>
+      <p class="subtitle">Login to your account</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group"><label>Email</label><input type="email" id="email" required placeholder="you@email.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="password" required placeholder="••••••••"></div>
+      <button type="submit" class="btn-primary">Login</button>
+    </form>
+    <div class="auth-link">Don't have an account? <a href="/consumer/register.html">Register</a></div>
+    <div style="text-align:center;margin-top:1rem">
+      <button id="lang-toggle" style="margin:0 auto;display:block">हिंदी</button>
+    </div>
+  </div>
+</div>
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script>
+I18n.init();
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const res = await API.post('/api/auth/login', {
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value
+  });
+  if (res.ok) {
+    if (res.role === 'admin') {
+      // Admin tried to log in via consumer page — send to admin panel
+      window.location.href = '/admin/index.html';
+    } else {
+      // Go to next page or home
+      const next = new URLSearchParams(window.location.search).get('next') || '/consumer/index.html';
+      window.location.href = next;
+    }
+  } else {
+    API.toast(res.message || 'Login failed', 'error');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-wrap" style="background:linear-gradient(135deg,#1d3557,#e63946)">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-size:2.5rem">⚙️</div>
+      <h2 style="color:var(--secondary)">Admin Panel</h2>
+      <p class="subtitle">BS Motors — Authorized Access Only</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group"><label>Admin Email</label><input type="email" id="email" required value="admin@bsmotor.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="password" required value="admin123"></div>
+      <button type="submit" class="btn-primary" style="background:var(--secondary)">Login to Admin Panel</button>
+    </form>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script>
+// Redirect if already logged in as admin
+fetch('/api/auth/me').then(r=>r.json()).then(res => {
+  if (res.ok && res.user.role === 'admin') window.location.href = '/admin/index.html';
+});
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const res = await API.post('/api/auth/login', {
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value
+  });
+  if (res.ok && res.role === 'admin') {
+    window.location.href = '/admin/index.html';
+  } else if (res.ok && res.role !== 'admin') {
+    API.toast('Access denied — admin only', 'error');
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } else {
+    API.toast(res.message || 'Invalid credentials', 'error');
+  }
+});
+</script>
+</body>
+</html>

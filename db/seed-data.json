@@ -1,0 +1,173 @@
+{
+  "parts": [
+    {
+      "name_en": "bumper SD 1g fr ",
+      "name_hi": "bumper SD 1g fr ",
+      "sku": "71711M75J00",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 2650,
+      "purchase_price": 2450,
+      "stock": 10,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper swift 2g fL fr",
+      "name_hi": "bumper swift 2g fL fr",
+      "sku": "AUTO-1782642871763",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 1600,
+      "purchase_price": 1400,
+      "stock": 10,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper swift 2g PFL fr ",
+      "name_hi": "bumper swift 2g PFL fr ",
+      "sku": "AUTO-1782642894488",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 1600,
+      "purchase_price": 1400,
+      "stock": 10,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper swift 3g pFL fr ",
+      "name_hi": "bumper swift 3g pFL fr ",
+      "sku": "AUTO-1782643127732",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 1600,
+      "purchase_price": 1400,
+      "stock": 10,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper swift 3g FL fr",
+      "name_hi": "bumper swift 3g FL fr",
+      "sku": "AUTO-1782643142535",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 1600,
+      "purchase_price": 1400,
+      "stock": 10,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper swift 4g fr ",
+      "name_hi": "bumper swift 4g fr ",
+      "sku": "AUTO-1782643170423",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 2000,
+      "purchase_price": 1600,
+      "stock": 103,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bumper dzire 2g pFL fr ",
+      "name_hi": "bumper dzire 2g pFL fr ",
+      "sku": "AUTO-1782643206962",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 2000,
+      "purchase_price": 2000,
+      "stock": 5,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "Bumper Dzire 2g FL Fr",
+      "name_hi": "Bumper Dzire 2g FL Fr",
+      "sku": "AUTO-1782643240730",
+      "category": "bumpers",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 2500,
+      "purchase_price": 1000,
+      "stock": 7,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    },
+    {
+      "name_en": "bB sD 2g fr lh ",
+      "name_hi": "bB sD 2g fr lh ",
+      "sku": "AUTO-1782643306391",
+      "category": "bumper brackets",
+      "brand": "accurate",
+      "compatible_models": null,
+      "price": 150,
+      "purchase_price": 100,
+      "stock": 20,
+      "unit": "Pcs",
+      "description": null,
+      "is_active": 1
+    }
+  ],
+  "stock_groups": [
+    {
+      "name": "body parts",
+      "parent": "Primary"
+    },
+    {
+      "name": "bumpers",
+      "parent": "body parts"
+    },
+    {
+      "name": "fander linings",
+      "parent": "body parts"
+    },
+    {
+      "name": "hL assy",
+      "parent": "body parts"
+    },
+    {
+      "name": "bumper brackets",
+      "parent": "body parts"
+    },
+    {
+      "name": "tl assy",
+      "parent": "body parts"
+    },
+    {
+      "name": "grills upper/ lower/ nose/ skid plate/ cowl top",
+      "parent": "body parts"
+    },
+    {
+      "name": "fl covers",
+      "parent": "body parts"
+    },
+    {
+      "name": "tochan caps",
+      "parent": "body parts"
+    }
+  ],
+  "brands": [
+    {
+      "name": "lumax"
+    }
+  ]
+}

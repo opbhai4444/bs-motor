@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="bsm-navbar">
+  <a href="/consumer/index.html" class="brand">BS <span>Motors</span></a>
+  <nav>
+    <a href="/consumer/index.html">Parts</a>
+    <a href="/consumer/cart.html" class="active">Cart</a>
+    <a href="/consumer/orders.html">My Orders</a>
+    <a href="/consumer/contact.html">Contact</a>
+  </nav>
+  <div class="nav-right">
+    <button id="lang-toggle">हिंदी</button>
+    <a href="/consumer/profile.html" id="nav-user" style="color:#e0e0e0;font-size:0.9rem;display:none"></a>
+    <a href="/consumer/login.html" id="nav-login" style="color:var(--accent);font-weight:700;font-size:0.9rem">Login</a>
+    <a href="#" id="nav-logout" style="color:#e0e0e0;font-size:0.85rem;display:none">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrap section">
+  <div class="section-title">🛒 My Cart</div>
+  <div id="cartContent">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start">
+      <div>
+        <table class="cart-table">
+          <thead><tr><th>Part</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+          <tbody id="cartBody"></tbody>
+        </table>
+      </div>
+      <div class="cart-summary">
+        <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1rem">Order Summary</h3>
+        <div class="total-row"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
+        <div class="total-row grand"><span>Total</span><span id="totalAmt">₹0.00</span></div>
+        <div class="form-group" style="margin-top:1rem">
+          <label>Payment Method</label>
+          <select id="paymentMethod">
+            <option value="cash">Cash on Delivery</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <textarea id="orderNotes" rows="2" placeholder="Any special instructions..."></textarea>
+        </div>
+        <button class="btn-order" onclick="placeOrder()">Place Order</button>
+      </div>
+    </div>
+  </div>
+  <div id="emptyCart" class="empty-state" style="display:none">
+    <div class="icon">🛒</div>
+    <p>Your cart is empty</p>
+    <a href="/consumer/index.html" style="display:inline-block;margin-top:1rem;padding:0.75rem 2rem;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-weight:700">Browse Parts</a>
+  </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/consumer-nav.js"></script>
+<script>
+let cartItems = [];
+
+async function init() {
+  const user = await ConsumerNav.requireLogin();
+  if (!user) return;
+  I18n.init();
+  await loadCart();
+}
+
+async function loadCart() {
+  cartItems = await API.get('/api/consumer/cart');
+  if (!cartItems.length) {
+    document.getElementById('cartContent').style.display = 'none';
+    document.getElementById('emptyCart').style.display = 'block';
+    return;
+  }
+  document.getElementById('cartContent').style.display = 'block';
+  document.getElementById('emptyCart').style.display = 'none';
+  renderCart();
+}
+
+function renderCart() {
+  document.getElementById('cartBody').innerHTML = cartItems.map(item => `
+    <tr>
+      <td><div style="font-weight:700">${item.name_en}</div></td>
+      <td>₹${parseFloat(item.price).toFixed(2)}</td>
+      <td><input class="qty-input" type="number" min="1" max="${item.stock}" value="${item.qty}" onchange="updateQty(${item.part_id},this.value)"></td>
+      <td style="font-weight:700">₹${(item.price*item.qty).toFixed(2)}</td>
+      <td><button class="btn-sm btn-delete" onclick="removeItem(${item.part_id})">✕</button></td>
+    </tr>
+  `).join('');
+  updateTotals();
+}
+
+function updateTotals() {
+  const sub = cartItems.reduce((s,i) => s+i.price*i.qty, 0);
+  document.getElementById('subtotal').textContent = '₹'+sub.toFixed(2);
+  document.getElementById('totalAmt').textContent = '₹'+sub.toFixed(2);
+}
+
+async function updateQty(part_id, qty) {
+  qty = parseInt(qty); if (qty<1) return;
+  await API.post('/api/consumer/cart', { part_id, qty });
+  const item = cartItems.find(i => i.part_id===part_id);
+  if (item) { item.qty=qty; updateTotals(); }
+}
+
+async function removeItem(part_id) {
+  await API.delete('/api/consumer/cart/'+part_id);
+  cartItems = cartItems.filter(i => i.part_id!==part_id);
+  if (!cartItems.length) { document.getElementById('cartContent').style.display='none'; document.getElementById('emptyCart').style.display='block'; }
+  else renderCart();
+}
+
+async function placeOrder() {
+  const res = await API.post('/api/consumer/orders', {
+    payment_method: document.getElementById('paymentMethod').value,
+    notes: document.getElementById('orderNotes').value
+  });
+  if (res.ok) { API.toast('Order placed! #'+res.order_no); setTimeout(()=>window.location.href='/consumer/orders.html',1500); }
+  else API.toast(res.message, 'error');
+}
+
+init();
+</script>
+</body>
+</html>

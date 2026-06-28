@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="bsm-navbar">
+  <a href="/consumer/index.html" class="brand">BS <span>Motors</span></a>
+  <nav>
+    <a href="/consumer/index.html">Parts</a>
+    <a href="/consumer/cart.html">Cart</a>
+    <a href="/consumer/orders.html">My Orders</a>
+    <a href="/consumer/contact.html" class="active">Contact</a>
+  </nav>
+  <div class="nav-right">
+    <button id="lang-toggle">हिंदी</button>
+    <a href="/consumer/profile.html" id="nav-user" style="color:#e0e0e0;font-size:0.9rem;display:none"></a>
+    <a href="/consumer/login.html" id="nav-login" style="color:var(--accent);font-weight:700;font-size:0.9rem">Login</a>
+    <a href="#" id="nav-logout" style="color:#e0e0e0;font-size:0.85rem;display:none">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrap section">
+  <div class="section-title">Contact Us</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+    <div style="background:#fff;border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+      <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1.25rem">Send Enquiry</h3>
+      <form id="enquiryForm">
+        <div class="form-group"><label>Name *</label><input type="text" id="eName" required placeholder="Your name"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="ePhone" placeholder="Your phone number"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="eEmail" placeholder="your@email.com"></div>
+        <div class="form-group"><label>Message *</label><textarea id="eMessage" rows="4" required placeholder="Which part are you looking for?"></textarea></div>
+        <button type="submit" class="btn-primary">Send Message</button>
+      </form>
+    </div>
+    <div>
+      <div style="background:#fff;border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:1.25rem">
+        <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1rem">📍 Visit Us</h3>
+        <p style="color:#555;line-height:1.7">BS Motors<br>Spare Parts Market<br>Your City, State — 000000</p>
+      </div>
+      <div style="background:#fff;border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:1.25rem">
+        <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1rem">📞 Call / WhatsApp</h3>
+        <p style="font-size:1.3rem;font-weight:800;color:var(--primary)">+91 99999 99999</p>
+        <p style="color:#666;font-size:0.9rem;margin-top:0.5rem">Mon–Sat: 9am – 7pm</p>
+      </div>
+      <div style="background:#fff;border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+        <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1rem">✉️ Email</h3>
+        <p style="color:var(--secondary);font-weight:700">info@bsmotor.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/consumer-nav.js"></script>
+<script>
+ConsumerNav.init();
+I18n.init();
+document.getElementById('enquiryForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const res = await API.post('/api/consumer/enquiry', {
+    name: document.getElementById('eName').value,
+    phone: document.getElementById('ePhone').value,
+    email: document.getElementById('eEmail').value,
+    message: document.getElementById('eMessage').value
+  });
+  if (res.ok) { API.toast(res.message); document.getElementById('enquiryForm').reset(); }
+  else API.toast(res.message, 'error');
+});
+</script>
+</body>
+</html>

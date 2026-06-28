@@ -1,0 +1,24 @@
+node_modules/
+
+# Local secrets — set these in Render's Environment tab instead
+.env
+
+# Runtime databases (recreated + seeded automatically on each deploy)
+database/
+*.db
+*.db-shm
+*.db-wal
+
+# Old single-file DB (superseded by admin.db + consumer.db)
+bsmotor.db*
+
+# Runtime-uploaded images (ephemeral on Render free tier)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Claude Code local settings
+.claude/
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store

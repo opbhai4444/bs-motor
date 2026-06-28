@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div><a href="/admin/orders.html">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accounts.html">📒 Ledger</a>
+      <a href="/admin/journal.html" class="active">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>📝 Journal Entries</h1>
+      <button class="btn-sm btn-view" style="padding:0.6rem 1.25rem;font-size:0.95rem" onclick="openNew()">+ New Entry</button>
+    </div>
+    <div class="filter-bar" style="margin-bottom:1rem;border-radius:10px">
+      <input type="date" id="fromDate"> <span style="color:#999">to</span> <input type="date" id="toDate">
+      <button class="btn-sm btn-view" onclick="loadJournal()">Filter</button>
+    </div>
+    <div id="journalList"></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="jModal">
+  <div class="modal-box" style="max-width:700px">
+    <button class="modal-close" onclick="closeModal('jModal')">✕</button>
+    <h3>New Journal Entry</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div class="form-group"><label>Date *</label><input type="date" id="jDate" required></div>
+      <div class="form-group"><label>Narration</label><input type="text" id="jNarration" placeholder="e.g. Rent paid for June"></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:0.75rem">
+      <thead><tr style="background:#f8f9fa"><th style="padding:0.5rem;text-align:left">Account</th><th style="padding:0.5rem;text-align:right">Debit (Dr)</th><th style="padding:0.5rem;text-align:right">Credit (Cr)</th><th></th></tr></thead>
+      <tbody id="jLines"></tbody>
+    </table>
+    <button class="btn-sm btn-edit" onclick="addLine()" style="margin-bottom:1rem">+ Add Line</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-weight:700">
+      <div>Total Dr: <span id="totalDr" style="color:#2d6a4f">₹0.00</span></div>
+      <div id="balanceAlert" style="display:none;color:#e63946;font-size:0.85rem">⚠ Debit ≠ Credit</div>
+      <div>Total Cr: <span id="totalCr" style="color:#c62828">₹0.00</span></div>
+    </div>
+    <button class="btn-primary" onclick="saveEntry()">Post Entry</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="viewModal">
+  <div class="modal-box" style="max-width:580px">
+    <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    <h3>Journal Entry</h3>
+    <div id="viewDetail"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+let allAccounts=[];
+async function init() {
+  const user=await AdminNav.init();
+  if(!user)return;
+  allAccounts=await API.get('/api/admin/accounts');
+  document.getElementById('jDate').value=new Date().toISOString().split('T')[0];
+  loadJournal();
+}
+async function loadJournal() {
+  const params=new URLSearchParams();
+  const from=document.getElementById('fromDate').value, to=document.getElementById('toDate').value;
+  if(from)params.set('from',from); if(to)params.set('to',to);
+  const entries=await API.get('/api/admin/journal?'+params);
+  document.getElementById('journalList').innerHTML=entries.map(e=>`
+    <div class="journal-entry">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong style="color:var(--secondary)">${e.entry_no}</strong><span style="font-size:0.82rem;color:#999;margin-left:0.75rem">${e.date}</span></div>
+        <button class="btn-sm btn-view" onclick="viewEntry(${e.id})">View</button>
+      </div>
+      ${e.narration?`<div style="margin-top:0.35rem;color:#555;font-size:0.9rem">${e.narration}</div>`:''}
+      <div style="margin-top:0.35rem;font-size:0.8rem;color:#999">${e.accounts||''}</div>
+    </div>
+  `).join('')||'<div class="empty-state"><div class="icon">📝</div><p>No journal entries yet</p></div>';
+}
+function openNew(){document.getElementById('jLines').innerHTML='';document.getElementById('jModal').classList.add('open');addLine();addLine();recalc();}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function addLine() {
+  const opts=allAccounts.map(a=>`<option value="${a.id}">${a.name} (${a.type})</option>`).join('');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td style="padding:0.4rem"><select style="width:100%;padding:0.35rem;border:1px solid var(--border);border-radius:6px" class="j-acct" onchange="recalc()">${opts}</select></td>
+    <td style="padding:0.4rem"><input type="number" class="j-dr qty-input" value="0" step="0.01" min="0" onchange="recalc()" style="width:100%;text-align:right"></td>
+    <td style="padding:0.4rem"><input type="number" class="j-cr qty-input" value="0" step="0.01" min="0" onchange="recalc()" style="width:100%;text-align:right"></td>
+    <td style="padding:0.4rem"><button class="btn-sm btn-delete" onclick="this.closest('tr').remove();recalc()">✕</button></td>`;
+  document.getElementById('jLines').appendChild(tr);
+}
+function recalc(){
+  let dr=0,cr=0;
+  document.querySelectorAll('#jLines tr').forEach(tr=>{dr+=parseFloat(tr.querySelector('.j-dr')?.value||0);cr+=parseFloat(tr.querySelector('.j-cr')?.value||0);});
+  document.getElementById('totalDr').textContent='₹'+dr.toFixed(2);
+  document.getElementById('totalCr').textContent='₹'+cr.toFixed(2);
+  document.getElementById('balanceAlert').style.display=Math.abs(dr-cr)>0.01?'block':'none';
+}
+async function saveEntry(){
+  const lines=[];
+  document.querySelectorAll('#jLines tr').forEach(tr=>{
+    const account_id=parseInt(tr.querySelector('.j-acct')?.value),debit=parseFloat(tr.querySelector('.j-dr')?.value||0),credit=parseFloat(tr.querySelector('.j-cr')?.value||0);
+    if(account_id&&(debit>0||credit>0))lines.push({account_id,debit,credit});
+  });
+  if(!lines.length)return API.toast('Add at least one line','warning');
+  const res=await API.post('/api/admin/journal',{date:document.getElementById('jDate').value,narration:document.getElementById('jNarration').value,lines});
+  if(res.ok){API.toast('Entry posted: '+res.entry_no);closeModal('jModal');loadJournal();}
+  else API.toast(res.message||'Error — check Dr = Cr','error');
+}
+async function viewEntry(id){
+  const e=await API.get('/api/admin/journal/'+id);
+  document.getElementById('viewDetail').innerHTML=`
+    <div style="margin-bottom:1rem"><strong>${e.entry_no}</strong> &nbsp; <span style="color:#999">${e.date}</span>${e.narration?`<div style="margin-top:0.4rem;color:#555">${e.narration}</div>`:''}</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--secondary);color:#fff"><th style="padding:0.6rem">Account</th><th style="padding:0.6rem;text-align:right">Debit</th><th style="padding:0.6rem;text-align:right">Credit</th></tr></thead>
+      <tbody>${e.lines.map(l=>`<tr><td style="padding:0.6rem">${l.account_name} <span style="font-size:0.78rem;color:#999">(${l.type})</span></td><td style="padding:0.6rem;text-align:right;color:#2d6a4f;font-weight:${l.debit>0?700:400}">${l.debit>0?'₹'+parseFloat(l.debit).toFixed(2):'—'}</td><td style="padding:0.6rem;text-align:right;color:#c62828;font-weight:${l.credit>0?700:400}">${l.credit>0?'₹'+parseFloat(l.credit).toFixed(2):'—'}</td></tr>`).join('')}</tbody>
+    </table>`;
+  document.getElementById('viewModal').classList.add('open');
+}
+['jModal','viewModal'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);}));
+init();
+</script>
+</body>
+</html>

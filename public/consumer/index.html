@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BS Motors — Spare Parts</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/consumer-nav.js"></script>
+
+<div class="filter-bar">
+  <label>Category:</label>
+  <select id="filterCategory" onchange="loadParts()"><option value="">All Categories</option></select>
+  <label>Brand:</label>
+  <select id="filterBrand" onchange="loadParts()"><option value="">All Brands</option></select>
+  <label><input type="checkbox" id="showHindi" onchange="renderParts()"> हिंदी Names</label>
+</div>
+
+<div class="page-wrap">
+  <div id="partsGrid" class="parts-grid"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="icon">🔍</div><p>No parts found. Try a different search.</p>
+  </div>
+</div>
+
+<!-- Hidden input kept for i18n placeholder wiring -->
+<input type="hidden" id="searchInput">
+
+<script>
+let allParts = [];
+
+async function init() {
+  await ConsumerNav.init();
+  I18n.init();
+
+  // Sync header search with URL param ?q=
+  const urlQ = new URLSearchParams(location.search).get('q') || '';
+  if (urlQ) document.getElementById('bsmSearchInput').value = urlQ;
+
+  await loadFilters();
+  await loadParts();
+}
+
+async function loadFilters() {
+  const f = await API.get('/api/consumer/filters');
+  const cat = document.getElementById('filterCategory');
+  const brand = document.getElementById('filterBrand');
+  (f.categories || []).forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; cat.appendChild(o);
+  });
+  (f.brands || []).forEach(b => {
+    const o = document.createElement('option'); o.value = b; o.textContent = b; brand.appendChild(o);
+  });
+}
+
+async function loadParts() {
+  const params = new URLSearchParams();
+  const q        = (document.getElementById('bsmSearchInput') || {}).value || '';
+  const category = document.getElementById('filterCategory').value;
+  const brand    = document.getElementById('filterBrand').value;
+  if (q)        params.set('q', q);
+  if (category) params.set('category', category);
+  if (brand)    params.set('brand', brand);
+  allParts = await API.get('/api/consumer/parts?' + params);
+  renderParts();
+}
+
+function stars(avg) {
+  const f = Math.round(avg || 0);
+  return '<span style="color:#f4a261">' + '★'.repeat(f) + '</span><span style="color:#ddd">' + '☆'.repeat(5 - f) + '</span>';
+}
+
+function renderParts() {
+  const showHindi = document.getElementById('showHindi').checked;
+  const grid  = document.getElementById('partsGrid');
+  const empty = document.getElementById('emptyState');
+  if (!allParts.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = allParts.map(p => `
+    <div class="part-card">
+      ${p.image
+        ? `<img src="${p.image}" alt="${p.name_en}" loading="lazy">`
+        : `<div class="no-img">⚙️</div>`}
+      <div class="card-body">
+        <div class="part-name">${p.name_en}</div>
+        ${showHindi ? `<div class="part-name-hi">${p.name_hi}</div>` : ''}
+        <div class="part-meta" style="margin:.3rem 0">
+          ${p.brand    ? `<span class="tag">🏷 ${p.brand}</span>` : ''}
+          ${p.category ? `<span class="tag">📂 ${p.category}</span>` : ''}
+        </div>
+        <div class="stars" style="font-size:.82rem;margin:.2rem 0">
+          ${stars(p.avg_rating)}
+          <span style="color:#bbb;font-size:.75rem">(${p.review_count || 0})</span>
+        </div>
+        <div class="part-price">₹${parseFloat(p.price).toFixed(2)}</div>
+        <div style="font-size:.8rem;margin-bottom:.55rem">
+          ${p.stock > 5
+            ? `<span style="color:#2d6a4f">✔ In Stock (${p.stock})</span>`
+            : p.stock > 0
+            ? `<span style="color:#e67e22">⚠ Only ${p.stock} left</span>`
+            : `<span style="color:#e63946">✘ Out of Stock</span>`}
+        </div>
+        <button class="btn-add" onclick="addToCart(${p.id},'${p.name_en.replace(/'/g,"\\'")}',${p.stock})"
+          ${p.stock === 0 ? 'disabled' : ''}>🛒 Add to Cart</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addToCart(part_id, name, stock) {
+  const authRes = await fetch('/api/auth/me').then(r => r.json());
+  if (!authRes.ok) {
+    ConsumerNav.openLogin();
+    ConsumerNav._afterLogin = () => addToCart(part_id, name, stock);
+    return;
+  }
+  const res = await API.post('/api/consumer/cart', { part_id, qty: 1 });
+  if (res.ok) {
+    API.toast(`${name} added to cart! 🛒`);
+    const el = document.getElementById('bsmCartCnt');
+    const cur = parseInt(el ? el.textContent || '0' : '0') + 1;
+    ConsumerNav._setCart(cur);
+  } else {
+    API.toast(res.message || 'Error', 'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

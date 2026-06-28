@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — BS Motors</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="bsm-navbar">
+  <a href="/consumer/index.html" class="brand">BS <span>Motors</span></a>
+  <nav>
+    <a href="/consumer/index.html">Parts</a>
+    <a href="/consumer/cart.html">Cart</a>
+    <a href="/consumer/orders.html" class="active">My Orders</a>
+    <a href="/consumer/contact.html">Contact</a>
+  </nav>
+  <div class="nav-right">
+    <button id="lang-toggle">हिंदी</button>
+    <a href="/consumer/profile.html" id="nav-user" style="color:#e0e0e0;font-size:0.9rem;display:none"></a>
+    <a href="/consumer/login.html" id="nav-login" style="color:var(--accent);font-weight:700;font-size:0.9rem">Login</a>
+    <a href="#" id="nav-logout" style="color:#e0e0e0;font-size:0.85rem;display:none">Logout</a>
+  </div>
+</nav>
+
+<div class="page-wrap section">
+  <div class="section-title">📦 My Orders</div>
+  <div id="ordersList"></div>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>Order Details</h3>
+    <div id="orderDetail"></div>
+  </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/consumer-nav.js"></script>
+<script>
+async function init() {
+  const user = await ConsumerNav.requireLogin();
+  if (!user) return;
+  I18n.init();
+  const orders = await API.get('/api/consumer/orders');
+  const list = document.getElementById('ordersList');
+  if (!orders.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>No orders yet.</p>
+      <a href="/consumer/index.html" style="display:inline-block;margin-top:1rem;padding:0.75rem 2rem;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-weight:700">Shop Now</a></div>`;
+    return;
+  }
+  list.innerHTML = orders.map(o => `
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <div class="order-no">Order #${o.order_no}</div>
+          <div style="font-size:0.85rem;color:#999;margin-top:0.2rem">${new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+          <span class="status-badge status-${o.status}">${o.status.charAt(0).toUpperCase()+o.status.slice(1)}</span>
+          <span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
+        <div style="font-size:1rem;font-weight:800;color:var(--secondary)">₹${parseFloat(o.total).toFixed(2)}</div>
+        <button class="btn-sm btn-view" onclick="viewOrder('${o.order_no}')">View & Track</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function viewOrder(order_no) {
+  const o = await API.get('/api/consumer/orders/'+order_no);
+  const steps = ['pending','confirmed','shipped','delivered'];
+  const stepIdx = steps.indexOf(o.status);
+  document.getElementById('orderDetail').innerHTML = `
+    <div style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+        <strong>#${o.order_no}</strong>
+        <span class="status-badge status-${o.status}">${o.status}</span>
+      </div>
+      <div style="font-size:0.85rem;color:#999">${new Date(o.created_at).toLocaleString('en-IN')}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin:1.25rem 0;position:relative">
+      <div style="position:absolute;top:12px;left:0;right:0;height:3px;background:#eee;z-index:0"></div>
+      <div style="position:absolute;top:12px;left:0;width:${Math.max(0,stepIdx/(steps.length-1)*100)}%;height:3px;background:var(--primary);z-index:1"></div>
+      ${steps.map((s,i)=>`
+        <div style="text-align:center;z-index:2;position:relative">
+          <div style="width:26px;height:26px;border-radius:50%;background:${i<=stepIdx?'var(--primary)':'#ddd'};color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:0.75rem;font-weight:700">${i<=stepIdx?'✓':i+1}</div>
+          <div style="font-size:0.72rem;margin-top:0.3rem;color:${i<=stepIdx?'var(--primary)':'#999'}">${s}</div>
+        </div>`).join('')}
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-top:1rem">
+      <thead><tr style="background:#f8f9fa"><th style="padding:0.5rem;text-align:left">Part</th><th style="padding:0.5rem;text-align:center">Qty</th><th style="padding:0.5rem;text-align:right">Total</th></tr></thead>
+      <tbody>${o.items.map(i=>`<tr><td style="padding:0.5rem">${i.name_en}</td><td style="padding:0.5rem;text-align:center">${i.qty}</td><td style="padding:0.5rem;text-align:right">₹${parseFloat(i.total).toFixed(2)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="2" style="padding:0.75rem;font-weight:800;border-top:2px solid #eee;text-align:right">Grand Total</td><td style="padding:0.75rem;font-weight:800;text-align:right;border-top:2px solid #eee;color:var(--primary)">₹${parseFloat(o.total).toFixed(2)}</td></tr></tfoot>
+    </table>
+    <div style="margin-top:1rem;font-size:0.85rem;color:#666"><strong>Payment:</strong> ${o.payment_method} — <strong>${o.payment_status}</strong></div>`;
+  document.getElementById('orderModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('orderModal').classList.remove('open'); }
+document.getElementById('orderModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+init();
+</script>
+</body>
+</html>

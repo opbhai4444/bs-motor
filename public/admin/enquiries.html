@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enquiries — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div><a href="/admin/orders.html">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a>
+      <a href="/admin/enquiries.html" class="active">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accounts.html">📒 Ledger</a><a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header"><h1>💬 Enquiries</h1></div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Message</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+      <tbody id="enquiryBody"></tbody>
+    </table>
+  </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  loadEnquiries();
+}
+async function loadEnquiries() {
+  const list=await API.get('/api/admin/enquiries');
+  document.getElementById('enquiryBody').innerHTML=list.map((e,i)=>`
+    <tr>
+      <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.phone||'—'}</td><td>${e.email||'—'}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.message}</td>
+      <td><span class="status-badge ${e.status==='resolved'?'status-delivered':'status-pending'}">${e.status}</span></td>
+      <td>${new Date(e.created_at).toLocaleDateString('en-IN')}</td>
+      <td>${e.status==='open'?`<button class="btn-sm btn-view" onclick="resolve(${e.id})">✔ Resolve</button>`:`<span style="color:#999;font-size:0.82rem">Done</span>`}</td>
+    </tr>
+  `).join('')||'<tr><td colspan="8" style="text-align:center;color:#999;padding:2rem">No enquiries yet</td></tr>';
+}
+async function resolve(id) {
+  const res=await API.put('/api/admin/enquiries/'+id,{status:'resolved'});
+  if(res.ok){API.toast('Marked as resolved');loadEnquiries();}
+}
+init();
+</script>
+</body>
+</html>

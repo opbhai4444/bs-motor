@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ledger — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div><a href="/admin/orders.html">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div>
+      <a href="/admin/accounts.html" class="active">📒 Ledger</a><a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>📒 Chart of Accounts</h1>
+      <button class="btn-sm btn-view" style="padding:0.6rem 1.25rem;font-size:0.95rem" onclick="openAdd()">+ New Account</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem" id="bsSummary"></div>
+    <div id="accountsGroups"></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="acctModal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>New Account</h3>
+    <div class="form-group"><label>Account Name *</label><input type="text" id="aName" required placeholder="e.g. HDFC Bank"></div>
+    <div class="form-group"><label>Type *</label>
+      <select id="aType"><option value="asset">Asset</option><option value="liability">Liability</option><option value="income">Income</option><option value="expense">Expense</option><option value="equity">Equity</option></select>
+    </div>
+    <div class="form-group"><label>Group</label><input type="text" id="aGroup" placeholder="e.g. Current Assets"></div>
+    <div class="form-group"><label>Opening Balance (₹)</label><input type="number" id="aOpening" value="0" step="0.01"></div>
+    <button class="btn-primary" onclick="saveAccount()">Save Account</button>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+const TYPE_LABELS={asset:'Assets',liability:'Liabilities',income:'Income',expense:'Expenses',equity:'Equity'};
+const TYPE_COLORS={asset:'#2d6a4f',liability:'#c62828',income:'#1565c0',expense:'#e67e22',equity:'#6a1b9a'};
+
+async function init() {
+  const user=await AdminNav.init();
+  if(!user)return;
+  loadAccounts();
+}
+async function loadAccounts() {
+  const accounts=await API.get('/api/admin/accounts');
+  const groups={};
+  for(const a of accounts){if(!groups[a.type])groups[a.type]=[];groups[a.type].push(a);}
+  const totals={};
+  for(const[type,list]of Object.entries(groups))totals[type]=list.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+  document.getElementById('bsSummary').innerHTML=Object.entries(TYPE_LABELS).map(([t,l])=>`
+    <div class="stat-card" style="border-top-color:${TYPE_COLORS[t]||'var(--accent)'}">
+      <div class="stat-label">${l}</div>
+      <div class="stat-value" style="font-size:1.3rem;color:${TYPE_COLORS[t]}">₹${Math.abs(totals[t]||0).toFixed(0)}</div>
+    </div>`).join('');
+  document.getElementById('accountsGroups').innerHTML=Object.entries(TYPE_LABELS).map(([type,label])=>{
+    const list=groups[type]||[];
+    const typeTotal=list.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+    return `<div class="account-group">
+      <h4 style="background:${TYPE_COLORS[type]}15;color:${TYPE_COLORS[type]}">${label}<span style="float:right;font-size:0.9rem">Total: ₹${Math.abs(typeTotal).toFixed(2)}</span></h4>
+      ${list.length?list.map(a=>`
+        <div class="account-row">
+          <div><div style="font-weight:600">${a.name}</div>${a.group_name?`<div style="font-size:0.78rem;color:#999">${a.group_name}</div>`:''}</div>
+          <div style="text-align:right">
+            <div class="${parseFloat(a.balance)>=0?'debit-bal':'credit-bal'}" style="font-size:1rem">₹${Math.abs(parseFloat(a.balance||0)).toFixed(2)} <span style="font-size:0.75rem;font-weight:400;color:#999">${parseFloat(a.balance)>=0?'Dr':'Cr'}</span></div>
+            <div style="font-size:0.75rem;color:#bbb">Dr: ₹${parseFloat(a.total_debit||0).toFixed(2)} | Cr: ₹${parseFloat(a.total_credit||0).toFixed(2)}</div>
+          </div>
+        </div>`).join(''):'<div class="account-row" style="color:#999;font-style:italic">No accounts</div>'}
+    </div>`;
+  }).join('');
+}
+function openAdd(){document.getElementById('acctModal').classList.add('open');}
+function closeModal(){document.getElementById('acctModal').classList.remove('open');}
+async function saveAccount(){
+  const res=await API.post('/api/admin/accounts',{name:document.getElementById('aName').value,type:document.getElementById('aType').value,group_name:document.getElementById('aGroup').value,opening_balance:document.getElementById('aOpening').value});
+  if(res.ok){API.toast('Account created!');closeModal();loadAccounts();document.getElementById('aName').value='';}
+  else API.toast('Error','error');
+}
+init();
+</script>
+</body>
+</html>

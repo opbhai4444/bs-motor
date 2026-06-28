@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div>
+      <a href="/admin/orders.html" class="active">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accounts.html">📒 Ledger</a><a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header"><h1>📋 Orders</h1></div>
+    <div class="filter-bar" style="margin-bottom:1rem;border-radius:10px">
+      <input type="text" id="searchQ" placeholder="Order no / customer..." style="padding:0.4rem 0.75rem;border:1px solid var(--border);border-radius:6px;width:200px">
+      <select id="filterStatus"><option value="">All Status</option><option>pending</option><option>confirmed</option><option>shipped</option><option>delivered</option><option>cancelled</option></select>
+      <input type="date" id="fromDate"><input type="date" id="toDate">
+      <button class="btn-sm btn-view" onclick="loadOrders()">Filter</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Order No</th><th>Customer</th><th>Phone</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+  </main>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>Order Details</h3>
+    <div id="orderDetail"></div>
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <h4 style="font-weight:800;margin-bottom:0.75rem">Update Status</h4>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center">
+        <select id="newStatus"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select>
+        <select id="newPayStatus"><option value="pending">Payment Pending</option><option value="paid">Paid</option><option value="failed">Failed</option></select>
+        <button class="btn-sm btn-view" onclick="updateStatus()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+let currentOrderId = null;
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  loadOrders();
+  document.getElementById('searchQ').addEventListener('keypress',e=>{if(e.key==='Enter')loadOrders();});
+}
+async function loadOrders() {
+  const params=new URLSearchParams();
+  const q=document.getElementById('searchQ').value, status=document.getElementById('filterStatus').value;
+  const from=document.getElementById('fromDate').value, to=document.getElementById('toDate').value;
+  if(q)params.set('q',q); if(status)params.set('status',status); if(from)params.set('from',from); if(to)params.set('to',to);
+  const orders=await API.get('/api/admin/orders?'+params);
+  document.getElementById('ordersBody').innerHTML=orders.map(o=>`
+    <tr>
+      <td><strong>${o.order_no}</strong></td><td>${o.customer_name}</td><td>${o.customer_phone||'—'}</td>
+      <td style="font-weight:800">₹${parseFloat(o.total).toFixed(2)}</td>
+      <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
+      <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+      <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+      <td><button class="btn-sm btn-view" onclick="viewOrder(${o.id})">View</button></td>
+    </tr>
+  `).join('')||'<tr><td colspan="8" style="text-align:center;color:#999;padding:2rem">No orders found</td></tr>';
+}
+async function viewOrder(id) {
+  currentOrderId=id;
+  const o=await API.get('/api/admin/orders/'+id);
+  document.getElementById('orderDetail').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div><strong>Order No:</strong> ${o.order_no}</div><div><strong>Date:</strong> ${new Date(o.created_at).toLocaleString('en-IN')}</div>
+      <div><strong>Customer:</strong> ${o.customer_name}</div><div><strong>Phone:</strong> ${o.phone||'—'}</div>
+      <div><strong>Email:</strong> ${o.email||'—'}</div><div><strong>Payment:</strong> ${o.payment_method}</div>
+    </div>
+    ${o.address?`<div style="margin-bottom:1rem"><strong>Address:</strong> ${o.address}</div>`:''}
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--secondary);color:#fff"><th style="padding:0.6rem">Part</th><th style="padding:0.6rem">SKU</th><th style="padding:0.6rem;text-align:center">Qty</th><th style="padding:0.6rem;text-align:right">Price</th><th style="padding:0.6rem;text-align:right">Total</th></tr></thead>
+      <tbody>${o.items.map(i=>`<tr><td style="padding:0.6rem">${i.name_en}</td><td style="padding:0.6rem;font-size:0.8rem;color:#999">${i.sku}</td><td style="padding:0.6rem;text-align:center">${i.qty}</td><td style="padding:0.6rem;text-align:right">₹${parseFloat(i.unit_price).toFixed(2)}</td><td style="padding:0.6rem;text-align:right;font-weight:700">₹${parseFloat(i.total).toFixed(2)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="4" style="padding:0.75rem;font-weight:800;border-top:2px solid #eee;text-align:right">Grand Total</td><td style="padding:0.75rem;font-weight:800;border-top:2px solid #eee;text-align:right;color:var(--primary)">₹${parseFloat(o.total).toFixed(2)}</td></tr></tfoot>
+    </table>`;
+  document.getElementById('newStatus').value=o.status;
+  document.getElementById('newPayStatus').value=o.payment_status;
+  document.getElementById('orderModal').classList.add('open');
+}
+async function updateStatus() {
+  const res=await API.put('/api/admin/orders/'+currentOrderId+'/status',{status:document.getElementById('newStatus').value,payment_status:document.getElementById('newPayStatus').value});
+  if(res.ok){API.toast('Order updated!');closeModal();loadOrders();}
+  else API.toast('Error','error');
+}
+function closeModal(){document.getElementById('orderModal').classList.remove('open');currentOrderId=null;}
+document.getElementById('orderModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+init();
+</script>
+</body>
+</html>

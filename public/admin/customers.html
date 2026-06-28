@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a><a href="/admin/purchases.html">🛒 Purchases</a>
+      <div class="nav-section">Sales</div><a href="/admin/orders.html">📋 Orders</a>
+      <a href="/admin/customers.html" class="active">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accounts.html">📒 Ledger</a><a href="/admin/journal.html">📝 Journal</a>
+      <div class="nav-section">Reports</div><a href="/admin/reports.html">📈 Reports</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header"><h1>👥 Customers</h1></div>
+    <div class="filter-bar" style="margin-bottom:1rem;border-radius:10px">
+      <input type="text" id="searchQ" placeholder="Name / email / phone..." style="padding:0.4rem 0.75rem;border:1px solid var(--border);border-radius:6px;width:240px">
+      <button class="btn-sm btn-view" onclick="loadCustomers()">Search</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th>Joined</th><th>Action</th></tr></thead>
+      <tbody id="custBody"></tbody>
+    </table>
+  </main>
+</div>
+
+<div class="modal-overlay" id="custModal">
+  <div class="modal-box" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="custModalTitle">Customer Details</h3>
+    <div id="custDetail"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  loadCustomers();
+  document.getElementById('searchQ').addEventListener('keypress',e=>{if(e.key==='Enter')loadCustomers();});
+}
+async function loadCustomers() {
+  const q=document.getElementById('searchQ').value;
+  const custs=await API.get('/api/admin/customers'+(q?'?q='+encodeURIComponent(q):''));
+  document.getElementById('custBody').innerHTML=custs.map((c,i)=>`
+    <tr>
+      <td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.email}</td><td>${c.phone||'—'}</td>
+      <td style="text-align:center;font-weight:700">${c.order_count}</td>
+      <td style="font-weight:800;color:var(--secondary)">₹${parseFloat(c.total_spent).toFixed(2)}</td>
+      <td>${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+      <td><button class="btn-sm btn-view" onclick="viewCustomer(${c.id},'${c.name.replace(/'/g,"\\'")}')">View</button></td>
+    </tr>
+  `).join('')||'<tr><td colspan="8" style="text-align:center;color:#999;padding:2rem">No customers found</td></tr>';
+}
+async function viewCustomer(id,name) {
+  const c=await API.get('/api/admin/customers/'+id);
+  document.getElementById('custModalTitle').textContent='👤 '+name;
+  document.getElementById('custDetail').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.25rem;background:#f8f9fa;padding:1rem;border-radius:10px">
+      <div><strong>Email:</strong> ${c.email}</div><div><strong>Phone:</strong> ${c.phone||'—'}</div>
+      <div style="grid-column:1/-1"><strong>Address:</strong> ${c.address||'—'}</div>
+      <div><strong>Member Since:</strong> ${new Date(c.created_at).toLocaleDateString('en-IN')}</div>
+    </div>
+    <div class="section-title" style="font-size:1rem;margin-bottom:0.75rem">Order History (${c.orders.length})</div>
+    ${c.orders.length?`<table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--secondary);color:#fff"><th style="padding:0.5rem">Order No</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Date</th></tr></thead>
+      <tbody>${c.orders.map(o=>`<tr><td style="padding:0.5rem;font-weight:700">${o.order_no}</td><td style="padding:0.5rem">₹${parseFloat(o.total).toFixed(2)}</td><td style="padding:0.5rem"><span class="status-badge status-${o.status}">${o.status}</span></td><td style="padding:0.5rem;font-size:0.85rem">${new Date(o.created_at).toLocaleDateString('en-IN')}</td></tr>`).join('')}</tbody>
+    </table>`:'<p style="color:#999;text-align:center;padding:1rem">No orders yet</p>'}`;
+  document.getElementById('custModal').classList.add('open');
+}
+function closeModal(){document.getElementById('custModal').classList.remove('open');}
+document.getElementById('custModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+init();
+</script>
+</body>
+</html>
