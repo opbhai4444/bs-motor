@@ -149,8 +149,9 @@
     padding:.55rem 1.2rem; display:flex; align-items:center; gap:1rem; flex-shrink:0;
   }
   .ab-confirm-bar span { font-size:.83rem; font-weight:700; color:#92400e; flex:1; }
-  .ab-confirm-yes { background:#e63946; color:#fff; border:none; border-radius:6px; padding:.35rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; }
-  .ab-confirm-no  { background:#fff; border:1px solid #ccc; border-radius:6px; padding:.33rem .8rem; font-size:.82rem; cursor:pointer; }
+  .ab-confirm-preview { background:#2563eb; color:#fff; border:none; border-radius:6px; padding:.35rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; }
+  .ab-confirm-yes     { background:#e63946; color:#fff; border:none; border-radius:6px; padding:.35rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; }
+  .ab-confirm-no      { background:#fff; border:1px solid #ccc; border-radius:6px; padding:.33rem .8rem; font-size:.82rem; cursor:pointer; }
 
   /* ─── VOUCHER SCREEN ─────────────────────────────────────────── */
   #scVoucher { background:#eef1f6; justify-content:flex-start; overflow-y:auto; }
@@ -198,6 +199,120 @@
 
   .ab-empty { text-align:center; padding:3rem; color:var(--muted); }
   .ab-empty .ab-ei { font-size:3rem; margin-bottom:.6rem; }
+
+  /* ─── Voucher type switcher bar ─────────────────────────────── */
+  .ab-vtype-bar { display:flex; background:#0d1e35; border-bottom:2px solid rgba(212,160,23,.25); flex-shrink:0; overflow-x:auto; }
+  .ab-vtype-btn { flex:1; min-width:80px; background:none; border:none; border-right:1px solid rgba(255,255,255,.06);
+                  color:rgba(255,255,255,.45); font-size:.73rem; padding:.58rem .4rem; cursor:pointer;
+                  transition:all .14s; display:flex; align-items:center; justify-content:center; gap:.28rem;
+                  white-space:nowrap; }
+  .ab-vtype-btn:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.82); }
+  .ab-vtype-btn.active { background:rgba(212,160,23,.14); color:var(--accent); border-bottom:2.5px solid var(--accent); font-weight:700; }
+  .ab-vtype-k { font-family:monospace; font-size:.62rem; font-weight:800; color:var(--accent);
+                background:rgba(212,160,23,.15); border-radius:3px; padding:.04rem .25rem; flex-shrink:0; }
+
+  /* ─── Tally-style voucher body ──────────────────────────────── */
+  #scVoucher { background:#eef1f6; overflow-y:auto; justify-content:flex-start; }
+  .ab-vchr-outer { max-width:680px; margin:0 auto; display:flex; flex-direction:column; }
+  .ab-vchr-card { background:#fff; border-radius:0 0 14px 14px; box-shadow:0 6px 32px rgba(0,0,0,.1); overflow:hidden; }
+  .ab-vchr-head { background:linear-gradient(90deg,#1b3352,#24476e); padding:.85rem 1.4rem;
+                  display:flex; justify-content:space-between; align-items:center; }
+  .ab-vchr-head-type { font-size:1.06rem; font-weight:900; color:#fff; }
+  .ab-vchr-head-right { display:flex; align-items:center; gap:.55rem; }
+  .ab-vchr-date-lbl { font-size:.7rem; color:rgba(255,255,255,.45); }
+  .ab-vchr-date-inp { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+                      color:#fff; padding:.28rem .55rem; border-radius:5px; font-size:.8rem; }
+  .ab-vchr-date-inp::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.6); }
+  .ab-vchr-date-inp:focus { outline:none; border-color:var(--accent); }
+  .ab-vchr-no { font-size:.68rem; color:rgba(255,255,255,.35); font-family:monospace; margin-left:.3rem; }
+  .ab-tally-body { padding:1.1rem 1.4rem 0; }
+  .ab-tally-hdr { display:grid; grid-template-columns:28px 1fr auto 155px;
+                  gap:.6rem; padding:.28rem 0 .5rem; border-bottom:1.5px solid #e2e7f0; margin-bottom:.1rem; }
+  .ab-tally-hdr span { font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .ab-tally-hdr .ah-amt { text-align:right; }
+  .ab-tally-row { display:grid; grid-template-columns:28px 1fr auto 155px;
+                  align-items:center; gap:.6rem; padding:.55rem 0; border-bottom:1px dashed #eaecf4; }
+  .ab-dc { font-size:.68rem; font-weight:900; font-family:monospace; text-align:center;
+           padding:.12rem .18rem; border-radius:4px; }
+  .ab-dc-dr { background:#fde8e8; color:#c0392b; }
+  .ab-dc-cr { background:#d1fae5; color:#059669; }
+  .ab-tally-sel { border:1.5px solid #dde2ec; border-radius:7px; padding:.42rem .65rem; font-size:.87rem;
+                  background:#f9fafc; width:100%; transition:border-color .14s; }
+  .ab-tally-sel:focus { outline:none; border-color:#2563eb; background:#fff; }
+  .ab-tally-dots { border-bottom:2px dotted #d0d5e2; height:1px; flex:1; margin:0 .2rem; }
+  .ab-tally-amt-inp { width:150px; padding:.42rem .65rem; border:1.5px solid #dde2ec; border-radius:7px;
+                       font-size:.92rem; font-weight:700; text-align:right; background:#f9fafc; transition:border-color .14s; }
+  .ab-tally-amt-inp:focus { outline:none; border-color:#2563eb; background:#fff; }
+  .ab-tally-cr-mirror { width:150px; text-align:right; font-size:.9rem; font-weight:800;
+                         color:#c0392b; font-family:monospace; }
+  .ab-tally-narr { display:flex; align-items:center; gap:.7rem; padding:.7rem 0 .4rem; }
+  .ab-tally-narr-lbl { font-size:.76rem; color:var(--muted); font-weight:600; white-space:nowrap; }
+  .ab-tally-narr-inp { flex:1; padding:.42rem .7rem; border:1.5px solid #dde2ec; border-radius:7px;
+                        font-size:.86rem; background:#f9fafc; transition:border-color .14s; }
+  .ab-tally-narr-inp:focus { outline:none; border-color:#2563eb; background:#fff; }
+  .ab-vchr-footer { background:#f5f7fc; border-top:1.5px solid #e8ecf4; padding:.85rem 1.4rem;
+                    display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
+  .ab-vchr-hint { font-size:.72rem; color:var(--muted); }
+  .ab-vchr-hint kbd { background:#eaecf2; border:1px solid #d0d5e2; border-radius:3px;
+                       padding:.05rem .28rem; font-size:.66rem; font-family:monospace; }
+  .ab-vchr-actions { display:flex; gap:.6rem; }
+  .ab-vchr-save { background:var(--secondary); color:#fff; border:none; border-radius:8px;
+                   padding:.52rem 1.3rem; font-size:.86rem; font-weight:800; cursor:pointer; transition:background .14s; }
+  .ab-vchr-save:hover { background:#153148; }
+  .ab-vchr-cancel { background:none; border:1.5px solid #d0d5e2; border-radius:8px;
+                     padding:.5rem .95rem; font-size:.84rem; color:var(--muted); cursor:pointer; transition:border-color .14s; }
+  .ab-vchr-cancel:hover { border-color:#94a3b8; }
+
+  /* ─── Preview overlay (Amazon-bill style) ───────────────────── */
+  .ab-prev-ov { position:fixed; inset:0; background:rgba(5,12,24,.72); z-index:900;
+                display:flex; align-items:center; justify-content:center; padding:1.2rem; }
+  .ab-prev-wrap { display:flex; flex-direction:column; align-items:center; gap:.65rem; max-height:92vh; }
+  .ab-prev-close { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22);
+                   color:#fff; padding:.38rem 1.2rem; border-radius:8px; cursor:pointer; font-size:.8rem; }
+  .ab-prev-close:hover { background:rgba(255,255,255,.22); }
+  .ab-bill { background:#fff; border-radius:12px; width:430px; max-height:82vh; overflow-y:auto;
+             box-shadow:0 24px 64px rgba(0,0,0,.45); }
+  .b-head { background:linear-gradient(135deg,#1d3557,#264876); padding:1.1rem 1.3rem;
+             display:flex; justify-content:space-between; align-items:flex-start; }
+  .b-brand { font-size:1.05rem; font-weight:900; color:#fff; }
+  .b-brand-sub { font-size:.68rem; color:rgba(255,255,255,.5); margin-top:.12rem; }
+  .b-badge { font-size:.62rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+              color:var(--accent); background:rgba(212,160,23,.18); border:1px solid rgba(212,160,23,.32);
+              border-radius:5px; padding:.18rem .5rem; align-self:flex-start; }
+  .b-meta { display:grid; grid-template-columns:1fr 1fr; gap:.45rem 1rem; padding:.9rem 1.3rem;
+             border-bottom:1px solid #eef0f6; }
+  .b-meta-lbl { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .b-meta-val { font-size:.82rem; font-weight:700; color:#1a2d44; margin-top:.08rem; }
+  .b-items-hdr { display:grid; gap:.5rem; padding:.35rem 1.3rem;
+                 background:#f4f6fb; font-size:.63rem; font-weight:800; text-transform:uppercase;
+                 letter-spacing:.05em; color:var(--muted); border-bottom:1px solid #e8ecf4; }
+  .b-items-hdr.cols4 { grid-template-columns:1fr 44px 78px 78px; }
+  .b-items-hdr.cols3 { grid-template-columns:1fr 78px 78px; }
+  .b-items-hdr span:not(:first-child) { text-align:right; }
+  .b-item { padding:.55rem 1.3rem; border-bottom:1px solid #f2f4f8; }
+  .b-item:last-child { border-bottom:2px solid #e2e7f2; }
+  .b-item-row { display:grid; gap:.5rem; align-items:center; }
+  .b-item-row.cols4 { grid-template-columns:1fr 44px 78px 78px; }
+  .b-item-row.cols3 { grid-template-columns:1fr 78px 78px; }
+  .b-item-name { font-size:.83rem; font-weight:600; color:#1a2d44; }
+  .b-item-brand { font-size:.68rem; color:var(--muted); margin-top:.05rem; }
+  .b-num { text-align:right; font-size:.82rem; color:#444; }
+  .b-num-bold { text-align:right; font-size:.85rem; font-weight:700; color:#1a2d44; }
+  .b-totals { padding:.55rem 1.3rem .1rem; }
+  .b-tot-row { display:flex; justify-content:space-between; padding:.22rem 0; font-size:.82rem; color:#555; }
+  .b-free { color:#27ae60; font-weight:700; font-size:.76rem; }
+  .b-grand { display:flex; justify-content:space-between; padding:.55rem 0 .2rem;
+              border-top:2px solid #1d3557; font-size:1rem; font-weight:900; color:#1d3557; margin-top:.3rem; }
+  .b-grand.due { color:#c0392b; }
+  .b-pay-row { display:flex; justify-content:space-between; align-items:center;
+               padding:.6rem 1.3rem; background:#f4f6fb; border-top:1px solid #e8ecf4; }
+  .b-pay-method { font-size:.8rem; font-weight:600; color:#444; }
+  .b-pay-st { font-size:.64rem; font-weight:800; letter-spacing:.05em; padding:.18rem .5rem;
+              border-radius:20px; text-transform:uppercase; }
+  .b-st-paid    { background:#d1fae5; color:#059669; }
+  .b-st-pending { background:#fef3c7; color:#b45309; }
+  .b-note { text-align:center; padding:.75rem 1.3rem; font-size:.76rem; color:var(--muted);
+            border-top:1px dashed #e8ecf4; line-height:1.5; }
   </style>
 </head>
 <body>
@@ -322,9 +437,10 @@
         </div>
       </div>
       <div class="ab-confirm-bar" id="confirmBar" style="display:none">
-        <span id="confirmMsg">Delete this voucher? This cannot be undone.</span>
-        <button class="ab-confirm-yes" onclick="confirmDelete()">🗑 Delete (Alt+D)</button>
-        <button class="ab-confirm-no"  onclick="clearSelection()">Cancel (Esc)</button>
+        <span id="confirmMsg"></span>
+        <button class="ab-confirm-preview" id="previewBtn" onclick="showPreview()" style="display:none">👁 Preview (Alt+P)</button>
+        <button class="ab-confirm-yes"     id="deleteBtn"  onclick="confirmDelete()">🗑 Delete (Alt+D)</button>
+        <button class="ab-confirm-no"                      onclick="clearSelection()">✕ Esc</button>
       </div>
       <div class="ab-shortcut-bar">
         <span><kbd>F4</kbd> Contra</span>
@@ -332,51 +448,65 @@
         <span><kbd>F6</kbd> Receipt</span>
         <span><kbd>F8</kbd> Sales</span>
         <span><kbd>F9</kbd> Purchase</span>
-        <span><kbd>N</kbd> New Entry</span>
-        <span><kbd>Click row</kbd> Select</span>
-        <span><kbd>Alt+D</kbd> Delete selected</span>
-        <span><kbd>F2</kbd> Change Period</span>
-        <span><kbd>Esc</kbd> Back / Deselect</span>
+        <span><kbd>Alt+C</kbd> New</span>
+        <span><kbd>Alt+D</kbd> Delete</span>
+        <span><kbd>Alt+P</kbd> Preview</span>
+        <span><kbd>F2</kbd> Period</span>
+        <span><kbd>Esc</kbd> Back</span>
       </div>
     </div>
 
     <!-- ══ SCREEN 3: VOUCHER ENTRY ══════════════════════════════ -->
     <div id="scVoucher" class="ab-screen hidden">
+      <!-- Tally-style type switcher -->
+      <div class="ab-vtype-bar">
+        <button class="ab-vtype-btn" data-vtype="contra"      onclick="switchVType('contra')">     <span class="ab-vtype-k">F4</span> Contra</button>
+        <button class="ab-vtype-btn" data-vtype="payment"     onclick="switchVType('payment')">    <span class="ab-vtype-k">F5</span> Payment</button>
+        <button class="ab-vtype-btn" data-vtype="receipt"     onclick="switchVType('receipt')">    <span class="ab-vtype-k">F6</span> Receipt</button>
+        <button class="ab-vtype-btn" data-vtype="journal"     onclick="switchVType('journal')">    <span class="ab-vtype-k">F7</span> Journal</button>
+        <button class="ab-vtype-btn" data-vtype="credit_note" onclick="switchVType('credit_note')"><span class="ab-vtype-k">Ctrl+F8</span> Cr Note</button>
+        <button class="ab-vtype-btn" data-vtype="debit_note"  onclick="switchVType('debit_note')"> <span class="ab-vtype-k">Ctrl+F9</span> Dr Note</button>
+      </div>
       <div class="ab-vchr-outer">
         <div class="ab-vchr-card">
           <div class="ab-vchr-head">
             <span class="ab-vchr-head-type" id="vchrTypeLabel">Payment Voucher</span>
-            <span class="ab-vchr-head-no" id="vchrNo"></span>
+            <div class="ab-vchr-head-right">
+              <span class="ab-vchr-date-lbl">Date</span>
+              <input type="date" id="vDate" class="ab-vchr-date-inp">
+              <span class="ab-vchr-no" id="vchrNo"></span>
+            </div>
           </div>
-          <div class="ab-vchr-body">
-            <div class="ab-vchr-row">
-              <label class="ab-vchr-lbl">Date</label>
-              <input type="date" id="vDate" class="ab-vchr-inp">
+          <div class="ab-tally-body">
+            <div class="ab-tally-hdr">
+              <span></span><span>Particulars</span><span></span><span class="ah-amt">Amount</span>
             </div>
-            <div class="ab-vchr-row">
-              <label class="ab-vchr-lbl" id="vDrLabel">Debit (Dr)</label>
-              <select id="vDrAcc" class="ab-vchr-inp"><option value="">— Select Account —</option></select>
+            <div class="ab-tally-row">
+              <span class="ab-dc ab-dc-dr">Dr</span>
+              <select id="vDrAcc" class="ab-tally-sel"><option value="">— Select Account —</option></select>
+              <div class="ab-tally-dots"></div>
+              <input type="number" id="vAmount" class="ab-tally-amt-inp" placeholder="0.00" min="0.01" step="0.01" oninput="syncCrAmt()">
             </div>
-            <hr class="ab-vchr-divider">
-            <div class="ab-vchr-row">
-              <label class="ab-vchr-lbl" id="vCrLabel">Credit (Cr)</label>
-              <select id="vCrAcc" class="ab-vchr-inp"><option value="">— Select Account —</option></select>
+            <div class="ab-tally-row">
+              <span class="ab-dc ab-dc-cr">Cr</span>
+              <select id="vCrAcc" class="ab-tally-sel"><option value="">— Select Account —</option></select>
+              <div class="ab-tally-dots"></div>
+              <span class="ab-tally-cr-mirror" id="vCrMirror"></span>
             </div>
-            <hr class="ab-vchr-divider">
-            <div class="ab-vchr-row">
-              <label class="ab-vchr-lbl">Amount (₹)</label>
-              <input type="number" id="vAmount" class="ab-vchr-inp" placeholder="0.00" min="0.01" step="0.01">
-            </div>
-            <div class="ab-vchr-row">
-              <label class="ab-vchr-lbl">Narration</label>
-              <input type="text" id="vNarration" class="ab-vchr-inp" placeholder="Optional description...">
+            <div class="ab-tally-narr">
+              <span class="ab-tally-narr-lbl">Narration :</span>
+              <input type="text" id="vNarration" class="ab-tally-narr-inp" placeholder="Optional description...">
             </div>
           </div>
           <div class="ab-vchr-footer">
-            <span class="ab-vchr-hint"><kbd>Alt+A</kbd> Save &nbsp;&nbsp; <kbd>Esc</kbd> Cancel</span>
+            <span class="ab-vchr-hint">
+              <kbd>Alt+A</kbd> Accept &nbsp;
+              <kbd>F4–F9</kbd> Switch Type &nbsp;
+              <kbd>Esc</kbd> Cancel
+            </span>
             <div class="ab-vchr-actions">
               <button class="ab-vchr-cancel" onclick="closeVoucher()">Cancel</button>
-              <button class="ab-vchr-save"   onclick="saveVoucher()">Accept &nbsp;(Alt+A)</button>
+              <button class="ab-vchr-save"   onclick="saveVoucher()">Accept (Alt+A)</button>
             </div>
           </div>
         </div>
@@ -386,33 +516,44 @@
   </main>
 </div>
 
+<!-- Bill preview overlay -->
+<div class="ab-prev-ov" id="previewOv" style="display:none" onclick="if(event.target===this)closePreview()">
+  <div class="ab-prev-wrap">
+    <div class="ab-bill" id="billContent"></div>
+    <button class="ab-prev-close" onclick="closePreview()">✕ Close &nbsp;(Esc)</button>
+  </div>
+</div>
+
 <script src="/js/api.js"></script>
 <script src="/js/admin-nav.js"></script>
 <script>
 const CFG = {
   ledger:     { title:'Ledger',              canNew:false },
-  contra:     { title:'Contra Register',     canNew:true, vtype:'contra',
-                drLabel:'Cash / Bank Account (Dr)', crLabel:'Cash / Bank Account (Cr)' },
-  payment:    { title:'Payment Register',    canNew:true, vtype:'payment',
-                drLabel:'Expense / Party (Dr)',      crLabel:'Cash / Bank (Cr)' },
-  receipt:    { title:'Receipt Register',    canNew:true, vtype:'receipt',
-                drLabel:'Cash / Bank (Dr)',           crLabel:'Income / Party (Cr)' },
-  sales:      { title:'Sales',     canNew:false },
-  purchases:  { title:'Purchase', canNew:false },
-  debit_note: { title:'Debit Note Register', canNew:true, vtype:'debit_note',
-                drLabel:'Supplier Account (Dr)',      crLabel:'Purchase Returns (Cr)' },
-  credit_note:{ title:'Credit Note Register',canNew:true, vtype:'credit_note',
-                drLabel:'Sales Returns (Dr)',         crLabel:'Customer Account (Cr)' },
+  contra:     { title:'Contra Register',     canNew:true },
+  payment:    { title:'Payment Register',    canNew:true },
+  receipt:    { title:'Receipt Register',    canNew:true },
+  sales:      { title:'Sales',               canNew:false },
+  purchases:  { title:'Purchase',            canNew:false },
+  debit_note: { title:'Debit Note Register', canNew:true },
+  credit_note:{ title:'Credit Note Register',canNew:true },
 };
-const VTAGS = {
-  contra:'ab-vtag-contra', payment:'ab-vtag-payment', receipt:'ab-vtag-receipt',
-  journal:'ab-vtag-journal', debit_note:'ab-vtag-debit_note', credit_note:'ab-vtag-credit_note'
+const VTYPE = {
+  contra:      { label:'Contra Voucher',   drHint:'Cash / Bank',        crHint:'Cash / Bank' },
+  payment:     { label:'Payment Voucher',  drHint:'Expense / Party',    crHint:'Cash / Bank' },
+  receipt:     { label:'Receipt Voucher',  drHint:'Cash / Bank',        crHint:'Income / Party' },
+  journal:     { label:'Journal Entry',    drHint:'Account',            crHint:'Account' },
+  debit_note:  { label:'Debit Note',       drHint:'Supplier',           crHint:'Purchase Returns' },
+  credit_note: { label:'Credit Note',      drHint:'Sales Returns',      crHint:'Customer' },
 };
+const REG_TO_VTYPE = { contra:'contra', payment:'payment', receipt:'receipt', debit_note:'debit_note', credit_note:'credit_note' };
+const VTAGS     = { contra:'ab-vtag-contra', payment:'ab-vtag-payment', receipt:'ab-vtag-receipt', journal:'ab-vtag-journal', debit_note:'ab-vtag-debit_note', credit_note:'ab-vtag-credit_note' };
+const PAY_ICONS = { cash:'💵', upi:'📱', card:'💳' };
 
-let curReg        = 'ledger';
-let accounts      = [];
-let selectedRowId = null;
-let selectedRowNo = null;
+let curReg         = 'ledger';
+let curVoucherType = 'payment';
+let accounts       = [];
+let selectedRowId  = null;
+let selectedRowNo  = null;
 
 async function init() {
   const user = await AdminNav.init();
@@ -440,7 +581,7 @@ function populateAcctDropdowns() {
     while (s.options.length > 1) s.remove(1);
     accounts.forEach(a => {
       const o = document.createElement('option');
-      o.value = a.id; o.textContent = a.name+' ('+a.type+')';
+      o.value = a.id; o.textContent = a.name;
       s.appendChild(o);
     });
   });
@@ -456,9 +597,8 @@ function goHome() { clearSelection(); show('scHome'); }
 
 function openRegister(key) {
   curReg = key;
-  const cfg = CFG[key];
-  document.getElementById('regTitle').textContent = cfg.title;
-  document.getElementById('newBtn').style.display = cfg.canNew ? 'inline-flex' : 'none';
+  document.getElementById('regTitle').textContent = CFG[key].title;
+  document.getElementById('newBtn').style.display = CFG[key].canNew ? 'inline-flex' : 'none';
   document.getElementById('ledgerAcct').style.display = key === 'ledger' ? 'inline-block' : 'none';
   clearSelection();
   show('scRegister');
@@ -541,12 +681,15 @@ async function loadSales(from,to,head,body,foot,empty) {
   head.innerHTML=`<tr><th>Date</th><th>Order No</th><th>Customer</th><th>Phone</th><th style="text-align:center">Items</th><th>Payment</th><th class="r">Amount (₹)</th></tr>`;
   if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
   let total=0;
-  body.innerHTML = rows.map(o => { total+=o.total||0; return `<tr>
-    <td>${fmtD(o.date)}</td><td class="ab-vno">${o.order_no}</td><td>${o.customer_name}</td>
-    <td>${o.customer_phone||'—'}</td><td style="text-align:center">${o.item_count||0}</td>
-    <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
-    <td class="r"><span class="ab-cr">${fmtAmt(o.total)}</span></td>
-  </tr>`; }).join('');
+  body.innerHTML = rows.map(o => {
+    total+=o.total||0;
+    return `<tr data-id="${o.id}" data-no="${o.order_no}" onclick="selectRow(this)" style="cursor:pointer">
+      <td>${fmtD(o.date)}</td><td class="ab-vno">${o.order_no}</td><td>${o.customer_name}</td>
+      <td>${o.customer_phone||'—'}</td><td style="text-align:center">${o.item_count||0}</td>
+      <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
+      <td class="r"><span class="ab-cr">${fmtAmt(o.total)}</span></td>
+    </tr>`;
+  }).join('');
   foot.innerHTML=`<tr><td colspan="6" class="r">Total Sales</td><td class="r"><span class="ab-cr">${fmtAmt(total)}</span></td></tr>`;
 }
 
@@ -555,25 +698,38 @@ async function loadPurch(from,to,head,body,foot,empty) {
   head.innerHTML=`<tr><th>Date</th><th>Bill No</th><th>Supplier</th><th class="r">Total (₹)</th><th class="r">Paid (₹)</th><th class="r">Due (₹)</th><th>Notes</th></tr>`;
   if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
   let tt=0,tp=0;
-  body.innerHTML = rows.map(p => { tt+=p.total||0; tp+=p.paid||0; const due=(p.total||0)-(p.paid||0); return `<tr>
-    <td>${fmtD(p.date)}</td><td class="ab-vno">${p.bill_no||'—'}</td><td>${p.supplier||'—'}</td>
-    <td class="r"><span class="ab-dr">${fmtAmt(p.total)}</span></td>
-    <td class="r"><span class="ab-cr">${fmtAmt(p.paid)}</span></td>
-    <td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td>
-    <td style="font-size:.78rem;color:var(--muted)">${p.notes||'—'}</td>
-  </tr>`; }).join('');
+  body.innerHTML = rows.map(p => {
+    tt+=p.total||0; tp+=p.paid||0; const due=(p.total||0)-(p.paid||0);
+    return `<tr data-id="${p.id}" data-no="${p.bill_no||p.id}" onclick="selectRow(this)" style="cursor:pointer">
+      <td>${fmtD(p.date)}</td><td class="ab-vno">${p.bill_no||'—'}</td><td>${p.supplier||'—'}</td>
+      <td class="r"><span class="ab-dr">${fmtAmt(p.total)}</span></td>
+      <td class="r"><span class="ab-cr">${fmtAmt(p.paid)}</span></td>
+      <td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${p.notes||'—'}</td>
+    </tr>`;
+  }).join('');
   const due=tt-tp;
   foot.innerHTML=`<tr><td colspan="3" class="r">Total</td><td class="r"><span class="ab-dr">${fmtAmt(tt)}</span></td><td class="r"><span class="ab-cr">${fmtAmt(tp)}</span></td><td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td><td></td></tr>`;
 }
 
-/* ── row selection for delete ── */
+/* ── row selection ── */
+const isBillReg = () => curReg==='sales' || curReg==='purchases';
+
 function selectRow(tr) {
   const id = tr.dataset.id, no = tr.dataset.no;
   if (selectedRowId === id) { clearSelection(); return; }
   document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
   tr.classList.add('ab-selected');
   selectedRowId = id; selectedRowNo = no;
-  document.getElementById('confirmMsg').textContent = `Delete voucher ${no}? This cannot be undone.`;
+  const prevBtn = document.getElementById('previewBtn');
+  const delBtn  = document.getElementById('deleteBtn');
+  if (isBillReg()) {
+    document.getElementById('confirmMsg').textContent = `${no} selected — Alt+P to preview bill`;
+    prevBtn.style.display='inline-block'; delBtn.style.display='none';
+  } else {
+    document.getElementById('confirmMsg').textContent = `Delete ${no}? This cannot be undone.`;
+    prevBtn.style.display='none'; delBtn.style.display='inline-block';
+  }
   document.getElementById('confirmBar').style.display = 'flex';
 }
 function selectRowById(id, no) {
@@ -594,34 +750,48 @@ async function confirmDelete() {
 
 /* ── voucher entry ── */
 function openVoucher() {
-  const cfg = CFG[curReg];
-  if (!cfg.canNew) return;
-  document.getElementById('vchrTypeLabel').textContent = cfg.title.replace(' Register','') + ' Voucher';
-  document.getElementById('vchrNo').textContent        = '';
-  document.getElementById('vDrLabel').textContent      = cfg.drLabel||'Debit Account (Dr)';
-  document.getElementById('vCrLabel').textContent      = cfg.crLabel||'Credit Account (Cr)';
+  const defaultType = REG_TO_VTYPE[curReg] || 'payment';
+  switchVType(defaultType);
   document.getElementById('vDate').value      = document.getElementById('toDate').value || new Date().toISOString().slice(0,10);
   document.getElementById('vDrAcc').value     = '';
   document.getElementById('vCrAcc').value     = '';
   document.getElementById('vAmount').value    = '';
   document.getElementById('vNarration').value = '';
+  document.getElementById('vCrMirror').textContent = '';
   show('scVoucher');
   document.getElementById('vDrAcc').focus();
 }
+
+function switchVType(type) {
+  curVoucherType = type;
+  const cfg = VTYPE[type];
+  document.getElementById('vchrTypeLabel').textContent = cfg.label;
+  document.getElementById('vchrNo').textContent = '';
+  document.getElementById('vDrAcc').options[0].textContent = '— '+cfg.drHint+' —';
+  document.getElementById('vCrAcc').options[0].textContent = '— '+cfg.crHint+' —';
+  document.querySelectorAll('.ab-vtype-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.vtype === type)
+  );
+}
+
+function syncCrAmt() {
+  const v = document.getElementById('vAmount').value;
+  document.getElementById('vCrMirror').textContent = v ? '₹'+parseFloat(v).toFixed(2) : '';
+}
+
 function closeVoucher() { show('scRegister'); }
 
 async function saveVoucher() {
-  const cfg = CFG[curReg];
   const drId = parseInt(document.getElementById('vDrAcc').value);
   const crId = parseInt(document.getElementById('vCrAcc').value);
   const amt  = parseFloat(document.getElementById('vAmount').value);
   if (!drId)        { API.toast('Select a Debit account','warning'); return; }
   if (!crId)        { API.toast('Select a Credit account','warning'); return; }
   if (!amt||amt<=0) { API.toast('Enter a valid amount','warning'); return; }
-  if (drId===crId)  { API.toast('Dr and Cr accounts cannot be the same','warning'); return; }
-  const res = await API.post('/api/admin/accountbooks/vouchers',{
+  if (drId===crId)  { API.toast('Dr and Cr cannot be the same account','warning'); return; }
+  const res = await API.post('/api/admin/accountbooks/vouchers', {
     date:          document.getElementById('vDate').value,
-    voucher_type:  cfg.vtype,
+    voucher_type:  curVoucherType,
     dr_account_id: drId,
     cr_account_id: crId,
     amount:        amt,
@@ -631,40 +801,130 @@ async function saveVoucher() {
   else API.toast(res.message||'Error saving voucher','error');
 }
 
+/* ── bill preview ── */
+async function showPreview() {
+  if (!selectedRowId || !isBillReg()) return;
+  const ov  = document.getElementById('previewOv');
+  const box = document.getElementById('billContent');
+  box.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)">Loading…</div>';
+  ov.style.display = 'flex';
+
+  if (curReg === 'sales') {
+    const d = await API.get('/api/admin/accountbooks/preview/order/'+selectedRowId);
+    if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+d.message+'</div>'; return; }
+    const o=d.order, items=d.items;
+    box.innerHTML = `
+      <div class="b-head">
+        <div><div class="b-brand">⚙️ BS Motors</div><div class="b-brand-sub">Genuine Auto Parts</div></div>
+        <span class="b-badge">Sales Receipt</span>
+      </div>
+      <div class="b-meta">
+        <div><div class="b-meta-lbl">Order No</div><div class="b-meta-val">${o.order_no}</div></div>
+        <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(o.created_at)}</div></div>
+        <div><div class="b-meta-lbl">Customer</div><div class="b-meta-val">${o.customer_name}</div></div>
+        <div><div class="b-meta-lbl">Phone</div><div class="b-meta-val">${o.customer_phone}</div></div>
+      </div>
+      <div class="b-items-hdr cols4"><span>Item</span><span>Qty</span><span>Rate</span><span>Amount</span></div>
+      ${items.map(i=>`<div class="b-item"><div class="b-item-row cols4">
+        <div><div class="b-item-name">${i.name_en}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
+        <div class="b-num">${i.qty}</div>
+        <div class="b-num">₹${parseFloat(i.unit_price).toFixed(2)}</div>
+        <div class="b-num-bold">₹${parseFloat(i.total).toFixed(2)}</div>
+      </div></div>`).join('')}
+      <div class="b-totals">
+        <div class="b-tot-row"><span>Subtotal</span><span>${fmtAmt(o.subtotal)}</span></div>
+        <div class="b-tot-row"><span>Delivery</span><span class="b-free">FREE</span></div>
+        <div class="b-grand"><span>Total</span><span>${fmtAmt(o.total)}</span></div>
+      </div>
+      <div class="b-pay-row">
+        <span class="b-pay-method">${PAY_ICONS[o.payment_method]||'💳'} ${(o.payment_method||'cash').toUpperCase()}</span>
+        <span class="b-pay-st ${o.payment_status==='paid'?'b-st-paid':'b-st-pending'}">${o.payment_status}</span>
+      </div>
+      ${o.notes?`<div class="b-note" style="border-top:1px solid #eef0f5">📝 ${o.notes}</div>`:''}
+      <div class="b-note">Thank you for shopping with BS Motors! 🙏</div>`;
+  } else {
+    const d = await API.get('/api/admin/accountbooks/preview/purchase/'+selectedRowId);
+    if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+d.message+'</div>'; return; }
+    const p=d.purchase, items=d.items, due=(p.total||0)-(p.paid||0);
+    box.innerHTML = `
+      <div class="b-head">
+        <div><div class="b-brand">⚙️ BS Motors</div><div class="b-brand-sub">Purchase Record</div></div>
+        <span class="b-badge">Purchase Memo</span>
+      </div>
+      <div class="b-meta">
+        <div><div class="b-meta-lbl">Bill No</div><div class="b-meta-val">${p.bill_no||'—'}</div></div>
+        <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(p.date)}</div></div>
+        <div><div class="b-meta-lbl">Supplier</div><div class="b-meta-val">${p.supplier||'—'}</div></div>
+      </div>
+      ${items.length ? `
+        <div class="b-items-hdr cols3"><span>Item</span><span>Qty</span><span>Amount</span></div>
+        ${items.map(i=>`<div class="b-item"><div class="b-item-row cols3">
+          <div><div class="b-item-name">${i.name_en}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
+          <div class="b-num">${i.qty}</div>
+          <div class="b-num-bold">₹${parseFloat(i.total).toFixed(2)}</div>
+        </div></div>`).join('')}`
+        : '<div style="padding:.8rem 1.3rem;font-size:.8rem;color:var(--muted)">No line items recorded</div>'}
+      <div class="b-totals">
+        <div class="b-tot-row"><span>Total</span><span>${fmtAmt(p.total)}</span></div>
+        <div class="b-tot-row"><span>Paid</span><span class="ab-cr">${fmtAmt(p.paid)}</span></div>
+        <div class="b-grand ${due>0?'due':''}"><span>${due>0?'Balance Due':'Settled'}</span><span>${fmtAmt(Math.abs(due))}</span></div>
+      </div>
+      ${p.notes?`<div class="b-note">📝 ${p.notes}</div>`:''}`;
+  }
+}
+
+function closePreview() { document.getElementById('previewOv').style.display='none'; }
+
 /* ── keyboard shortcuts ── */
 document.addEventListener('keydown', e => {
-  const inInput = ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
-  const onHome  = !document.getElementById('scHome').classList.contains('hidden');
-  const onReg   = !document.getElementById('scRegister').classList.contains('hidden');
-  const onVchr  = !document.getElementById('scVoucher').classList.contains('hidden');
+  const inInput  = ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
+  const onReg    = !document.getElementById('scRegister').classList.contains('hidden');
+  const onVchr   = !document.getElementById('scVoucher').classList.contains('hidden');
+  const prevOpen = document.getElementById('previewOv').style.display !== 'none';
 
-  /* Esc — context-aware back/deselect */
-  if (e.key==='Escape') {
+  if (e.key === 'Escape') {
     e.preventDefault();
-    if (onVchr) { closeVoucher(); return; }
+    if (prevOpen)               { closePreview(); return; }
+    if (onVchr)                 { closeVoucher(); return; }
     if (onReg && selectedRowId) { clearSelection(); return; }
-    if (onReg) { goHome(); return; }
+    if (onReg)                  { goHome(); return; }
     return;
   }
 
-  if (e.altKey && e.key.toLowerCase()==='a') { e.preventDefault(); saveVoucher(); return; }
-  if (e.altKey && e.key.toLowerCase()==='d') { e.preventDefault(); if (selectedRowId) confirmDelete(); return; }
-  if (e.key==='F2') { e.preventDefault(); document.getElementById('fromDate').focus(); return; }
+  if (e.altKey) {
+    const k = e.key.toLowerCase();
+    if (k==='a') { e.preventDefault(); if (onVchr) saveVoucher(); return; }
+    if (k==='c') { e.preventDefault(); if (!prevOpen && !onVchr) openVoucher(); return; }
+    if (k==='d') { e.preventDefault(); if (selectedRowId && !isBillReg()) confirmDelete(); return; }
+    if (k==='p') { e.preventDefault(); if (selectedRowId && isBillReg()) showPreview(); return; }
+    return;
+  }
+
+  if (e.key === 'F2') { e.preventDefault(); document.getElementById('fromDate').focus(); return; }
+
+  if (onVchr) {
+    if (e.ctrlKey && e.key==='F8') { e.preventDefault(); switchVType('credit_note'); return; }
+    if (e.ctrlKey && e.key==='F9') { e.preventDefault(); switchVType('debit_note');  return; }
+    if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if (e.key==='F4') { e.preventDefault(); switchVType('contra');  return; }
+      if (e.key==='F5') { e.preventDefault(); switchVType('payment'); return; }
+      if (e.key==='F6') { e.preventDefault(); switchVType('receipt'); return; }
+      if (e.key==='F7') { e.preventDefault(); switchVType('journal'); return; }
+    }
+    return;
+  }
 
   if (inInput) return;
 
-  if (!onVchr) {
-    if ((e.key==='N'||e.key==='n') && onReg) { e.preventDefault(); openVoucher(); return; }
-    if (e.ctrlKey && e.key==='F8') { e.preventDefault(); openRegister('credit_note'); return; }
-    if (e.ctrlKey && e.key==='F9') { e.preventDefault(); openRegister('debit_note');  return; }
-    if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
-      if (e.key==='F4') { e.preventDefault(); openRegister('contra');    return; }
-      if (e.key==='F5') { e.preventDefault(); openRegister('payment');   return; }
-      if (e.key==='F6') { e.preventDefault(); openRegister('receipt');   return; }
-      if (e.key==='F8') { e.preventDefault(); openRegister('sales');     return; }
-      if (e.key==='F9') { e.preventDefault(); openRegister('purchases'); return; }
-      if (e.key==='l'||e.key==='L') { openRegister('ledger'); return; }
-    }
+  if (e.ctrlKey && e.key==='F8') { e.preventDefault(); openRegister('credit_note'); return; }
+  if (e.ctrlKey && e.key==='F9') { e.preventDefault(); openRegister('debit_note');  return; }
+  if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
+    if (e.key==='F4') { e.preventDefault(); openRegister('contra');    return; }
+    if (e.key==='F5') { e.preventDefault(); openRegister('payment');   return; }
+    if (e.key==='F6') { e.preventDefault(); openRegister('receipt');   return; }
+    if (e.key==='F8') { e.preventDefault(); openRegister('sales');     return; }
+    if (e.key==='F9') { e.preventDefault(); openRegister('purchases'); return; }
+    if (e.key==='l'||e.key==='L') { openRegister('ledger'); return; }
   }
 });
 

@@ -294,6 +294,23 @@ router.delete('/accountbooks/vouchers/:id', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+router.get('/accountbooks/preview/order/:id', requireAdmin, (req, res) => {
+  const order = adb.prepare(`SELECT o.*, COALESCE(u.name,'Guest') as customer_name, COALESCE(u.phone,'—') as customer_phone
+    FROM orders o LEFT JOIN cdb.users u ON u.id=o.consumer_id WHERE o.id=?`).get(req.params.id);
+  if (!order) return res.json({ ok:false, message:'Not found' });
+  const items = adb.prepare(`SELECT oi.qty, oi.unit_price, oi.total, p.name_en, p.brand, p.sku, p.unit, p.image
+    FROM order_items oi JOIN parts p ON p.id=oi.part_id WHERE oi.order_id=?`).all(order.id);
+  res.json({ ok:true, order, items });
+});
+
+router.get('/accountbooks/preview/purchase/:id', requireAdmin, (req, res) => {
+  const purchase = adb.prepare('SELECT * FROM purchases WHERE id=?').get(req.params.id);
+  if (!purchase) return res.json({ ok:false, message:'Not found' });
+  const items = adb.prepare(`SELECT pi.qty, pi.unit_price, pi.total, p.name_en, p.brand, p.sku, p.unit
+    FROM purchase_items pi JOIN parts p ON p.id=pi.part_id WHERE pi.purchase_id=?`).all(purchase.id);
+  res.json({ ok:true, purchase, items });
+});
+
 router.post('/accountbooks/vouchers', requireAdmin, (req, res) => {
   const { date, narration, voucher_type, dr_account_id, cr_account_id, amount } = req.body;
   if (!date || !dr_account_id || !cr_account_id || !amount)
