@@ -115,7 +115,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .part-card .card-img-wrap { position: relative; }
 .part-card img { width: 100%; height: 160px; object-fit: cover; background: #f0f0f0; }
 .part-card .no-img { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0f4ff, #e8edf5); color: var(--muted); font-size: 2.5rem; }
-.part-card .brand-badge { position: absolute; top: 8px; left: 8px; background: #3a7bd5; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 20px; letter-spacing: 0.03em; text-transform: uppercase; }
+.part-card .brand-badge { position: absolute; top: 14px; left: 0; background: #3a7bd5; color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.28rem 0.75rem 0.28rem 0.85rem; border-radius: 0 20px 20px 0; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 2px 3px 8px rgba(0,0,0,0.28); }
+.part-card .brand-badge::before { content: ''; position: absolute; bottom: -5px; left: 0; border-width: 0 5px 5px 0; border-style: solid; border-color: transparent #1a56b0 transparent transparent; }
 .part-card .card-body { padding: 1rem; }
 .part-card .part-name { font-weight: 700; font-size: 1rem; color: var(--secondary); }
 .part-card .part-name-hi { font-size: 0.82rem; color: var(--muted); }
