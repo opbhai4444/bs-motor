@@ -20,34 +20,62 @@
       <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
     </nav>
   </aside>
+
   <main class="admin-main">
     <div class="admin-header"><h1>📋 Orders</h1></div>
-    <div class="filter-bar" style="margin-bottom:1rem;border-radius:10px">
-      <input type="text" id="searchQ" placeholder="Order no / customer..." style="padding:0.4rem 0.75rem;border:1px solid var(--border);border-radius:6px;width:200px">
-      <select id="filterStatus"><option value="">All Status</option><option>pending</option><option>confirmed</option><option>shipped</option><option>delivered</option><option>cancelled</option></select>
-      <input type="date" id="fromDate"><input type="date" id="toDate">
-      <button class="btn-sm btn-view" onclick="loadOrders()">Filter</button>
+
+    <!-- Stats strip -->
+    <div class="ao-stats">
+      <div class="ao-stat"><div class="ao-stat-val" id="statTotal">—</div><div class="ao-stat-lbl">Total</div></div>
+      <div class="ao-stat ao-stat-warn"><div class="ao-stat-val" id="statPending">—</div><div class="ao-stat-lbl">Pending</div></div>
+      <div class="ao-stat ao-stat-info"><div class="ao-stat-val" id="statConfirmed">—</div><div class="ao-stat-lbl">Confirmed</div></div>
+      <div class="ao-stat ao-stat-ship"><div class="ao-stat-val" id="statShipped">—</div><div class="ao-stat-lbl">Shipped</div></div>
+      <div class="ao-stat ao-stat-done"><div class="ao-stat-val" id="statDelivered">—</div><div class="ao-stat-lbl">Delivered</div></div>
+      <div class="ao-stat ao-stat-rev"><div class="ao-stat-val" id="statRevenue">—</div><div class="ao-stat-lbl">Revenue</div></div>
     </div>
-    <table class="data-table">
-      <thead><tr><th>Order No</th><th>Customer</th><th>Phone</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-      <tbody id="ordersBody"></tbody>
-    </table>
+
+    <!-- Filter bar -->
+    <div class="ao-filters">
+      <input type="text" id="searchQ" placeholder="🔍 Order no / customer / phone…" onkeydown="if(event.key==='Enter')loadOrders()">
+      <select id="filterStatus" onchange="loadOrders()">
+        <option value="">All Status</option>
+        <option>pending</option><option>confirmed</option><option>shipped</option><option>delivered</option><option>cancelled</option>
+      </select>
+      <input type="date" id="fromDate" onchange="loadOrders()">
+      <input type="date" id="toDate"   onchange="loadOrders()">
+      <button class="btn-sm btn-view" onclick="loadOrders()">Filter</button>
+      <button class="btn-sm" onclick="clearFilters()">Clear</button>
+    </div>
+
+    <!-- Orders table -->
+    <div class="ao-table-wrap">
+      <table class="data-table ao-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Quick Action</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+      <div id="ordersEmpty" style="display:none;text-align:center;padding:3rem;color:var(--muted)">
+        <div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No orders found
+      </div>
+    </div>
   </main>
 </div>
 
+<!-- Order detail modal -->
 <div class="modal-overlay" id="orderModal">
-  <div class="modal-box" style="max-width:680px">
+  <div class="modal-box ao-modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <h3>Order Details</h3>
     <div id="orderDetail"></div>
-    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
-      <h4 style="font-weight:800;margin-bottom:0.75rem">Update Status</h4>
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center">
-        <select id="newStatus"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select>
-        <select id="newPayStatus"><option value="pending">Payment Pending</option><option value="paid">Paid</option><option value="failed">Failed</option></select>
-        <button class="btn-sm btn-view" onclick="updateStatus()">Update</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -55,55 +83,200 @@
 <script src="/js/admin-nav.js"></script>
 <script>
 let currentOrderId = null;
+let allOrders = [];
+
+const NEXT = { pending:'confirmed', confirmed:'shipped', shipped:'delivered' };
+const NEXT_LABEL = { pending:'✅ Confirm', confirmed:'🚚 Ship', shipped:'📦 Deliver' };
+const PAY_ICON  = { cash:'💵', upi:'📱', card:'💳' };
+const STATUS_ICONS = { pending:'🕐', confirmed:'✅', shipped:'🚚', delivered:'📦', cancelled:'❌' };
+const STEPS = ['pending','confirmed','shipped','delivered'];
+
 async function init() {
   const user = await AdminNav.init();
   if (!user) return;
-  loadOrders();
-  document.getElementById('searchQ').addEventListener('keypress',e=>{if(e.key==='Enter')loadOrders();});
+  await loadOrders();
+  document.getElementById('searchQ').addEventListener('keypress', e => { if (e.key==='Enter') loadOrders(); });
 }
+
 async function loadOrders() {
-  const params=new URLSearchParams();
-  const q=document.getElementById('searchQ').value, status=document.getElementById('filterStatus').value;
-  const from=document.getElementById('fromDate').value, to=document.getElementById('toDate').value;
-  if(q)params.set('q',q); if(status)params.set('status',status); if(from)params.set('from',from); if(to)params.set('to',to);
-  const orders=await API.get('/api/admin/orders?'+params);
-  document.getElementById('ordersBody').innerHTML=orders.map(o=>`
-    <tr>
-      <td><strong>${o.order_no}</strong></td><td>${o.customer_name}</td><td>${o.customer_phone||'—'}</td>
-      <td style="font-weight:800">₹${parseFloat(o.total).toFixed(2)}</td>
-      <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
-      <td><span class="status-badge status-${o.status}">${o.status}</span></td>
-      <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
-      <td><button class="btn-sm btn-view" onclick="viewOrder(${o.id})">View</button></td>
-    </tr>
-  `).join('')||'<tr><td colspan="8" style="text-align:center;color:#999;padding:2rem">No orders found</td></tr>';
+  const params = new URLSearchParams();
+  const q      = document.getElementById('searchQ').value;
+  const status = document.getElementById('filterStatus').value;
+  const from   = document.getElementById('fromDate').value;
+  const to     = document.getElementById('toDate').value;
+  if (q)      params.set('q',q);
+  if (status) params.set('status',status);
+  if (from)   params.set('from',from);
+  if (to)     params.set('to',to);
+
+  allOrders = await API.get('/api/admin/orders?' + params);
+  renderStats();
+  renderTable();
 }
+
+function renderStats() {
+  const pending   = allOrders.filter(o=>o.status==='pending').length;
+  const confirmed = allOrders.filter(o=>o.status==='confirmed').length;
+  const shipped   = allOrders.filter(o=>o.status==='shipped').length;
+  const delivered = allOrders.filter(o=>o.status==='delivered').length;
+  const revenue   = allOrders.reduce((s,o)=>s+o.total,0);
+  document.getElementById('statTotal').textContent     = allOrders.length;
+  document.getElementById('statPending').textContent   = pending;
+  document.getElementById('statConfirmed').textContent = confirmed;
+  document.getElementById('statShipped').textContent   = shipped;
+  document.getElementById('statDelivered').textContent = delivered;
+  document.getElementById('statRevenue').textContent   = '₹' + revenue.toFixed(0);
+}
+
+function renderTable() {
+  const tbody = document.getElementById('ordersBody');
+  const empty = document.getElementById('ordersEmpty');
+  if (!allOrders.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const fmt = d => new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  tbody.innerHTML = allOrders.map(o => {
+    const next = NEXT[o.status];
+    return `
+    <tr class="ao-row" onclick="viewOrder(${o.id})">
+      <td>
+        <div class="ao-ono">${o.order_no}</div>
+        <div class="ao-odate">${fmt(o.created_at)}</div>
+      </td>
+      <td>
+        <div class="ao-cname">${o.customer_name}</div>
+        <div class="ao-cphone">${o.customer_phone||'—'}</div>
+      </td>
+      <td><span class="ao-items-badge">${o.item_count||0} item${o.item_count!==1?'s':''}</span></td>
+      <td class="ao-amt">₹${parseFloat(o.total).toFixed(2)}</td>
+      <td>
+        <span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span>
+        <div class="ao-pay-method">${PAY_ICON[o.payment_method]||'💳'} ${o.payment_method||'cash'}</div>
+      </td>
+      <td><span class="status-badge status-${o.status}">${STATUS_ICONS[o.status]||''} ${o.status}</span></td>
+      <td onclick="event.stopPropagation()">
+        ${next ? `<button class="btn-sm ao-quick" onclick="quickAdvance(${o.id},'${next}')">${NEXT_LABEL[o.status]}</button>` : '—'}
+      </td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn-sm btn-view" onclick="viewOrder(${o.id})">View →</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function quickAdvance(id, status) {
+  const res = await API.put('/api/admin/orders/'+id+'/status', { status, payment_status: status==='delivered'?'paid':undefined });
+  if (res.ok) { API.toast('Status → '+status); await loadOrders(); }
+  else API.toast('Failed','error');
+}
+
 async function viewOrder(id) {
-  currentOrderId=id;
-  const o=await API.get('/api/admin/orders/'+id);
-  document.getElementById('orderDetail').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-      <div><strong>Order No:</strong> ${o.order_no}</div><div><strong>Date:</strong> ${new Date(o.created_at).toLocaleString('en-IN')}</div>
-      <div><strong>Customer:</strong> ${o.customer_name}</div><div><strong>Phone:</strong> ${o.phone||'—'}</div>
-      <div><strong>Email:</strong> ${o.email||'—'}</div><div><strong>Payment:</strong> ${o.payment_method}</div>
+  currentOrderId = id;
+  const o = await API.get('/api/admin/orders/'+id);
+  const stepIdx = STEPS.indexOf(o.status);
+  const pct     = stepIdx < 0 ? 0 : Math.round(stepIdx/(STEPS.length-1)*100);
+  const fmt     = d => new Date(d).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  document.getElementById('orderDetail').innerHTML = `
+    <!-- Header -->
+    <div class="aod-head">
+      <div>
+        <div class="aod-no">${o.order_no}</div>
+        <div class="aod-date">${fmt(o.created_at)}</div>
+      </div>
+      <span class="status-badge status-${o.status}" style="font-size:.9rem">${STATUS_ICONS[o.status]||''} ${o.status.charAt(0).toUpperCase()+o.status.slice(1)}</span>
     </div>
-    ${o.address?`<div style="margin-bottom:1rem"><strong>Address:</strong> ${o.address}</div>`:''}
-    <table style="width:100%;border-collapse:collapse">
-      <thead><tr style="background:var(--secondary);color:#fff"><th style="padding:0.6rem">Part</th><th style="padding:0.6rem">SKU</th><th style="padding:0.6rem;text-align:center">Qty</th><th style="padding:0.6rem;text-align:right">Price</th><th style="padding:0.6rem;text-align:right">Total</th></tr></thead>
-      <tbody>${o.items.map(i=>`<tr><td style="padding:0.6rem">${i.name_en}</td><td style="padding:0.6rem;font-size:0.8rem;color:#999">${i.sku}</td><td style="padding:0.6rem;text-align:center">${i.qty}</td><td style="padding:0.6rem;text-align:right">₹${parseFloat(i.unit_price).toFixed(2)}</td><td style="padding:0.6rem;text-align:right;font-weight:700">₹${parseFloat(i.total).toFixed(2)}</td></tr>`).join('')}</tbody>
-      <tfoot><tr><td colspan="4" style="padding:0.75rem;font-weight:800;border-top:2px solid #eee;text-align:right">Grand Total</td><td style="padding:0.75rem;font-weight:800;border-top:2px solid #eee;text-align:right;color:var(--primary)">₹${parseFloat(o.total).toFixed(2)}</td></tr></tfoot>
-    </table>`;
-  document.getElementById('newStatus').value=o.status;
-  document.getElementById('newPayStatus').value=o.payment_status;
+
+    <!-- Two-column info -->
+    <div class="aod-info-grid">
+      <div class="aod-info-card">
+        <div class="aod-info-title">👤 Customer</div>
+        <div class="aod-info-row"><span>Name</span><strong>${o.customer_name}</strong></div>
+        <div class="aod-info-row"><span>Phone</span><strong>${o.phone||'—'}</strong></div>
+        <div class="aod-info-row"><span>Email</span><strong>${o.email||'—'}</strong></div>
+        ${o.address?`<div class="aod-info-row"><span>Address</span><strong>${o.address}</strong></div>`:''}
+      </div>
+      <div class="aod-info-card">
+        <div class="aod-info-title">💳 Payment</div>
+        <div class="aod-info-row"><span>Method</span><strong>${PAY_ICON[o.payment_method]||''} ${o.payment_method||'cash'}</strong></div>
+        <div class="aod-info-row"><span>Status</span><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></div>
+        <div class="aod-info-row"><span>Total</span><strong style="color:var(--primary);font-size:1.1rem">₹${parseFloat(o.total).toFixed(2)}</strong></div>
+        ${o.notes?`<div class="aod-info-row"><span>Notes</span><em>${o.notes}</em></div>`:''}
+      </div>
+    </div>
+
+    <!-- Tracker -->
+    <div class="aod-section">Order Progress</div>
+    <div class="aod-tracker">
+      <div class="aod-track-bar"><div class="aod-track-fill" style="width:${pct}%"></div></div>
+      <div class="aod-track-steps">
+        ${STEPS.map((s,i)=>`
+          <div class="aod-step ${i<=stepIdx?'done':''}">
+            <div class="aod-dot">${i<stepIdx?'✓':i===stepIdx?'●':''}</div>
+            <div class="aod-step-lbl">${s.charAt(0).toUpperCase()+s.slice(1)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="aod-section">Items (${o.items.length})</div>
+    <div class="aod-items">
+      ${o.items.map(item=>`
+        <div class="aod-item">
+          <div class="aod-item-img">${item.image?`<img src="${item.image}" alt="${item.name_en}">`:'⚙️'}</div>
+          <div class="aod-item-body">
+            <div class="aod-item-name">${item.name_en}</div>
+            ${item.sku?`<div class="aod-item-sku">${item.sku}</div>`:''}
+          </div>
+          <div class="aod-item-right">
+            <div>${item.qty} × ₹${parseFloat(item.unit_price).toFixed(2)}</div>
+            <div class="aod-item-total">₹${parseFloat(item.total).toFixed(2)}</div>
+          </div>
+        </div>`).join('')}
+      <div class="aod-items-total">Grand Total &nbsp; ₹${parseFloat(o.total).toFixed(2)}</div>
+    </div>
+
+    <!-- Status update -->
+    <div class="aod-section">Update Status</div>
+    <div class="aod-status-btns">
+      ${['pending','confirmed','shipped','delivered','cancelled'].map(s=>`
+        <button class="aod-sbtn ${o.status===s?'aod-sbtn-active':''}" onclick="updateStatus('${s}')">${STATUS_ICONS[s]} ${s.charAt(0).toUpperCase()+s.slice(1)}</button>
+      `).join('')}
+    </div>
+    <div class="aod-pay-btns">
+      <span style="font-size:.8rem;font-weight:700;color:var(--muted)">Payment:</span>
+      ${['pending','paid','failed'].map(p=>`
+        <button class="aod-pbtn ${o.payment_status===p?'aod-pbtn-active':''}" onclick="updatePayStatus('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>
+      `).join('')}
+    </div>`;
+
   document.getElementById('orderModal').classList.add('open');
 }
-async function updateStatus() {
-  const res=await API.put('/api/admin/orders/'+currentOrderId+'/status',{status:document.getElementById('newStatus').value,payment_status:document.getElementById('newPayStatus').value});
-  if(res.ok){API.toast('Order updated!');closeModal();loadOrders();}
-  else API.toast('Error','error');
+
+async function updateStatus(status) {
+  const o = allOrders.find(x => x.id === currentOrderId) || {};
+  const pay = status === 'delivered' ? 'paid' : (o.payment_status || 'pending');
+  const res = await API.put('/api/admin/orders/'+currentOrderId+'/status', { status, payment_status: pay });
+  if (res.ok) { API.toast('Status updated → '+status); closeModal(); loadOrders(); }
+  else API.toast('Failed','error');
 }
-function closeModal(){document.getElementById('orderModal').classList.remove('open');currentOrderId=null;}
-document.getElementById('orderModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+async function updatePayStatus(payment_status) {
+  const o = allOrders.find(x => x.id === currentOrderId) || {};
+  const res = await API.put('/api/admin/orders/'+currentOrderId+'/status', { status: o.status||'pending', payment_status });
+  if (res.ok) { API.toast('Payment → '+payment_status); closeModal(); loadOrders(); }
+  else API.toast('Failed','error');
+}
+
+function clearFilters() {
+  document.getElementById('searchQ').value='';
+  document.getElementById('filterStatus').value='';
+  document.getElementById('fromDate').value='';
+  document.getElementById('toDate').value='';
+  loadOrders();
+}
+
+function closeModal() { document.getElementById('orderModal').classList.remove('open'); currentOrderId=null; }
+document.getElementById('orderModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 init();
 </script>
 </body>

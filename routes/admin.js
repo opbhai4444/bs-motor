@@ -107,25 +107,31 @@ router.delete('/parts/:id', requireAdmin, (req, res) => {
 // ── ORDERS ─────────────────────────────────────────────────────────────────────
 router.get('/orders', requireAdmin, (req, res) => {
   const { status, from, to, q } = req.query;
-  let sql = 'SELECT o.*, u.name as customer_name, u.phone as customer_phone FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE 1=1';
+  let sql = `SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.email as customer_email,
+             (SELECT COUNT(*) FROM order_items WHERE order_id=o.id) as item_count
+             FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE 1=1`;
   const params = [];
   if (status) { sql += ' AND o.status=?'; params.push(status); }
   if (from)   { sql += ' AND date(o.created_at)>=?'; params.push(from); }
   if (to)     { sql += ' AND date(o.created_at)<=?'; params.push(to); }
-  if (q)      { sql += ' AND (o.order_no LIKE ? OR u.name LIKE ?)'; const lq = `%${q}%`; params.push(lq, lq); }
+  if (q)      { sql += ' AND (o.order_no LIKE ? OR u.name LIKE ? OR u.phone LIKE ?)'; const lq=`%${q}%`; params.push(lq,lq,lq); }
   sql += ' ORDER BY o.created_at DESC';
   res.json(adb.prepare(sql).all(...params));
 });
 
 router.get('/orders/:id', requireAdmin, (req, res) => {
-  const order = adb.prepare('SELECT o.*, u.name as customer_name, u.phone, u.email, u.address FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE o.id=?').get(req.params.id);
+  const order = adb.prepare(`SELECT o.*, u.name as customer_name, u.phone, u.email, u.address
+    FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE o.id=?`).get(req.params.id);
   if (!order) return res.status(404).json({ ok: false });
-  const items = adb.prepare('SELECT oi.*, p.name_en, p.name_hi, p.sku FROM order_items oi JOIN parts p ON p.id=oi.part_id WHERE oi.order_id=?').all(order.id);
+  const items = adb.prepare(`SELECT oi.*, p.name_en, p.name_hi, p.sku, p.image
+    FROM order_items oi JOIN parts p ON p.id=oi.part_id WHERE oi.order_id=?`).all(order.id);
   res.json({ ...order, items });
 });
 
 router.put('/orders/:id/status', requireAdmin, (req, res) => {
   const { status, payment_status } = req.body;
+  const valid = ['pending','confirmed','shipped','delivered','cancelled'];
+  if (status && !valid.includes(status)) return res.json({ ok: false, message: 'Invalid status' });
   adb.prepare('UPDATE orders SET status=?, payment_status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?')
     .run(status, payment_status || 'pending', req.params.id);
   res.json({ ok: true });
