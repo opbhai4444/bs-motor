@@ -110,19 +110,19 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .part-card .tag { text-transform:capitalize; }
 
 /* Cards */
-.part-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; }
+.part-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
 .part-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
 .part-card .card-img-wrap { position: relative; }
 .part-card img { width: 100%; height: 160px; object-fit: cover; background: #f0f0f0; }
 .part-card .no-img { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0f4ff, #e8edf5); color: var(--muted); font-size: 2.5rem; }
 .part-card .brand-badge { position: absolute; top: 14px; left: 0; background: #3a7bd5; color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.28rem 0.75rem 0.28rem 0.85rem; border-radius: 0 20px 20px 0; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 2px 3px 8px rgba(0,0,0,0.28); }
 .part-card .brand-badge::before { content: ''; position: absolute; bottom: -5px; left: 0; border-width: 0 5px 5px 0; border-style: solid; border-color: transparent #1a56b0 transparent transparent; }
-.part-card .card-body { padding: 1rem; }
+.part-card .card-body { padding: 1rem; display: flex; flex-direction: column; flex: 1; }
 .part-card .part-name { font-weight: 700; font-size: 1rem; color: var(--secondary); }
 .part-card .part-name-hi { font-size: 0.82rem; color: var(--muted); }
 .part-card .part-price { font-size: 1.2rem; font-weight: 800; color: var(--primary); margin: 0.5rem 0; }
-.part-card .card-footer-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
-.part-card .btn-add { width: 100%; margin-top: 0.75rem; background: var(--secondary); color: #fff; border: none; padding: 0.6rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+.part-card .card-footer-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: auto; margin-bottom: 0.5rem; }
+.part-card .btn-add { width: 100%; background: var(--secondary); color: #fff; border: none; padding: 0.6rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
 .part-card .btn-add:hover { background: var(--primary); }
 
 /* Grid */
