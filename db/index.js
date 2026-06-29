@@ -196,9 +196,9 @@ cdb.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL,
-    email      TEXT UNIQUE NOT NULL,
-    phone      TEXT,
-    password   TEXT NOT NULL,
+    email      TEXT UNIQUE,
+    phone      TEXT UNIQUE,
+    password   TEXT,
     role       TEXT NOT NULL DEFAULT 'consumer',
     lang       TEXT NOT NULL DEFAULT 'en',
     address    TEXT,
