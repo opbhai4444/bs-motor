@@ -474,7 +474,7 @@ const ConsumerNav = {
       try {
         // Bypass reCAPTCHA entirely — fake verifier, no RecaptchaVerifier object needed
         firebase.auth().settings.appVerificationDisabledForTesting = true;
-        const bypassVerifier = { type: 'recaptcha', verify: () => Promise.resolve('') };
+        const bypassVerifier = { type: 'recaptcha', verify: () => Promise.resolve(''), _reset: () => {} };
         this._confirmResult = await firebase.auth().signInWithPhoneNumber(phone, bypassVerifier);
         this._phoneNum = phone;
         document.getElementById('bsmPhoneStage').style.display = 'none';
