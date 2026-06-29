@@ -82,20 +82,15 @@ function renderParts() {
   empty.style.display = 'none';
   grid.innerHTML = allParts.map(p => `
     <div class="part-card">
-      ${p.image
-        ? `<img src="${p.image}" alt="${p.name_en}" loading="lazy">`
-        : `<div class="no-img">⚙️</div>`}
+      <div class="card-img-wrap">
+        ${p.image
+          ? `<img src="${p.image}" alt="${p.name_en}" loading="lazy">`
+          : `<div class="no-img">⚙️</div>`}
+        ${p.brand ? `<span class="brand-badge">${p.brand}</span>` : ''}
+      </div>
       <div class="card-body">
         <div class="part-name">${p.name_en}</div>
         ${showHindi ? `<div class="part-name-hi">${p.name_hi}</div>` : ''}
-        <div class="part-meta" style="margin:.3rem 0">
-          ${p.brand    ? `<span class="tag">🏷 ${p.brand}</span>` : ''}
-          ${p.category ? `<span class="tag">📂 ${p.category}</span>` : ''}
-        </div>
-        <div class="stars" style="font-size:.82rem;margin:.2rem 0">
-          ${stars(p.avg_rating)}
-          <span style="color:#bbb;font-size:.75rem">(${p.review_count || 0})</span>
-        </div>
         <div class="part-price">₹${parseFloat(p.price).toFixed(2)}</div>
         <div style="font-size:.8rem;margin-bottom:.55rem">
           ${p.stock > 5
@@ -103,6 +98,10 @@ function renderParts() {
             : p.stock > 0
             ? `<span style="color:#e67e22">⚠ Only ${p.stock} left</span>`
             : `<span style="color:#e63946">✘ Out of Stock</span>`}
+        </div>
+        <div class="card-footer-meta">
+          <span>${p.compatible_models || ''}</span>
+          <span>${p.sku || ''}</span>
         </div>
         <button class="btn-add" onclick="addToCart(${p.id},'${p.name_en.replace(/'/g,"\\'")}',${p.stock})"
           ${p.stock === 0 ? 'disabled' : ''}>🛒 Add to Cart</button>
