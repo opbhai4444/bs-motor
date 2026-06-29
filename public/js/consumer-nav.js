@@ -229,7 +229,11 @@ const ConsumerNav = {
     document.getElementById('bsmLogoutBtn').onclick = async e => {
       e.preventDefault();
       await fetch('/api/auth/logout', { method: 'POST' });
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        try { await firebase.auth().signOut(); } catch(_) {}
+      }
       this._user = null;
+      this._authWatching = false;
       this._renderHeader();
       this._setCart(0);
       if (typeof API !== 'undefined') API.toast('Signed out');
@@ -470,7 +474,9 @@ const ConsumerNav = {
     const btn = document.getElementById('bsmSendOtpBtn');
     btn.textContent = 'Sending…'; btn.disabled = true;
 
-    if (ready) {
+    const useFirebase = ready && typeof firebase !== 'undefined' && firebase.auth && firebase.auth.RecaptchaVerifier;
+
+    if (useFirebase) {
       try {
         firebase.auth().settings.appVerificationDisabledForTesting = true;
         if (this._rcVerifier) { try { this._rcVerifier.clear(); } catch(e) {} this._rcVerifier = null; }
@@ -499,8 +505,30 @@ const ConsumerNav = {
         btn.textContent = 'Send OTP'; btn.disabled = false;
       }
     } else {
-      if (typeof API !== 'undefined') API.toast('Firebase not available — use Email login', 'error');
-      btn.textContent = 'Send OTP'; btn.disabled = false;
+      // Fallback: backend OTP (no Firebase/reCAPTCHA needed)
+      this._confirmResult = null;
+      this._phoneNum = phone;
+      try {
+        const res = await fetch('/api/auth/send-otp', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        }).then(r => r.json());
+        if (res.ok) {
+          document.getElementById('bsmPhoneStage').style.display = 'none';
+          document.getElementById('bsmOtpStage').style.display   = 'block';
+          document.getElementById('bsmOtpNum').textContent       = phone;
+          document.getElementById('bsmOtpInput').focus();
+          if (typeof API !== 'undefined') API.toast('OTP sent to your phone! 📱');
+          const box = document.getElementById('bsmDevOtpBox');
+          if (box) { box.style.display = res._otp ? 'block' : 'none'; if (res._otp) box.textContent = 'Dev OTP: ' + res._otp; }
+        } else {
+          if (typeof API !== 'undefined') API.toast(res.message || 'Failed to send OTP', 'error');
+        }
+      } catch(e) {
+        if (typeof API !== 'undefined') API.toast('SMS error — try Email login', 'error');
+      } finally {
+        btn.textContent = 'Send OTP'; btn.disabled = false;
+      }
     }
   },
 
