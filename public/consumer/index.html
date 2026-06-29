@@ -37,11 +37,19 @@ async function init() {
   await ConsumerNav.init();
   I18n.init();
 
-  // Sync header search with URL param ?q=
-  const urlQ = new URLSearchParams(location.search).get('q') || '';
+  const params = new URLSearchParams(location.search);
+  const urlQ   = params.get('q') || '';
   if (urlQ) document.getElementById('bsmSearchInput').value = urlQ;
 
   await loadFilters();
+
+  const urlCat = params.get('category') || '';
+  if (urlCat) {
+    const sel = document.getElementById('filterCategory');
+    const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === urlCat.toLowerCase());
+    if (opt) sel.value = opt.value;
+  }
+
   await loadParts();
 }
 

@@ -28,7 +28,26 @@ const ConsumerNav = {
       this._ensureFirebase().then(ready => { if (ready) this._watchAuthState(); });
     }
 
+    this._loadNavCats();
+
     return this._user;
+  },
+
+  async _loadNavCats() {
+    try {
+      const f = await fetch('/api/consumer/filters').then(r => r.json());
+      const icons = { bumpers:'🚗', lights:'💡', mirrors:'🪞', wipers:'🌧️', 'bumper brackets':'🔩', electrical:'⚡', 'engine parts':'⚙️', filters:'🔄', 'body parts':'🛠️', glass:'🔲', suspension:'🔃', brakes:'🛑', cooling:'❄️', exhaust:'💨', 'interior':'🪑' };
+      const el = document.getElementById('bsmNavCats');
+      if (!el) return;
+      const urlCat = new URLSearchParams(location.search).get('category') || '';
+      (f.categories || []).forEach(cat => {
+        const a = document.createElement('a');
+        a.href = `/consumer/index.html?category=${encodeURIComponent(cat)}`;
+        a.textContent = (icons[cat.toLowerCase()] || '⚙️') + ' ' + cat;
+        if (urlCat && urlCat.toLowerCase() === cat.toLowerCase()) a.classList.add('nav-active');
+        el.appendChild(a);
+      });
+    } catch(e) {}
   },
 
   // ── Inject header + overlays ────────────────────────────────────────────────
@@ -95,10 +114,14 @@ const ConsumerNav = {
   </div>
 
   <nav class="bsm-nav-strip">
-    ${nav('/consumer/index.html',   '🔧 All Parts',  'index.html')}
-    ${nav('/consumer/cart.html',    '🛒 Cart',       'cart.html')}
-    ${nav('/consumer/orders.html',  '📋 My Orders',  'orders.html')}
-    ${nav('/consumer/contact.html', '📞 Contact',    'contact.html')}
+    <div class="bsm-nav-cats" id="bsmNavCats">
+      ${nav('/consumer/index.html', '🔧 All Parts', 'index.html')}
+    </div>
+    <div class="bsm-nav-utils">
+      <span class="nav-promo">✅ Genuine Parts &nbsp;·&nbsp; 🚚 Fast Dispatch</span>
+      ${nav('/consumer/orders.html', '📋 My Orders', 'orders.html')}
+      ${nav('/consumer/contact.html', '📞 Help', 'contact.html')}
+    </div>
   </nav>
 </header>
 

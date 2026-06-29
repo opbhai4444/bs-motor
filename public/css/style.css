@@ -57,9 +57,15 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .bsm-cart .cart-emoji { font-size:1.45rem; line-height:1; }
 .bsm-cart .cart-cnt { background:var(--accent); color:var(--secondary); border-radius:50%; min-width:19px; height:19px; font-size:.7rem; font-weight:900; display:flex; align-items:center; justify-content:center; position:absolute; top:-1px; left:18px; }
 
-.bsm-nav-strip { background:#264876; border-top:1px solid rgba(255,255,255,.1); display:flex; align-items:center; padding:0 .8rem; overflow-x:auto; }
-.bsm-nav-strip a { color:#d4e3ef; font-size:.83rem; padding:.38rem .75rem; text-decoration:none; border:1.5px solid transparent; border-radius:4px; transition:all .15s; white-space:nowrap; }
-.bsm-nav-strip a:hover,.bsm-nav-strip a.nav-active { border-color:rgba(255,255,255,.55); color:#fff; }
+.bsm-nav-strip { background:#152a46; border-top:1px solid rgba(212,160,23,.18); display:flex; align-items:center; justify-content:space-between; padding:0 1rem; gap:1rem; min-height:40px; }
+.bsm-nav-cats { display:flex; align-items:center; overflow-x:auto; scrollbar-width:none; flex:1; }
+.bsm-nav-cats::-webkit-scrollbar { display:none; }
+.bsm-nav-utils { display:flex; align-items:center; flex-shrink:0; }
+.nav-promo { font-size:.68rem; color:var(--accent); font-weight:700; white-space:nowrap; padding:.22rem .7rem; background:rgba(212,160,23,.1); border:1px solid rgba(212,160,23,.28); border-radius:20px; margin-right:.6rem; letter-spacing:.02em; }
+.bsm-nav-strip a { color:#aac4de; font-size:.78rem; padding:.55rem .65rem; text-decoration:none; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; white-space:nowrap; font-weight:500; display:inline-block; text-transform:capitalize; }
+.bsm-nav-strip a:hover { color:#fff; border-bottom-color:rgba(255,255,255,.3); }
+.bsm-nav-strip a.nav-active { color:var(--accent); border-bottom-color:var(--accent); font-weight:700; }
+.bsm-nav-utils a { border-left:1px solid rgba(255,255,255,.08); }
 
 /* ── Overlays ── */
 .bsm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:800; display:none; align-items:center; justify-content:center; padding:1rem; }
