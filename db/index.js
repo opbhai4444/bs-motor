@@ -36,7 +36,7 @@ adb.exec(`
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     name_en           TEXT NOT NULL,
     name_hi           TEXT NOT NULL,
-    sku               TEXT UNIQUE NOT NULL,
+    sku               TEXT UNIQUE,
     category          TEXT,
     brand             TEXT,
     compatible_models TEXT,

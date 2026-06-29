@@ -51,9 +51,8 @@ router.get('/parts', requireAdmin, (req, res) => {
 router.post('/parts', requireAdmin, upload.single('image'), (req, res) => {
   const { name_en, name_hi, sku, category, brand, compatible_models, price, purchase_price, stock, unit, description } = req.body;
   if (!name_en) return res.json({ ok: false, message: 'Item name is required' });
-  if (!sku)     return res.json({ ok: false, message: 'Part number (SKU) is required' });
   if (!price)   return res.json({ ok: false, message: 'Selling price is required' });
-  const finalSku = sku;
+  const finalSku = sku || null;
   const image    = req.file ? '/uploads/' + req.file.filename : null;
   try {
     adb.prepare(`INSERT INTO parts (name_en,name_hi,sku,category,brand,compatible_models,price,purchase_price,stock,unit,image,description)
