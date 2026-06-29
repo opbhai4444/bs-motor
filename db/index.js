@@ -108,11 +108,12 @@ adb.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS journal_entries (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    entry_no   TEXT UNIQUE NOT NULL,
-    date       TEXT NOT NULL,
-    narration  TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_no     TEXT UNIQUE NOT NULL,
+    date         TEXT NOT NULL,
+    narration    TEXT,
+    voucher_type TEXT DEFAULT 'journal',
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS journal_lines (
@@ -148,6 +149,9 @@ adb.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Migrate existing journal_entries to add voucher_type if missing
+try { adb.exec("ALTER TABLE journal_entries ADD COLUMN voucher_type TEXT DEFAULT 'journal'"); } catch(e) {}
 
 // Seed default admin
 if (!adb.prepare('SELECT id FROM users WHERE role=?').get('admin')) {

@@ -231,6 +231,75 @@ router.post('/journal', requireAdmin, (req, res) => {
   res.json({ ok: true, entry_no });
 });
 
+// ── ACCOUNT BOOKS ──────────────────────────────────────────────────────────────
+router.get('/accountbooks/sales', requireAdmin, (req, res) => {
+  const { from, to } = req.query;
+  let sql = `SELECT o.id, o.order_no, date(o.created_at) as date, u.name as customer_name,
+             u.phone as customer_phone, o.total, o.payment_method, o.payment_status, o.notes,
+             (SELECT COUNT(*) FROM order_items WHERE order_id=o.id) as item_count
+             FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE 1=1`;
+  const p = [];
+  if (from) { sql += ' AND date(o.created_at)>=?'; p.push(from); }
+  if (to)   { sql += ' AND date(o.created_at)<=?'; p.push(to); }
+  sql += ' ORDER BY o.created_at DESC';
+  res.json(adb.prepare(sql).all(...p));
+});
+
+router.get('/accountbooks/purchases', requireAdmin, (req, res) => {
+  const { from, to } = req.query;
+  let sql = 'SELECT * FROM purchases WHERE 1=1';
+  const p = [];
+  if (from) { sql += ' AND date(date)>=?'; p.push(from); }
+  if (to)   { sql += ' AND date(date)<=?'; p.push(to); }
+  sql += ' ORDER BY date DESC';
+  res.json(adb.prepare(sql).all(...p));
+});
+
+router.get('/accountbooks/ledger', requireAdmin, (req, res) => {
+  const { account_id, from, to } = req.query;
+  if (!account_id) return res.json({ account: null, lines: [] });
+  const account = adb.prepare('SELECT * FROM accounts WHERE id=?').get(account_id);
+  let sql = `SELECT jl.id, jl.debit, jl.credit, je.date, je.narration, je.entry_no, je.voucher_type,
+             (SELECT GROUP_CONCAT(a2.name, ', ') FROM journal_lines jl2 JOIN accounts a2 ON a2.id=jl2.account_id WHERE jl2.entry_id=je.id AND jl2.id!=jl.id) as particulars
+             FROM journal_lines jl JOIN journal_entries je ON je.id=jl.entry_id
+             WHERE jl.account_id=?`;
+  const p = [account_id];
+  if (from) { sql += ' AND je.date>=?'; p.push(from); }
+  if (to)   { sql += ' AND je.date<=?'; p.push(to); }
+  sql += ' ORDER BY je.date ASC, jl.id ASC';
+  res.json({ account, lines: adb.prepare(sql).all(...p) });
+});
+
+router.get('/accountbooks/vouchers', requireAdmin, (req, res) => {
+  const { type, from, to } = req.query;
+  let sql = `SELECT je.*,
+             (SELECT a.name FROM journal_lines jl JOIN accounts a ON a.id=jl.account_id WHERE jl.entry_id=je.id AND jl.debit>0 LIMIT 1) as dr_account,
+             (SELECT a.name FROM journal_lines jl JOIN accounts a ON a.id=jl.account_id WHERE jl.entry_id=je.id AND jl.credit>0 LIMIT 1) as cr_account,
+             (SELECT SUM(jl.debit) FROM journal_lines jl WHERE jl.entry_id=je.id) as amount
+             FROM journal_entries je WHERE je.voucher_type=?`;
+  const p = [type || 'journal'];
+  if (from) { sql += ' AND je.date>=?'; p.push(from); }
+  if (to)   { sql += ' AND je.date<=?'; p.push(to); }
+  sql += ' ORDER BY je.date DESC';
+  res.json(adb.prepare(sql).all(...p));
+});
+
+router.post('/accountbooks/vouchers', requireAdmin, (req, res) => {
+  const { date, narration, voucher_type, dr_account_id, cr_account_id, amount } = req.body;
+  if (!date || !dr_account_id || !cr_account_id || !amount)
+    return res.json({ ok: false, message: 'Date, accounts and amount are required' });
+  if (dr_account_id === cr_account_id)
+    return res.json({ ok: false, message: 'Dr and Cr accounts must be different' });
+  const prefixes = { contra:'CNT', payment:'PAY', receipt:'REC', debit_note:'DN', credit_note:'CN', journal:'JNL' };
+  const entry_no = (prefixes[voucher_type] || 'VCH') + Date.now();
+  const entry = adb.prepare('INSERT INTO journal_entries (entry_no,date,narration,voucher_type) VALUES (?,?,?,?)')
+    .run(entry_no, date, narration || null, voucher_type || 'journal');
+  const ins = adb.prepare('INSERT INTO journal_lines (entry_id,account_id,debit,credit) VALUES (?,?,?,?)');
+  ins.run(entry.lastInsertRowid, dr_account_id, parseFloat(amount), 0);
+  ins.run(entry.lastInsertRowid, cr_account_id, 0, parseFloat(amount));
+  res.json({ ok: true, entry_no });
+});
+
 // ── REPORTS ────────────────────────────────────────────────────────────────────
 router.get('/reports/sales', requireAdmin, (req, res) => {
   const { from, to, group } = req.query;

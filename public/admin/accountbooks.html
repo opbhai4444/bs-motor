@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Books — BS Motors Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>⚙️ BS Motors</h2><p>Admin Panel</p></div>
+    <nav>
+      <div class="nav-section">Main</div><a href="/admin/index.html">📊 Dashboard</a>
+      <div class="nav-section">Inventory</div><a href="/admin/inventory.html">📦 Parts & Stock</a>
+      <div class="nav-section">Sales</div>
+      <a href="/admin/orders.html">📋 Orders</a><a href="/admin/customers.html">👥 Customers</a><a href="/admin/enquiries.html">💬 Enquiries</a>
+      <div class="nav-section">Accounts</div><a href="/admin/accountbooks.html" class="active">📚 Account Books</a>
+      <div class="nav-section">Actions</div><a href="#" id="sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:100vh">
+
+    <div class="admin-header" style="flex-shrink:0"><h1>📚 Account Books</h1></div>
+
+    <div class="ab-layout">
+
+      <!-- Left: Tally-style register menu -->
+      <div class="ab-menu">
+        <div class="ab-menu-group">
+          <div class="ab-menu-head">Ledger</div>
+          <button class="ab-menu-item active" onclick="openRegister('ledger')" id="menu-ledger">📒 Ledger</button>
+        </div>
+        <div class="ab-menu-group">
+          <div class="ab-menu-head">Voucher Registers</div>
+          <button class="ab-menu-item" onclick="openRegister('contra')"     id="menu-contra">🔄 Contra</button>
+          <button class="ab-menu-item" onclick="openRegister('payment')"    id="menu-payment">💸 Payment Register</button>
+          <button class="ab-menu-item" onclick="openRegister('receipt')"    id="menu-receipt">💰 Receipt Register</button>
+        </div>
+        <div class="ab-menu-group">
+          <div class="ab-menu-head">Journals</div>
+          <button class="ab-menu-item" onclick="openRegister('sales')"      id="menu-sales">📊 Sales Journal</button>
+          <button class="ab-menu-item" onclick="openRegister('purchases')"  id="menu-purchases">🛒 Purchase Journal</button>
+        </div>
+        <div class="ab-menu-group">
+          <div class="ab-menu-head">Note Registers</div>
+          <button class="ab-menu-item" onclick="openRegister('debit_note')"  id="menu-debit_note">📉 Debit Note Reg.</button>
+          <button class="ab-menu-item" onclick="openRegister('credit_note')" id="menu-credit_note">📈 Credit Note Reg.</button>
+        </div>
+      </div>
+
+      <!-- Right: Register content -->
+      <div class="ab-content">
+
+        <!-- Date filter bar -->
+        <div class="ab-toolbar">
+          <div class="ab-toolbar-left">
+            <span class="ab-reg-title" id="regTitle">Ledger</span>
+          </div>
+          <div class="ab-toolbar-right">
+            <!-- Ledger account picker (only for ledger) -->
+            <select id="ledgerAccount" style="display:none" onchange="loadRegister()">
+              <option value="">— Select Account —</option>
+            </select>
+            <span class="ab-date-label">From</span>
+            <input type="date" id="fromDate" onchange="loadRegister()">
+            <span class="ab-date-label">To</span>
+            <input type="date" id="toDate" onchange="loadRegister()">
+            <button class="btn-sm btn-view" onclick="loadRegister()">Show</button>
+            <button class="ab-new-btn" id="newEntryBtn" style="display:none" onclick="openNewVoucher()">+ New Entry</button>
+          </div>
+        </div>
+
+        <!-- Register table -->
+        <div class="ab-table-wrap">
+          <table class="data-table ab-table" id="regTable">
+            <thead id="regHead"></thead>
+            <tbody id="regBody"></tbody>
+            <tfoot id="regFoot"></tfoot>
+          </table>
+          <div id="regEmpty" style="display:none;text-align:center;padding:3rem;color:var(--muted)">
+            <div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries found
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Voucher Modal -->
+<div class="modal-overlay" id="voucherModal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeVoucher()">✕</button>
+    <h3 id="voucherModalTitle">New Voucher</h3>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="vDate">
+    </div>
+    <div class="form-group">
+      <label id="drLabel">Debit Account (Dr)</label>
+      <select id="vDrAcc"><option value="">— Select —</option></select>
+    </div>
+    <div class="form-group">
+      <label id="crLabel">Credit Account (Cr)</label>
+      <select id="vCrAcc"><option value="">— Select —</option></select>
+    </div>
+    <div class="form-group">
+      <label>Amount (₹)</label>
+      <input type="number" id="vAmount" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>Narration (optional)</label>
+      <input type="text" id="vNarration" placeholder="Description...">
+    </div>
+    <div style="display:flex;gap:.75rem;margin-top:.5rem">
+      <button class="btn btn-primary" onclick="saveVoucher()" style="flex:1">Save &nbsp;(Alt+A)</button>
+      <button class="btn" onclick="closeVoucher()" style="flex:1">Cancel &nbsp;(Esc)</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin-nav.js"></script>
+<script>
+let currentRegister = 'ledger';
+let accounts = [];
+
+const REG_CONFIG = {
+  ledger:      { title:'Ledger',             canNew:false,  voucherType:null },
+  contra:      { title:'Contra Register',    canNew:true,   voucherType:'contra',     drLabel:'Cash/Bank Account (Dr)', crLabel:'Cash/Bank Account (Cr)' },
+  payment:     { title:'Payment Register',   canNew:true,   voucherType:'payment',    drLabel:'Expense / Party (Dr)',   crLabel:'Cash / Bank (Cr)' },
+  receipt:     { title:'Receipt Register',   canNew:true,   voucherType:'receipt',    drLabel:'Cash / Bank (Dr)',       crLabel:'Income / Party (Cr)' },
+  sales:       { title:'Sales Journal',      canNew:false,  voucherType:null },
+  purchases:   { title:'Purchase Journal',   canNew:false,  voucherType:null },
+  debit_note:  { title:'Debit Note Register',canNew:true,   voucherType:'debit_note', drLabel:'Supplier Account (Dr)',  crLabel:'Purchase Returns (Cr)' },
+  credit_note: { title:'Credit Note Register',canNew:true,  voucherType:'credit_note',drLabel:'Sales Returns (Dr)',     crLabel:'Customer Account (Cr)' },
+};
+
+async function init() {
+  const user = await AdminNav.init();
+  if (!user) return;
+  accounts = await API.get('/api/admin/accounts');
+  populateAccountDropdowns();
+  const today = new Date().toISOString().slice(0,10);
+  const monthStart = today.slice(0,7)+'-01';
+  document.getElementById('fromDate').value = monthStart;
+  document.getElementById('toDate').value   = today;
+  populateLedgerDropdown();
+  openRegister('ledger');
+}
+
+function populateLedgerDropdown() {
+  const sel = document.getElementById('ledgerAccount');
+  accounts.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.id; o.textContent = a.name + ' (' + a.type + ')';
+    sel.appendChild(o);
+  });
+}
+
+function populateAccountDropdowns() {
+  [document.getElementById('vDrAcc'), document.getElementById('vCrAcc')].forEach(sel => {
+    while (sel.options.length > 1) sel.remove(1);
+    accounts.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id; o.textContent = a.name + ' (' + a.type + ')';
+      sel.appendChild(o);
+    });
+  });
+}
+
+function openRegister(key) {
+  currentRegister = key;
+  document.querySelectorAll('.ab-menu-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('menu-'+key).classList.add('active');
+  const cfg = REG_CONFIG[key];
+  document.getElementById('regTitle').textContent = cfg.title;
+  document.getElementById('newEntryBtn').style.display = cfg.canNew ? 'inline-block' : 'none';
+  document.getElementById('ledgerAccount').style.display = key === 'ledger' ? 'inline-block' : 'none';
+  loadRegister();
+}
+
+async function loadRegister() {
+  const from = document.getElementById('fromDate').value;
+  const to   = document.getElementById('toDate').value;
+  const head = document.getElementById('regHead');
+  const body = document.getElementById('regBody');
+  const foot = document.getElementById('regFoot');
+  const empty = document.getElementById('regEmpty');
+  body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:1.5rem;color:var(--muted)">Loading…</td></tr>';
+  head.innerHTML = ''; foot.innerHTML = ''; empty.style.display='none';
+
+  if (currentRegister === 'ledger') {
+    await loadLedger(from, to, head, body, foot, empty); return;
+  }
+  if (currentRegister === 'sales') {
+    await loadSales(from, to, head, body, foot, empty); return;
+  }
+  if (currentRegister === 'purchases') {
+    await loadPurchases(from, to, head, body, foot, empty); return;
+  }
+  await loadVouchers(currentRegister, from, to, head, body, foot, empty);
+}
+
+async function loadLedger(from, to, head, body, foot, empty) {
+  const accId = document.getElementById('ledgerAccount').value;
+  if (!accId) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📒</div>Select an account to view ledger'; return; }
+  const data = await API.get('/api/admin/accountbooks/ledger?account_id='+accId+'&from='+from+'&to='+to);
+  head.innerHTML = `<tr><th>Date</th><th>Particulars</th><th>Voucher No</th><th>Type</th><th class="ab-num">Debit (₹)</th><th class="ab-num">Credit (₹)</th><th class="ab-num">Balance (₹)</th></tr>`;
+  if (!data.lines.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries'; return; }
+  let bal = data.account.opening_balance || 0;
+  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  body.innerHTML = data.lines.map(l => {
+    bal += (l.debit||0) - (l.credit||0);
+    return `<tr>
+      <td>${fmtD(l.date)}</td>
+      <td>${l.particulars||'—'}</td>
+      <td class="ab-mono">${l.entry_no}</td>
+      <td><span class="ab-vtype">${l.voucher_type||'journal'}</span></td>
+      <td class="ab-num ab-dr">${l.debit>0?'₹'+l.debit.toFixed(2):'—'}</td>
+      <td class="ab-num ab-cr">${l.credit>0?'₹'+l.credit.toFixed(2):'—'}</td>
+      <td class="ab-num ab-bal ${bal>=0?'ab-pos':'ab-neg'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</td>
+    </tr>`;
+  }).join('');
+  const totDr = data.lines.reduce((s,l)=>s+(l.debit||0),0);
+  const totCr = data.lines.reduce((s,l)=>s+(l.credit||0),0);
+  foot.innerHTML = `<tr class="ab-foot"><td colspan="4">Closing Balance</td><td class="ab-num">₹${totDr.toFixed(2)}</td><td class="ab-num">₹${totCr.toFixed(2)}</td><td class="ab-num ab-bal ${bal>=0?'ab-pos':'ab-neg'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</td></tr>`;
+}
+
+async function loadVouchers(type, from, to, head, body, foot, empty) {
+  const data = await API.get('/api/admin/accountbooks/vouchers?type='+type+'&from='+from+'&to='+to);
+  head.innerHTML = `<tr><th>Date</th><th>Voucher No</th><th>Dr Account</th><th>Cr Account</th><th class="ab-num">Amount (₹)</th><th>Narration</th></tr>`;
+  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries'; return; }
+  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  let total = 0;
+  body.innerHTML = data.map(v => { total+=v.amount||0; return `<tr>
+    <td>${fmtD(v.date)}</td>
+    <td class="ab-mono">${v.entry_no}</td>
+    <td>${v.dr_account||'—'}</td>
+    <td>${v.cr_account||'—'}</td>
+    <td class="ab-num ab-dr">₹${(v.amount||0).toFixed(2)}</td>
+    <td style="color:var(--muted);font-size:.82rem">${v.narration||'—'}</td>
+  </tr>`; }).join('');
+  foot.innerHTML = `<tr class="ab-foot"><td colspan="4">Total</td><td class="ab-num">₹${total.toFixed(2)}</td><td></td></tr>`;
+}
+
+async function loadSales(from, to, head, body, foot, empty) {
+  const data = await API.get('/api/admin/accountbooks/sales?from='+from+'&to='+to);
+  head.innerHTML = `<tr><th>Date</th><th>Order No</th><th>Customer</th><th>Phone</th><th>Items</th><th>Payment</th><th class="ab-num">Amount (₹)</th></tr>`;
+  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No sales'; return; }
+  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  let total = 0;
+  body.innerHTML = data.map(o => { total+=o.total||0; return `<tr>
+    <td>${fmtD(o.date)}</td>
+    <td class="ab-mono">${o.order_no}</td>
+    <td>${o.customer_name}</td>
+    <td>${o.customer_phone||'—'}</td>
+    <td style="text-align:center">${o.item_count||0}</td>
+    <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
+    <td class="ab-num ab-dr">₹${(o.total||0).toFixed(2)}</td>
+  </tr>`; }).join('');
+  foot.innerHTML = `<tr class="ab-foot"><td colspan="6">Total Sales</td><td class="ab-num">₹${total.toFixed(2)}</td></tr>`;
+}
+
+async function loadPurchases(from, to, head, body, foot, empty) {
+  const data = await API.get('/api/admin/accountbooks/purchases?from='+from+'&to='+to);
+  head.innerHTML = `<tr><th>Date</th><th>Bill No</th><th>Supplier</th><th class="ab-num">Total (₹)</th><th class="ab-num">Paid (₹)</th><th class="ab-num">Balance (₹)</th><th>Notes</th></tr>`;
+  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No purchases'; return; }
+  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  let totTotal=0, totPaid=0;
+  body.innerHTML = data.map(p => { totTotal+=p.total||0; totPaid+=p.paid||0; const bal=(p.total||0)-(p.paid||0); return `<tr>
+    <td>${fmtD(p.date)}</td>
+    <td class="ab-mono">${p.bill_no||'—'}</td>
+    <td>${p.supplier||'—'}</td>
+    <td class="ab-num ab-cr">₹${(p.total||0).toFixed(2)}</td>
+    <td class="ab-num ab-pos">₹${(p.paid||0).toFixed(2)}</td>
+    <td class="ab-num ${bal>0?'ab-neg':'ab-pos'}">₹${Math.abs(bal).toFixed(2)}${bal>0?' (due)':''}</td>
+    <td style="color:var(--muted);font-size:.82rem">${p.notes||'—'}</td>
+  </tr>`; }).join('');
+  const totBal=totTotal-totPaid;
+  foot.innerHTML = `<tr class="ab-foot"><td colspan="3">Total</td><td class="ab-num">₹${totTotal.toFixed(2)}</td><td class="ab-num">₹${totPaid.toFixed(2)}</td><td class="ab-num ${totBal>0?'ab-neg':'ab-pos'}">₹${Math.abs(totBal).toFixed(2)}</td><td></td></tr>`;
+}
+
+function openNewVoucher() {
+  const cfg = REG_CONFIG[currentRegister];
+  if (!cfg.canNew) return;
+  document.getElementById('voucherModalTitle').textContent = 'New ' + cfg.title.replace(' Register','');
+  document.getElementById('drLabel').textContent = cfg.drLabel || 'Debit Account (Dr)';
+  document.getElementById('crLabel').textContent = cfg.crLabel || 'Credit Account (Cr)';
+  document.getElementById('vDate').value = document.getElementById('toDate').value || new Date().toISOString().slice(0,10);
+  document.getElementById('vDrAcc').value = '';
+  document.getElementById('vCrAcc').value = '';
+  document.getElementById('vAmount').value = '';
+  document.getElementById('vNarration').value = '';
+  document.getElementById('voucherModal').classList.add('open');
+  document.getElementById('vAmount').focus();
+}
+
+async function saveVoucher() {
+  const cfg = REG_CONFIG[currentRegister];
+  const res = await API.post('/api/admin/accountbooks/vouchers', {
+    date:         document.getElementById('vDate').value,
+    voucher_type: cfg.voucherType,
+    dr_account_id:parseInt(document.getElementById('vDrAcc').value),
+    cr_account_id:parseInt(document.getElementById('vCrAcc').value),
+    amount:       parseFloat(document.getElementById('vAmount').value),
+    narration:    document.getElementById('vNarration').value.trim() || null,
+  });
+  if (res.ok) { API.toast('Voucher saved: '+res.entry_no); closeVoucher(); loadRegister(); }
+  else API.toast(res.message||'Error','error');
+}
+
+function closeVoucher() { document.getElementById('voucherModal').classList.remove('open'); }
+document.getElementById('voucherModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeVoucher(); });
+document.addEventListener('keydown', e => {
+  if (e.altKey && e.key==='a') { e.preventDefault(); saveVoucher(); }
+  if (e.key==='Escape') closeVoucher();
+});
+init();
+</script>
+</body>
+</html>
