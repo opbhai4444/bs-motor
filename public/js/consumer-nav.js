@@ -378,32 +378,34 @@ const ConsumerNav = {
   },
 
   // ── Lazy-load Firebase SDK + config ─────────────────────────────────────────
-  _fbLoading: false,
+  _fbLoadPromise: null,
   async _ensureFirebase() {
     if (window._firebaseReady === true) return true;
-    if (window._firebaseReady === false) return false; // config not filled
+    if (window._firebaseReady === false) return false;
 
-    if (!this._fbLoading) {
-      this._fbLoading = true;
-      await Promise.all([
-        'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
-        'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js'
-      ].map(src => new Promise((res, rej) => {
-        if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
-        const s = document.createElement('script'); s.src = src;
-        s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
-      })));
-
-      // Load config after SDK
-      await new Promise((res, rej) => {
-        if (document.querySelector('script[src="/js/firebase-config.js"]')) { res(); return; }
-        const s = document.createElement('script'); s.src = '/js/firebase-config.js';
-        s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
-      });
+    if (!this._fbLoadPromise) {
+      this._fbLoadPromise = (async () => {
+        try {
+          await Promise.all([
+            'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
+            'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js'
+          ].map(src => new Promise((res, rej) => {
+            if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+            const s = document.createElement('script'); s.src = src;
+            s.onload = res; s.onerror = rej;
+            document.head.appendChild(s);
+          })));
+          await new Promise((res, rej) => {
+            if (document.querySelector('script[src="/js/firebase-config.js"]')) { res(); return; }
+            const s = document.createElement('script'); s.src = '/js/firebase-config.js';
+            s.onload = res; s.onerror = rej;
+            document.head.appendChild(s);
+          });
+        } catch(e) { /* script load failed — _firebaseReady stays undefined */ }
+      })();
     }
 
+    await this._fbLoadPromise;
     return window._firebaseReady === true;
   },
 
@@ -468,7 +470,7 @@ const ConsumerNav = {
     const btn = document.getElementById('bsmSendOtpBtn');
     btn.textContent = 'Sending…'; btn.disabled = true;
 
-    if (ready) {
+    if (ready && typeof firebase !== 'undefined' && firebase.auth && firebase.auth.RecaptchaVerifier) {
       try {
         if (this._rcVerifier) { try { this._rcVerifier.clear(); } catch(e) {} this._rcVerifier = null; }
         const oldRc = document.getElementById('recaptcha-container');
@@ -496,6 +498,9 @@ const ConsumerNav = {
       } finally {
         btn.textContent = 'Send OTP'; btn.disabled = false;
       }
+    } else {
+      if (typeof API !== 'undefined') API.toast('Firebase unavailable — please use Email login', 'error');
+      btn.textContent = 'Send OTP'; btn.disabled = false;
     }
   },
 
