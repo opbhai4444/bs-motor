@@ -14,10 +14,9 @@
   /* ─── HOME GRID ──────────────────────────────────────────────── */
   #scHome {
     background: radial-gradient(ellipse at 20% 50%, #1a3a5e 0%, #0a1628 60%);
-    justify-content:center; align-items:center; overflow:auto;
+    flex-direction:row; overflow:hidden;
   }
-  .ab-home-inner { max-width:1100px; width:100%; padding:2.5rem 2rem; display:flex; gap:2rem; align-items:flex-start; }
-  .ab-home-main  { flex:1; min-width:0; }
+  .ab-home-scroll { flex:1; overflow-y:auto; padding:2.5rem 2rem; }
   .ab-home-hd { margin-bottom:2rem; }
   .ab-home-hd h1 { font-size:2rem; font-weight:900; color:#fff; letter-spacing:.03em; margin:0 0 .3rem; }
   .ab-home-hd p  { font-size:.88rem; color:rgba(255,255,255,.4); margin:0; }
@@ -25,7 +24,7 @@
   .ab-tile {
     background:linear-gradient(145deg,#1c3554,#1a2f4a);
     border:1.5px solid rgba(212,160,23,.18);
-    border-radius:14px; padding:1.4rem 1.1rem 1.1rem;
+    border-radius:14px; padding:1.6rem 1.2rem 1.4rem;
     cursor:pointer; text-align:left;
     transition:transform .18s,box-shadow .18s,border-color .18s;
   }
@@ -35,33 +34,28 @@
     border-color:rgba(212,160,23,.55);
   }
   .ab-tile:focus { outline:none; box-shadow:0 0 0 2px var(--accent); }
-  .ab-tile-icon { font-size:1.9rem; margin-bottom:.65rem; }
-  .ab-tile-name { font-size:.86rem; font-weight:800; color:#fff; line-height:1.35; margin-bottom:.55rem; }
-  .ab-tile-key  { display:inline-block; font-size:.68rem; font-weight:700; font-family:monospace;
-                  background:rgba(212,160,23,.13); border:1px solid rgba(212,160,23,.35);
-                  color:var(--accent); border-radius:5px; padding:.12rem .45rem; }
+  .ab-tile-icon { font-size:2rem; margin-bottom:.7rem; }
+  .ab-tile-name { font-size:.9rem; font-weight:800; color:#fff; line-height:1.35; }
 
-  /* Quick Keys panel */
-  .ab-qk { width:210px; flex-shrink:0; background:#0f1e33; border:1px solid rgba(255,255,255,.08);
-            border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
-  .ab-qk-head { background:#162640; padding:.75rem 1rem; display:flex; align-items:center; gap:.5rem;
-                border-bottom:1px solid rgba(255,255,255,.07); }
+  /* Quick Keys panel — attached to right edge, full height */
+  .ab-qk { width:200px; flex-shrink:0; background:#0b1929; border-left:1px solid rgba(255,255,255,.08);
+            display:flex; flex-direction:column; overflow-y:auto; }
+  .ab-qk-head { background:#0f2038; padding:.85rem 1rem; display:flex; align-items:center; gap:.5rem;
+                border-bottom:1px solid rgba(255,255,255,.07); flex-shrink:0; }
   .ab-qk-head-icon { color:var(--accent); font-size:1rem; }
-  .ab-qk-head-label { font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase;
-                       color:var(--accent); }
+  .ab-qk-head-label { font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); }
   .ab-qk-section { font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em;
-                   color:rgba(255,255,255,.28); padding:.75rem 1rem .35rem; }
-  .ab-qk-row { display:flex; align-items:center; gap:.65rem; padding:.38rem 1rem; margin:0 .5rem .2rem;
-               border-radius:7px; transition:background .12s; cursor:default; }
+                   color:rgba(255,255,255,.28); padding:.9rem 1rem .3rem; }
+  .ab-qk-row { display:flex; align-items:center; gap:.6rem; padding:.38rem .85rem; margin:0 .4rem .15rem;
+               border-radius:6px; transition:background .1s; }
   .ab-qk-row:hover { background:rgba(255,255,255,.05); }
   .ab-qk-key { font-size:.65rem; font-weight:900; font-family:monospace; color:var(--accent);
-               min-width:30px; text-decoration:underline; text-underline-offset:2px; }
-  .ab-qk-desc { font-size:.75rem; color:rgba(255,255,255,.65); }
-  .ab-qk-sep { border:none; border-top:1px solid rgba(255,255,255,.06); margin:.5rem 1rem; }
-  .ab-qk-foot { margin-top:auto; padding:.75rem 1rem; border-top:1px solid rgba(255,255,255,.07);
-                text-align:center; }
-  .ab-qk-foot-title { font-size:.72rem; font-weight:700; color:rgba(255,255,255,.4); }
-  .ab-qk-foot-sub   { font-size:.65rem; color:rgba(255,255,255,.22); margin-top:.1rem; }
+               min-width:38px; text-decoration:underline; text-underline-offset:2px; }
+  .ab-qk-desc { font-size:.74rem; color:rgba(255,255,255,.62); }
+  .ab-qk-sep { border:none; border-top:1px solid rgba(255,255,255,.06); margin:.6rem .85rem; }
+  .ab-qk-foot { margin-top:auto; padding:.85rem 1rem; border-top:1px solid rgba(255,255,255,.07); text-align:center; flex-shrink:0; }
+  .ab-qk-foot-title { font-size:.72rem; font-weight:700; color:rgba(255,255,255,.35); }
+  .ab-qk-foot-sub   { font-size:.63rem; color:rgba(255,255,255,.2); margin-top:.1rem; }
 
   /* ─── REGISTER SCREEN ───────────────────────────────────────── */
   #scRegister { background:#eef1f6; }
@@ -224,87 +218,77 @@
 
     <!-- ══ SCREEN 1: HOME GRID ══════════════════════════════════ -->
     <div id="scHome" class="ab-screen">
-      <div class="ab-home-inner">
 
-        <!-- Grid -->
-        <div class="ab-home-main">
-          <div class="ab-home-hd">
-            <h1>📚 Account Books</h1>
-            <p>Select a register to open — or press the keyboard shortcut</p>
-          </div>
-          <div class="ab-grid">
-            <button class="ab-tile" onclick="openRegister('ledger')">
-              <div class="ab-tile-icon">📒</div>
-              <div class="ab-tile-name">Ledger</div>
-              <div class="ab-tile-key">L</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('contra')">
-              <div class="ab-tile-icon">🔄</div>
-              <div class="ab-tile-name">Contra</div>
-              <div class="ab-tile-key">F4</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('payment')">
-              <div class="ab-tile-icon">💸</div>
-              <div class="ab-tile-name">Payment Register</div>
-              <div class="ab-tile-key">F5</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('receipt')">
-              <div class="ab-tile-icon">💰</div>
-              <div class="ab-tile-name">Receipt Register</div>
-              <div class="ab-tile-key">F6</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('sales')">
-              <div class="ab-tile-icon">📊</div>
-              <div class="ab-tile-name">Sales Journal</div>
-              <div class="ab-tile-key">F8</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('purchases')">
-              <div class="ab-tile-icon">🛒</div>
-              <div class="ab-tile-name">Purchase Journal</div>
-              <div class="ab-tile-key">F9</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('debit_note')">
-              <div class="ab-tile-icon">📉</div>
-              <div class="ab-tile-name">Debit Note Register</div>
-              <div class="ab-tile-key">Ctrl+F9</div>
-            </button>
-            <button class="ab-tile" onclick="openRegister('credit_note')">
-              <div class="ab-tile-icon">📈</div>
-              <div class="ab-tile-name">Credit Note Register</div>
-              <div class="ab-tile-key">Ctrl+F8</div>
-            </button>
-          </div>
+      <!-- Scrollable grid area -->
+      <div class="ab-home-scroll">
+        <div class="ab-home-hd">
+          <h1>📚 Account Books</h1>
+          <p>Select a register to open — or press the keyboard shortcut</p>
         </div>
-
-        <!-- Quick Keys panel -->
-        <div class="ab-qk">
-          <div class="ab-qk-head">
-            <span class="ab-qk-head-icon">≡</span>
-            <span class="ab-qk-head-label">Quick Keys</span>
-          </div>
-          <div class="ab-qk-section">Open Register</div>
-          <div class="ab-qk-row"><span class="ab-qk-key">L</span><span class="ab-qk-desc">Ledger</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F4</span><span class="ab-qk-desc">Contra</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F5</span><span class="ab-qk-desc">Payment</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F6</span><span class="ab-qk-desc">Receipt</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F8</span><span class="ab-qk-desc">Sales</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F9</span><span class="ab-qk-desc">Purchase</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">Ctrl+F8</span><span class="ab-qk-desc">Credit Note</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">Ctrl+F9</span><span class="ab-qk-desc">Debit Note</span></div>
-          <hr class="ab-qk-sep">
-          <div class="ab-qk-section">In Register</div>
-          <div class="ab-qk-row"><span class="ab-qk-key">N</span><span class="ab-qk-desc">New Entry</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">Alt+A</span><span class="ab-qk-desc">Save Voucher</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">Alt+D</span><span class="ab-qk-desc">Delete Selected</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">F2</span><span class="ab-qk-desc">Change Period</span></div>
-          <div class="ab-qk-row"><span class="ab-qk-key">Esc</span><span class="ab-qk-desc">Back / Cancel</span></div>
-          <div class="ab-qk-foot">
-            <div class="ab-qk-foot-title">BS Motors</div>
-            <div class="ab-qk-foot-sub">Account Books Module</div>
-          </div>
+        <div class="ab-grid">
+          <button class="ab-tile" onclick="openRegister('ledger')">
+            <div class="ab-tile-icon">📒</div>
+            <div class="ab-tile-name">Ledger</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('contra')">
+            <div class="ab-tile-icon">🔄</div>
+            <div class="ab-tile-name">Contra</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('payment')">
+            <div class="ab-tile-icon">💸</div>
+            <div class="ab-tile-name">Payment Register</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('receipt')">
+            <div class="ab-tile-icon">💰</div>
+            <div class="ab-tile-name">Receipt Register</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('sales')">
+            <div class="ab-tile-icon">📊</div>
+            <div class="ab-tile-name">Sales</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('purchases')">
+            <div class="ab-tile-icon">🛒</div>
+            <div class="ab-tile-name">Purchase</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('debit_note')">
+            <div class="ab-tile-icon">📉</div>
+            <div class="ab-tile-name">Debit Note Register</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('credit_note')">
+            <div class="ab-tile-icon">📈</div>
+            <div class="ab-tile-name">Credit Note Register</div>
+          </button>
         </div>
-
       </div>
+
+      <!-- Quick Keys panel — right edge, full height -->
+      <div class="ab-qk">
+        <div class="ab-qk-head">
+          <span class="ab-qk-head-icon">≡</span>
+          <span class="ab-qk-head-label">Quick Keys</span>
+        </div>
+        <div class="ab-qk-section">Open Register</div>
+        <div class="ab-qk-row"><span class="ab-qk-key">L</span><span class="ab-qk-desc">Ledger</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F4</span><span class="ab-qk-desc">Contra</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F5</span><span class="ab-qk-desc">Payment</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F6</span><span class="ab-qk-desc">Receipt</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F8</span><span class="ab-qk-desc">Sales</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F9</span><span class="ab-qk-desc">Purchase</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">Ctrl+F8</span><span class="ab-qk-desc">Credit Note</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">Ctrl+F9</span><span class="ab-qk-desc">Debit Note</span></div>
+        <hr class="ab-qk-sep">
+        <div class="ab-qk-section">In Register</div>
+        <div class="ab-qk-row"><span class="ab-qk-key">N</span><span class="ab-qk-desc">New Entry</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">Alt+A</span><span class="ab-qk-desc">Save Voucher</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">Alt+D</span><span class="ab-qk-desc">Delete Selected</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">F2</span><span class="ab-qk-desc">Change Period</span></div>
+        <div class="ab-qk-row"><span class="ab-qk-key">Esc</span><span class="ab-qk-desc">Back / Cancel</span></div>
+        <div class="ab-qk-foot">
+          <div class="ab-qk-foot-title">BS Motors</div>
+          <div class="ab-qk-foot-sub">Account Books Module</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ══ SCREEN 2: REGISTER VIEW ═════════════════════════════ -->

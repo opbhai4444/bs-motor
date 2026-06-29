@@ -234,10 +234,12 @@ router.post('/journal', requireAdmin, (req, res) => {
 // ── ACCOUNT BOOKS ──────────────────────────────────────────────────────────────
 router.get('/accountbooks/sales', requireAdmin, (req, res) => {
   const { from, to } = req.query;
-  let sql = `SELECT o.id, o.order_no, date(o.created_at) as date, u.name as customer_name,
-             u.phone as customer_phone, o.total, o.payment_method, o.payment_status, o.notes,
+  let sql = `SELECT o.id, o.order_no, date(o.created_at) as date,
+             COALESCE(u.name,'Guest') as customer_name,
+             COALESCE(u.phone,'—') as customer_phone,
+             o.total, o.payment_method, o.payment_status, o.notes,
              (SELECT COUNT(*) FROM order_items WHERE order_id=o.id) as item_count
-             FROM orders o JOIN cdb.users u ON u.id=o.consumer_id WHERE 1=1`;
+             FROM orders o LEFT JOIN cdb.users u ON u.id=o.consumer_id WHERE 1=1`;
   const p = [];
   if (from) { sql += ' AND date(o.created_at)>=?'; p.push(from); }
   if (to)   { sql += ' AND date(o.created_at)<=?'; p.push(to); }
