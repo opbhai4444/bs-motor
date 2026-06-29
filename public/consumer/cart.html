@@ -7,62 +7,78 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<nav class="bsm-navbar">
-  <a href="/consumer/index.html" class="brand">BS <span>Motors</span></a>
-  <nav>
-    <a href="/consumer/index.html">Parts</a>
-    <a href="/consumer/cart.html" class="active">Cart</a>
-    <a href="/consumer/orders.html">My Orders</a>
-    <a href="/consumer/contact.html">Contact</a>
-  </nav>
-  <div class="nav-right">
-    <button id="lang-toggle">हिंदी</button>
-    <a href="/consumer/profile.html" id="nav-user" style="color:#e0e0e0;font-size:0.9rem;display:none"></a>
-    <a href="/consumer/login.html" id="nav-login" style="color:var(--accent);font-weight:700;font-size:0.9rem">Login</a>
-    <a href="#" id="nav-logout" style="color:#e0e0e0;font-size:0.85rem;display:none">Logout</a>
-  </div>
-</nav>
-
-<div class="page-wrap section">
-  <div class="section-title">🛒 My Cart</div>
-  <div id="cartContent">
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start">
-      <div>
-        <table class="cart-table">
-          <thead><tr><th>Part</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
-          <tbody id="cartBody"></tbody>
-        </table>
-      </div>
-      <div class="cart-summary">
-        <h3 style="font-weight:800;color:var(--secondary);margin-bottom:1rem">Order Summary</h3>
-        <div class="total-row"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
-        <div class="total-row grand"><span>Total</span><span id="totalAmt">₹0.00</span></div>
-        <div class="form-group" style="margin-top:1rem">
-          <label>Payment Method</label>
-          <select id="paymentMethod">
-            <option value="cash">Cash on Delivery</option>
-            <option value="upi">UPI</option>
-            <option value="card">Card</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Notes (optional)</label>
-          <textarea id="orderNotes" rows="2" placeholder="Any special instructions..."></textarea>
-        </div>
-        <button class="btn-order" onclick="placeOrder()">Place Order</button>
-      </div>
-    </div>
-  </div>
-  <div id="emptyCart" class="empty-state" style="display:none">
-    <div class="icon">🛒</div>
-    <p>Your cart is empty</p>
-    <a href="/consumer/index.html" style="display:inline-block;margin-top:1rem;padding:0.75rem 2rem;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-weight:700">Browse Parts</a>
-  </div>
-</div>
-
 <script src="/js/i18n.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/consumer-nav.js"></script>
+
+<div class="page-wrap">
+
+  <div class="bsm-breadcrumb">
+    <a href="/consumer/index.html">Home</a>
+    <span>›</span>
+    <span>My Cart</span>
+  </div>
+
+  <div id="cartContent" style="display:none">
+    <div class="cart-layout">
+
+      <div class="cart-items-col">
+        <div class="cart-col-header">
+          <h2 class="cart-page-title">🛒 My Cart &nbsp;<span id="cartCountBadge" class="cart-count-badge">0 items</span></h2>
+          <button class="btn-clear-all" onclick="clearAll()">Clear All</button>
+        </div>
+        <div id="cartItemsList"></div>
+      </div>
+
+      <div class="cart-summary-col">
+        <div class="cart-summary-card">
+          <div class="summary-heading">Order Summary</div>
+
+          <div class="summary-row"><span>Subtotal (<span id="summaryCount">0</span> items)</span><span id="subtotal">₹0.00</span></div>
+          <div class="summary-row"><span>Delivery</span><span class="free-tag">FREE</span></div>
+          <div class="summary-divider"></div>
+          <div class="summary-row summary-total"><span>Total</span><span id="totalAmt">₹0.00</span></div>
+
+          <div class="pay-method-label">Payment Method</div>
+          <div class="pay-opts">
+            <label class="pay-opt active">
+              <input type="radio" name="payment" value="cash" checked onchange="highlightPay(this)">
+              <span>💵 Cash on Delivery</span>
+            </label>
+            <label class="pay-opt">
+              <input type="radio" name="payment" value="upi" onchange="highlightPay(this)">
+              <span>📱 UPI</span>
+            </label>
+            <label class="pay-opt">
+              <input type="radio" name="payment" value="card" onchange="highlightPay(this)">
+              <span>💳 Card</span>
+            </label>
+          </div>
+
+          <label class="notes-label">Order Notes <em>(optional)</em></label>
+          <textarea id="orderNotes" rows="2" placeholder="Delivery instructions, vehicle model, etc."></textarea>
+
+          <button class="btn-place-order" id="btnPlace" onclick="placeOrder()">Place Order →</button>
+          <a href="/consumer/index.html" class="btn-continue">← Continue Shopping</a>
+        </div>
+
+        <div class="trust-row">
+          <div class="trust-item">🔒 Secure</div>
+          <div class="trust-item">🚚 Fast Dispatch</div>
+          <div class="trust-item">✅ Genuine</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="emptyCart" class="empty-state" style="display:none">
+    <div class="icon">🛒</div>
+    <p>Your cart is empty</p>
+    <a href="/consumer/index.html" class="btn-browse-parts">Browse Parts</a>
+  </div>
+
+</div>
 <script>
 let cartItems = [];
 
@@ -77,54 +93,104 @@ async function loadCart() {
   cartItems = await API.get('/api/consumer/cart');
   if (!cartItems.length) {
     document.getElementById('cartContent').style.display = 'none';
-    document.getElementById('emptyCart').style.display = 'block';
+    document.getElementById('emptyCart').style.display  = 'block';
     return;
   }
   document.getElementById('cartContent').style.display = 'block';
-  document.getElementById('emptyCart').style.display = 'none';
+  document.getElementById('emptyCart').style.display   = 'none';
   renderCart();
 }
 
 function renderCart() {
-  document.getElementById('cartBody').innerHTML = cartItems.map(item => `
-    <tr>
-      <td><div style="font-weight:700">${item.name_en}</div></td>
-      <td>₹${parseFloat(item.price).toFixed(2)}</td>
-      <td><input class="qty-input" type="number" min="1" max="${item.stock}" value="${item.qty}" onchange="updateQty(${item.part_id},this.value)"></td>
-      <td style="font-weight:700">₹${(item.price*item.qty).toFixed(2)}</td>
-      <td><button class="btn-sm btn-delete" onclick="removeItem(${item.part_id})">✕</button></td>
-    </tr>
+  document.getElementById('cartCountBadge').textContent = cartItems.length + ' item' + (cartItems.length !== 1 ? 's' : '');
+  document.getElementById('summaryCount').textContent   = cartItems.length;
+  document.getElementById('cartItemsList').innerHTML = cartItems.map(item => `
+    <div class="ci-card" id="ci-${item.part_id}">
+      <div class="ci-img">
+        ${item.image ? `<img src="${item.image}" alt="${item.name_en}">` : `<div class="ci-no-img">⚙️</div>`}
+      </div>
+      <div class="ci-body">
+        <div class="ci-name">${item.name_en}</div>
+        <div class="ci-meta">
+          ${item.brand  ? `<span class="ci-brand">${item.brand}</span>` : ''}
+          ${item.sku    ? `<span class="ci-sku">${item.sku}</span>`     : ''}
+        </div>
+        <div class="ci-unit-price">₹${parseFloat(item.price).toFixed(2)} / ${item.unit || 'pc'}</div>
+        ${item.stock > 0 && item.stock <= 5 ? `<div class="ci-low-stock">⚠ Only ${item.stock} left</div>` : ''}
+      </div>
+      <div class="ci-right">
+        <div class="qty-stepper">
+          <button onclick="changeQty(${item.part_id},${item.qty-1})" ${item.qty<=1?'disabled':''}>−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty(${item.part_id},${item.qty+1})" ${item.qty>=item.stock?'disabled':''}>+</button>
+        </div>
+        <div class="ci-row-total">₹${(item.price*item.qty).toFixed(2)}</div>
+        <button class="ci-remove" onclick="removeItem(${item.part_id})" title="Remove">🗑</button>
+      </div>
+    </div>
   `).join('');
   updateTotals();
 }
 
 function updateTotals() {
-  const sub = cartItems.reduce((s,i) => s+i.price*i.qty, 0);
-  document.getElementById('subtotal').textContent = '₹'+sub.toFixed(2);
-  document.getElementById('totalAmt').textContent = '₹'+sub.toFixed(2);
+  const sub = cartItems.reduce((s,i) => s + i.price*i.qty, 0);
+  document.getElementById('subtotal').textContent = '₹' + sub.toFixed(2);
+  document.getElementById('totalAmt').textContent = '₹' + sub.toFixed(2);
 }
 
-async function updateQty(part_id, qty) {
-  qty = parseInt(qty); if (qty<1) return;
+async function changeQty(part_id, qty) {
+  if (qty < 1) return;
+  const item = cartItems.find(i => i.part_id === part_id);
+  if (!item) return;
+  if (qty > item.stock) { API.toast('Only ' + item.stock + ' in stock', 'warning'); return; }
   await API.post('/api/consumer/cart', { part_id, qty });
-  const item = cartItems.find(i => i.part_id===part_id);
-  if (item) { item.qty=qty; updateTotals(); }
+  item.qty = qty;
+  renderCart();
 }
 
 async function removeItem(part_id) {
-  await API.delete('/api/consumer/cart/'+part_id);
-  cartItems = cartItems.filter(i => i.part_id!==part_id);
-  if (!cartItems.length) { document.getElementById('cartContent').style.display='none'; document.getElementById('emptyCart').style.display='block'; }
-  else renderCart();
+  const card = document.getElementById('ci-' + part_id);
+  if (card) { card.style.opacity='.3'; card.style.pointerEvents='none'; }
+  await API.delete('/api/consumer/cart/' + part_id);
+  cartItems = cartItems.filter(i => i.part_id !== part_id);
+  ConsumerNav._setCart(cartItems.length);
+  if (!cartItems.length) {
+    document.getElementById('cartContent').style.display = 'none';
+    document.getElementById('emptyCart').style.display  = 'block';
+  } else {
+    renderCart();
+  }
+}
+
+async function clearAll() {
+  if (!confirm('Remove all items from cart?')) return;
+  await Promise.all(cartItems.map(i => API.delete('/api/consumer/cart/'+i.part_id)));
+  cartItems = [];
+  ConsumerNav._setCart(0);
+  document.getElementById('cartContent').style.display = 'none';
+  document.getElementById('emptyCart').style.display  = 'block';
+}
+
+function highlightPay(radio) {
+  document.querySelectorAll('.pay-opt').forEach(el => el.classList.remove('active'));
+  radio.closest('.pay-opt').classList.add('active');
 }
 
 async function placeOrder() {
+  const btn = document.getElementById('btnPlace');
+  btn.textContent='Placing order…'; btn.disabled=true;
   const res = await API.post('/api/consumer/orders', {
-    payment_method: document.getElementById('paymentMethod').value,
-    notes: document.getElementById('orderNotes').value
+    payment_method: document.querySelector('input[name="payment"]:checked').value,
+    notes: document.getElementById('orderNotes').value.trim() || null
   });
-  if (res.ok) { API.toast('Order placed! #'+res.order_no); setTimeout(()=>window.location.href='/consumer/orders.html',1500); }
-  else API.toast(res.message, 'error');
+  if (res.ok) {
+    API.toast('Order placed! ' + res.order_no + ' 🎉');
+    ConsumerNav._setCart(0);
+    setTimeout(() => window.location.href='/consumer/orders.html', 1500);
+  } else {
+    API.toast(res.message||'Order failed','error');
+    btn.textContent='Place Order →'; btn.disabled=false;
+  }
 }
 
 init();

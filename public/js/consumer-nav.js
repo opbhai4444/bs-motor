@@ -52,9 +52,17 @@ const ConsumerNav = {
 
   // ── Inject header + overlays ────────────────────────────────────────────────
   _inject() {
-    const path = window.location.pathname;
-    const nav = (href, label, key) =>
-      `<a href="${href}" class="${path.endsWith(key) || (key === 'index.html' && (path === '/consumer/' || path === '/consumer/index.html')) ? 'nav-active' : ''}">${label}</a>`;
+    const path   = window.location.pathname;
+    const urlCat = new URLSearchParams(location.search).get('category') || '';
+    const nav = (href, label, key) => {
+      let active = false;
+      if (key === 'index.html') {
+        active = (path.endsWith('index.html') || path === '/consumer/' || path === '/consumer/index.html') && !urlCat;
+      } else {
+        active = path.endsWith(key);
+      }
+      return `<a href="${href}" class="${active ? 'nav-active' : ''}">${label}</a>`;
+    };
 
     const root = document.createElement('div');
     root.id = 'bsm-root';

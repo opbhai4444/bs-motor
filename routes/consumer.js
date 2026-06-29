@@ -37,7 +37,7 @@ router.get('/filters', (req, res) => {
 // ── CART (lives in consumer DB; parts joined from admin DB via cdb's adb alias) ──
 router.get('/cart', requireConsumer, (req, res) => {
   const items = cdb.prepare(`
-    SELECT c.id, c.qty, p.id as part_id, p.name_en, p.name_hi, p.price, p.stock, p.image
+    SELECT c.id, c.qty, p.id as part_id, p.name_en, p.name_hi, p.price, p.stock, p.image, p.brand, p.sku, p.unit
     FROM cart c JOIN adb.parts p ON p.id=c.part_id
     WHERE c.consumer_id=?`).all(req.session.user.id);
   res.json(items);
@@ -61,27 +61,33 @@ router.delete('/cart/:part_id', requireConsumer, (req, res) => {
 // ── ORDERS (stored in admin DB so admin can manage them) ───────────────────────
 router.post('/orders', requireConsumer, (req, res) => {
   const { payment_method, notes } = req.body;
-  // Read cart (consumer DB) joined with parts prices/stock (admin DB via cdb's adb alias)
   const cartItems = cdb.prepare(`
-    SELECT c.qty, p.id as part_id, p.price, p.stock
+    SELECT c.qty, p.id as part_id, p.name_en, p.price, p.stock
     FROM cart c JOIN adb.parts p ON p.id=c.part_id
     WHERE c.consumer_id=?`).all(req.session.user.id);
   if (!cartItems.length) return res.json({ ok: false, message: 'Cart is empty' });
   for (const item of cartItems) {
-    if (item.stock < item.qty) return res.json({ ok: false, message: `Insufficient stock for part #${item.part_id}` });
+    if (item.stock < item.qty)
+      return res.json({ ok: false, message: `Only ${item.stock} in stock: ${item.name_en}` });
   }
   const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
-  const order_no = 'BSM' + Date.now();
-  const order    = adb.prepare('INSERT INTO orders (order_no,consumer_id,subtotal,total,payment_method,notes) VALUES (?,?,?,?,?,?)')
-    .run(order_no, req.session.user.id, subtotal, subtotal, payment_method || 'cash', notes || null);
-  const insItem  = adb.prepare('INSERT INTO order_items (order_id,part_id,qty,unit_price,total) VALUES (?,?,?,?,?)');
-  const updStock = adb.prepare('UPDATE parts SET stock = stock - ? WHERE id=?');
-  for (const item of cartItems) {
-    insItem.run(order.lastInsertRowid, item.part_id, item.qty, item.price, item.price * item.qty);
-    updStock.run(item.qty, item.part_id);
+  const order_no = 'BSM-' + Date.now();
+  try {
+    adb.transaction(() => {
+      const order   = adb.prepare('INSERT INTO orders (order_no,consumer_id,subtotal,total,payment_method,notes) VALUES (?,?,?,?,?,?)')
+        .run(order_no, req.session.user.id, subtotal, subtotal, payment_method || 'cash', notes || null);
+      const insItem  = adb.prepare('INSERT INTO order_items (order_id,part_id,qty,unit_price,total) VALUES (?,?,?,?,?)');
+      const updStock = adb.prepare('UPDATE parts SET stock = stock - ? WHERE id=?');
+      for (const item of cartItems) {
+        insItem.run(order.lastInsertRowid, item.part_id, item.qty, item.price, item.price * item.qty);
+        updStock.run(item.qty, item.part_id);
+      }
+    })();
+    cdb.prepare('DELETE FROM cart WHERE consumer_id=?').run(req.session.user.id);
+    res.json({ ok: true, order_no });
+  } catch(e) {
+    res.json({ ok: false, message: 'Order failed — please try again' });
   }
-  cdb.prepare('DELETE FROM cart WHERE consumer_id=?').run(req.session.user.id);
-  res.json({ ok: true, order_no });
 });
 
 router.get('/orders', requireConsumer, (req, res) => {
