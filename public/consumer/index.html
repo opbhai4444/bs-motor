@@ -101,7 +101,7 @@ function renderParts() {
         </div>
         <div class="card-footer-meta">
           <span>${p.compatible_models || ''}</span>
-          <span>${p.sku || ''}</span>
+          <span>${p.sku && !p.sku.startsWith('AUTO-') ? p.sku : ''}</span>
         </div>
         <button class="btn-add" onclick="addToCart(${p.id},'${p.name_en.replace(/'/g,"\\'")}',${p.stock})"
           ${p.stock === 0 ? 'disabled' : ''}>🛒 Add to Cart</button>
