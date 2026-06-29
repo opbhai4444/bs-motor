@@ -284,6 +284,14 @@ router.get('/accountbooks/vouchers', requireAdmin, (req, res) => {
   res.json(adb.prepare(sql).all(...p));
 });
 
+router.delete('/accountbooks/vouchers/:id', requireAdmin, (req, res) => {
+  const entry = adb.prepare('SELECT id FROM journal_entries WHERE id=?').get(req.params.id);
+  if (!entry) return res.json({ ok: false, message: 'Not found' });
+  adb.prepare('DELETE FROM journal_lines WHERE entry_id=?').run(entry.id);
+  adb.prepare('DELETE FROM journal_entries WHERE id=?').run(entry.id);
+  res.json({ ok: true });
+});
+
 router.post('/accountbooks/vouchers', requireAdmin, (req, res) => {
   const { date, narration, voucher_type, dr_account_id, cr_account_id, amount } = req.body;
   if (!date || !dr_account_id || !cr_account_id || !amount)

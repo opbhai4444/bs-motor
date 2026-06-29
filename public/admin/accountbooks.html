@@ -5,6 +5,187 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Account Books — BS Motors Admin</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+  /* ─── layout shells ─────────────────────────────────────────── */
+  .ab-main { padding:0; overflow:hidden; height:100vh; display:flex; flex-direction:column; }
+  .ab-screen { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .ab-screen.hidden { display:none; }
+
+  /* ─── HOME GRID ──────────────────────────────────────────────── */
+  #scHome {
+    background: radial-gradient(ellipse at 20% 50%, #1a3a5e 0%, #0a1628 60%);
+    justify-content:center; align-items:center; overflow:auto;
+  }
+  .ab-home-inner { max-width:900px; width:100%; padding:2.5rem 2rem; }
+  .ab-home-hd { margin-bottom:2.2rem; }
+  .ab-home-hd h1 { font-size:2rem; font-weight:900; color:#fff; letter-spacing:.03em; margin:0 0 .3rem; }
+  .ab-home-hd p  { font-size:.88rem; color:rgba(255,255,255,.4); margin:0; }
+  .ab-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+  .ab-tile {
+    background:linear-gradient(145deg,#1c3554,#1a2f4a);
+    border:1.5px solid rgba(212,160,23,.18);
+    border-radius:14px; padding:1.4rem 1.1rem 1.1rem;
+    cursor:pointer; text-align:left;
+    transition:transform .18s,box-shadow .18s,border-color .18s;
+  }
+  .ab-tile:hover {
+    transform:translateY(-4px);
+    box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 1.5px rgba(212,160,23,.4);
+    border-color:rgba(212,160,23,.55);
+  }
+  .ab-tile:focus { outline:none; box-shadow:0 0 0 2px var(--accent); }
+  .ab-tile-icon { font-size:1.9rem; margin-bottom:.65rem; }
+  .ab-tile-name { font-size:.86rem; font-weight:800; color:#fff; line-height:1.35; margin-bottom:.55rem; }
+  .ab-tile-key  { display:inline-block; font-size:.68rem; font-weight:700; font-family:monospace;
+                  background:rgba(212,160,23,.13); border:1px solid rgba(212,160,23,.35);
+                  color:var(--accent); border-radius:5px; padding:.12rem .45rem; }
+  .ab-home-hint { margin-top:1.8rem; display:flex; flex-wrap:wrap; gap:.4rem; }
+  .ab-home-hint span { font-size:.7rem; color:rgba(255,255,255,.28); }
+  .ab-home-hint kbd { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
+                      border-radius:3px; padding:.07rem .32rem; font-size:.66rem; color:rgba(255,255,255,.6); }
+
+  /* ─── REGISTER SCREEN ───────────────────────────────────────── */
+  #scRegister { background:#eef1f6; }
+  .ab-reg-bar {
+    background:linear-gradient(90deg,#1b3352 0%,#24476e 100%);
+    padding:.65rem 1.2rem; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:.5rem; flex-shrink:0;
+    border-bottom:2px solid var(--accent);
+  }
+  .ab-reg-bar-left  { display:flex; align-items:center; gap:.75rem; }
+  .ab-reg-bar-right { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+  .ab-back {
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.22);
+    color:rgba(255,255,255,.85); padding:.32rem .8rem; border-radius:6px;
+    font-size:.78rem; font-weight:700; cursor:pointer; transition:background .15s;
+  }
+  .ab-back:hover { background:rgba(255,255,255,.2); }
+  .ab-reg-title { font-size:1.05rem; font-weight:900; color:#fff; letter-spacing:.015em; }
+  .ab-period-lbl { font-size:.76rem; color:rgba(255,255,255,.5); white-space:nowrap; }
+  .ab-reg-bar input[type="date"], .ab-reg-bar select {
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+    color:#fff; padding:.32rem .6rem; border-radius:7px; font-size:.8rem;
+  }
+  .ab-reg-bar input[type="date"]:focus, .ab-reg-bar select:focus {
+    outline:none; border-color:var(--accent); background:rgba(255,255,255,.16);
+  }
+  .ab-reg-bar input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.6); }
+  #ledgerAcct { min-width:190px; }
+  .ab-new-btn {
+    background:var(--accent); color:#1d2d40; border:none; border-radius:7px;
+    padding:.36rem .9rem; font-size:.8rem; font-weight:800; cursor:pointer;
+    letter-spacing:.01em; transition:opacity .15s; display:inline-flex; align-items:center; gap:.3rem;
+  }
+  .ab-new-btn:hover { opacity:.88; }
+  .ab-reg-body { flex:1; overflow-y:auto; padding:1.1rem 1.3rem; }
+
+  /* Register data table */
+  .ab-tbl-wrap { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.07); overflow:hidden; }
+  .ab-tbl { width:100%; border-collapse:collapse; }
+  .ab-tbl thead tr { background:linear-gradient(90deg,#1d3557,#274f7a); }
+  .ab-tbl thead th {
+    color:#fff; padding:.6rem 1rem; font-size:.72rem;
+    text-transform:uppercase; letter-spacing:.06em; font-weight:800; text-align:left;
+  }
+  .ab-tbl thead th.r { text-align:right; }
+  .ab-tbl tbody tr { border-bottom:1px solid #f0f2f6; cursor:pointer; transition:background .1s; }
+  .ab-tbl tbody tr:hover { background:#f4f8ff; }
+  .ab-tbl tbody tr.ab-selected { background:#e8f0ff; outline:2px solid #3a7bd5; outline-offset:-2px; }
+  .ab-tbl tbody td { padding:.58rem 1rem; font-size:.84rem; color:#1a2d44; }
+  .ab-tbl tbody td.r { text-align:right; }
+  .ab-tbl tfoot td {
+    background:linear-gradient(90deg,#f0f4fc,#e8eef9);
+    font-weight:900; font-size:.88rem; color:#1d3557;
+    padding:.65rem 1rem; border-top:2px solid #d0daea;
+  }
+  .ab-tbl tfoot td.r { text-align:right; }
+  .ab-vno    { font-family:monospace; font-size:.76rem; color:var(--muted); }
+  .ab-dr     { color:#c0392b; font-weight:700; font-family:monospace; }
+  .ab-cr     { color:#27ae60; font-weight:700; font-family:monospace; }
+  .ab-bal-dr { color:#c0392b; font-weight:800; font-family:monospace; }
+  .ab-bal-cr { color:#27ae60; font-weight:800; font-family:monospace; }
+  .ab-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:.9rem;
+            padding:.15rem .3rem; border-radius:4px; transition:all .12s; }
+  .ab-del:hover { color:#e63946; background:#fff0f0; }
+  .ab-vtag {
+    font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    padding:.1rem .38rem; border-radius:4px;
+  }
+  .ab-vtag-contra    { background:#dde8ff; color:#2563eb; }
+  .ab-vtag-payment   { background:#fee2e2; color:#dc2626; }
+  .ab-vtag-receipt   { background:#d1fae5; color:#059669; }
+  .ab-vtag-journal   { background:#fef3c7; color:#b45309; }
+  .ab-vtag-debit_note  { background:#fce7f3; color:#be185d; }
+  .ab-vtag-credit_note { background:#e0e7ff; color:#4338ca; }
+
+  /* Shortcut bar */
+  .ab-shortcut-bar {
+    background:#162336; border-top:1px solid rgba(255,255,255,.07);
+    padding:.42rem 1.2rem; display:flex; gap:1.5rem; flex-wrap:wrap; flex-shrink:0;
+  }
+  .ab-shortcut-bar span { font-size:.7rem; color:rgba(255,255,255,.45); }
+  .ab-shortcut-bar kbd {
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.17);
+    border-radius:3px; padding:.06rem .28rem; font-size:.65rem; font-family:monospace;
+    color:rgba(255,255,255,.7);
+  }
+
+  /* confirm delete bar */
+  .ab-confirm-bar {
+    background:#fff3cd; border-top:2px solid #f0b429;
+    padding:.55rem 1.2rem; display:flex; align-items:center; gap:1rem; flex-shrink:0;
+  }
+  .ab-confirm-bar span { font-size:.83rem; font-weight:700; color:#92400e; flex:1; }
+  .ab-confirm-yes { background:#e63946; color:#fff; border:none; border-radius:6px; padding:.35rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; }
+  .ab-confirm-no  { background:#fff; border:1px solid #ccc; border-radius:6px; padding:.33rem .8rem; font-size:.82rem; cursor:pointer; }
+
+  /* ─── VOUCHER SCREEN ─────────────────────────────────────────── */
+  #scVoucher { background:#eef1f6; justify-content:flex-start; overflow-y:auto; }
+  .ab-vchr-outer { max-width:560px; margin:1.8rem auto; }
+  .ab-vchr-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 6px 32px rgba(0,0,0,.1); overflow:hidden;
+  }
+  .ab-vchr-head {
+    background:linear-gradient(90deg,#1b3352,#24476e);
+    padding:1rem 1.4rem; display:flex; justify-content:space-between; align-items:center;
+  }
+  .ab-vchr-head-type { font-size:1.08rem; font-weight:900; color:#fff; }
+  .ab-vchr-head-no   { font-size:.78rem; color:rgba(255,255,255,.55); font-family:monospace; }
+  .ab-vchr-body { padding:1.5rem 1.4rem; }
+  .ab-vchr-row { display:grid; grid-template-columns:135px 1fr; align-items:center; gap:.75rem; margin-bottom:1rem; }
+  .ab-vchr-lbl { font-size:.8rem; font-weight:700; color:var(--muted); }
+  .ab-vchr-inp {
+    padding:.55rem .85rem; border:1.5px solid #dde2ec; border-radius:8px;
+    font-size:.9rem; width:100%; box-sizing:border-box; transition:border-color .15s;
+    background:#f9fafc;
+  }
+  .ab-vchr-inp:focus { outline:none; border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+  .ab-vchr-divider { border:none; border-top:2px dashed #eaecf2; margin:1rem 0; }
+  .ab-vchr-footer {
+    background:#f5f7fc; border-top:1.5px solid #e8ecf4;
+    padding:1rem 1.4rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem;
+  }
+  .ab-vchr-hint { font-size:.74rem; color:var(--muted); }
+  .ab-vchr-hint kbd {
+    background:#eaecf2; border:1px solid #d0d5e2; border-radius:3px;
+    padding:.06rem .3rem; font-size:.68rem; font-family:monospace;
+  }
+  .ab-vchr-actions { display:flex; gap:.6rem; }
+  .ab-vchr-save {
+    background:var(--secondary); color:#fff; border:none; border-radius:8px;
+    padding:.55rem 1.4rem; font-size:.88rem; font-weight:800; cursor:pointer; transition:background .15s;
+  }
+  .ab-vchr-save:hover { background:#153148; }
+  .ab-vchr-cancel {
+    background:none; border:1.5px solid #d0d5e2; border-radius:8px;
+    padding:.53rem 1rem; font-size:.86rem; color:var(--muted); cursor:pointer; transition:border-color .15s;
+  }
+  .ab-vchr-cancel:hover { border-color:#94a3b8; }
+
+  .ab-empty { text-align:center; padding:3rem; color:var(--muted); }
+  .ab-empty .ab-ei { font-size:3rem; margin-bottom:.6rem; }
+  </style>
 </head>
 <body>
 <div class="admin-layout">
@@ -20,304 +201,440 @@
     </nav>
   </aside>
 
-  <main class="admin-main" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:100vh">
+  <main class="admin-main ab-main">
 
-    <div class="admin-header" style="flex-shrink:0"><h1>📚 Account Books</h1></div>
-
-    <div class="ab-layout">
-
-      <!-- Left: Tally-style register menu -->
-      <div class="ab-menu">
-        <div class="ab-menu-group">
-          <div class="ab-menu-head">Ledger</div>
-          <button class="ab-menu-item active" onclick="openRegister('ledger')" id="menu-ledger">📒 Ledger</button>
+    <!-- ══ SCREEN 1: HOME GRID ══════════════════════════════════ -->
+    <div id="scHome" class="ab-screen">
+      <div class="ab-home-inner">
+        <div class="ab-home-hd">
+          <h1>📚 Account Books</h1>
+          <p>Select a register to open — or press the keyboard shortcut</p>
         </div>
-        <div class="ab-menu-group">
-          <div class="ab-menu-head">Voucher Registers</div>
-          <button class="ab-menu-item" onclick="openRegister('contra')"     id="menu-contra">🔄 Contra</button>
-          <button class="ab-menu-item" onclick="openRegister('payment')"    id="menu-payment">💸 Payment Register</button>
-          <button class="ab-menu-item" onclick="openRegister('receipt')"    id="menu-receipt">💰 Receipt Register</button>
+        <div class="ab-grid">
+          <button class="ab-tile" onclick="openRegister('ledger')">
+            <div class="ab-tile-icon">📒</div>
+            <div class="ab-tile-name">Ledger</div>
+            <div class="ab-tile-key">L</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('contra')">
+            <div class="ab-tile-icon">🔄</div>
+            <div class="ab-tile-name">Contra</div>
+            <div class="ab-tile-key">F4</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('payment')">
+            <div class="ab-tile-icon">💸</div>
+            <div class="ab-tile-name">Payment Register</div>
+            <div class="ab-tile-key">F5</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('receipt')">
+            <div class="ab-tile-icon">💰</div>
+            <div class="ab-tile-name">Receipt Register</div>
+            <div class="ab-tile-key">F6</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('sales')">
+            <div class="ab-tile-icon">📊</div>
+            <div class="ab-tile-name">Sales Journal</div>
+            <div class="ab-tile-key">F8</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('purchases')">
+            <div class="ab-tile-icon">🛒</div>
+            <div class="ab-tile-name">Purchase Journal</div>
+            <div class="ab-tile-key">F9</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('debit_note')">
+            <div class="ab-tile-icon">📉</div>
+            <div class="ab-tile-name">Debit Note Register</div>
+            <div class="ab-tile-key">Ctrl+F9</div>
+          </button>
+          <button class="ab-tile" onclick="openRegister('credit_note')">
+            <div class="ab-tile-icon">📈</div>
+            <div class="ab-tile-name">Credit Note Register</div>
+            <div class="ab-tile-key">Ctrl+F8</div>
+          </button>
         </div>
-        <div class="ab-menu-group">
-          <div class="ab-menu-head">Journals</div>
-          <button class="ab-menu-item" onclick="openRegister('sales')"      id="menu-sales">📊 Sales Journal</button>
-          <button class="ab-menu-item" onclick="openRegister('purchases')"  id="menu-purchases">🛒 Purchase Journal</button>
-        </div>
-        <div class="ab-menu-group">
-          <div class="ab-menu-head">Note Registers</div>
-          <button class="ab-menu-item" onclick="openRegister('debit_note')"  id="menu-debit_note">📉 Debit Note Reg.</button>
-          <button class="ab-menu-item" onclick="openRegister('credit_note')" id="menu-credit_note">📈 Credit Note Reg.</button>
+        <div class="ab-home-hint">
+          <span><kbd>F4</kbd> Contra &nbsp; <kbd>F5</kbd> Payment &nbsp; <kbd>F6</kbd> Receipt &nbsp; <kbd>F8</kbd> Sales &nbsp; <kbd>F9</kbd> Purchase &nbsp; <kbd>Ctrl+F8</kbd> Credit Note &nbsp; <kbd>Ctrl+F9</kbd> Debit Note &nbsp; <kbd>L</kbd> Ledger</span>
         </div>
       </div>
+    </div>
 
-      <!-- Right: Register content -->
-      <div class="ab-content">
-
-        <!-- Date filter bar -->
-        <div class="ab-toolbar">
-          <div class="ab-toolbar-left">
-            <span class="ab-reg-title" id="regTitle">Ledger</span>
-          </div>
-          <div class="ab-toolbar-right">
-            <!-- Ledger account picker (only for ledger) -->
-            <select id="ledgerAccount" style="display:none" onchange="loadRegister()">
-              <option value="">— Select Account —</option>
-            </select>
-            <span class="ab-date-label">From</span>
-            <input type="date" id="fromDate" onchange="loadRegister()">
-            <span class="ab-date-label">To</span>
-            <input type="date" id="toDate" onchange="loadRegister()">
-            <button class="btn-sm btn-view" onclick="loadRegister()">Show</button>
-            <button class="ab-new-btn" id="newEntryBtn" style="display:none" onclick="openNewVoucher()">+ New Entry</button>
-          </div>
+    <!-- ══ SCREEN 2: REGISTER VIEW ═════════════════════════════ -->
+    <div id="scRegister" class="ab-screen hidden">
+      <div class="ab-reg-bar">
+        <div class="ab-reg-bar-left">
+          <button class="ab-back" onclick="goHome()">← Back <span style="opacity:.45;font-size:.68rem">(Esc)</span></button>
+          <span class="ab-reg-title" id="regTitle">Ledger</span>
         </div>
-
-        <!-- Register table -->
-        <div class="ab-table-wrap">
-          <table class="data-table ab-table" id="regTable">
-            <thead id="regHead"></thead>
-            <tbody id="regBody"></tbody>
-            <tfoot id="regFoot"></tfoot>
+        <div class="ab-reg-bar-right">
+          <select id="ledgerAcct" style="display:none" onchange="loadReg()">
+            <option value="">— Select Account —</option>
+          </select>
+          <span class="ab-period-lbl">From</span>
+          <input type="date" id="fromDate" onchange="loadReg()">
+          <span class="ab-period-lbl">To</span>
+          <input type="date" id="toDate" onchange="loadReg()">
+          <button class="ab-new-btn" id="newBtn" style="display:none" onclick="openVoucher()">+ New <span style="opacity:.6;font-weight:400;font-size:.72rem">(N)</span></button>
+        </div>
+      </div>
+      <div class="ab-reg-body">
+        <div class="ab-tbl-wrap">
+          <table class="ab-tbl">
+            <thead id="tblHead"></thead>
+            <tbody id="tblBody"></tbody>
+            <tfoot id="tblFoot"></tfoot>
           </table>
-          <div id="regEmpty" style="display:none;text-align:center;padding:3rem;color:var(--muted)">
-            <div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries found
+          <div id="tblEmpty" class="ab-empty" style="display:none">
+            <div class="ab-ei">📭</div><p>No entries for this period</p>
           </div>
         </div>
-
+      </div>
+      <div class="ab-confirm-bar" id="confirmBar" style="display:none">
+        <span id="confirmMsg">Delete this voucher? This cannot be undone.</span>
+        <button class="ab-confirm-yes" onclick="confirmDelete()">🗑 Delete (Alt+D)</button>
+        <button class="ab-confirm-no"  onclick="clearSelection()">Cancel (Esc)</button>
+      </div>
+      <div class="ab-shortcut-bar">
+        <span><kbd>F4</kbd> Contra</span>
+        <span><kbd>F5</kbd> Payment</span>
+        <span><kbd>F6</kbd> Receipt</span>
+        <span><kbd>F8</kbd> Sales</span>
+        <span><kbd>F9</kbd> Purchase</span>
+        <span><kbd>N</kbd> New Entry</span>
+        <span><kbd>Click row</kbd> Select</span>
+        <span><kbd>Alt+D</kbd> Delete selected</span>
+        <span><kbd>F2</kbd> Change Period</span>
+        <span><kbd>Esc</kbd> Back / Deselect</span>
       </div>
     </div>
-  </main>
-</div>
 
-<!-- New Voucher Modal -->
-<div class="modal-overlay" id="voucherModal">
-  <div class="modal-box" style="max-width:480px">
-    <button class="modal-close" onclick="closeVoucher()">✕</button>
-    <h3 id="voucherModalTitle">New Voucher</h3>
-    <div class="form-group">
-      <label>Date</label>
-      <input type="date" id="vDate">
+    <!-- ══ SCREEN 3: VOUCHER ENTRY ══════════════════════════════ -->
+    <div id="scVoucher" class="ab-screen hidden">
+      <div class="ab-vchr-outer">
+        <div class="ab-vchr-card">
+          <div class="ab-vchr-head">
+            <span class="ab-vchr-head-type" id="vchrTypeLabel">Payment Voucher</span>
+            <span class="ab-vchr-head-no" id="vchrNo"></span>
+          </div>
+          <div class="ab-vchr-body">
+            <div class="ab-vchr-row">
+              <label class="ab-vchr-lbl">Date</label>
+              <input type="date" id="vDate" class="ab-vchr-inp">
+            </div>
+            <div class="ab-vchr-row">
+              <label class="ab-vchr-lbl" id="vDrLabel">Debit (Dr)</label>
+              <select id="vDrAcc" class="ab-vchr-inp"><option value="">— Select Account —</option></select>
+            </div>
+            <hr class="ab-vchr-divider">
+            <div class="ab-vchr-row">
+              <label class="ab-vchr-lbl" id="vCrLabel">Credit (Cr)</label>
+              <select id="vCrAcc" class="ab-vchr-inp"><option value="">— Select Account —</option></select>
+            </div>
+            <hr class="ab-vchr-divider">
+            <div class="ab-vchr-row">
+              <label class="ab-vchr-lbl">Amount (₹)</label>
+              <input type="number" id="vAmount" class="ab-vchr-inp" placeholder="0.00" min="0.01" step="0.01">
+            </div>
+            <div class="ab-vchr-row">
+              <label class="ab-vchr-lbl">Narration</label>
+              <input type="text" id="vNarration" class="ab-vchr-inp" placeholder="Optional description...">
+            </div>
+          </div>
+          <div class="ab-vchr-footer">
+            <span class="ab-vchr-hint"><kbd>Alt+A</kbd> Save &nbsp;&nbsp; <kbd>Esc</kbd> Cancel</span>
+            <div class="ab-vchr-actions">
+              <button class="ab-vchr-cancel" onclick="closeVoucher()">Cancel</button>
+              <button class="ab-vchr-save"   onclick="saveVoucher()">Accept &nbsp;(Alt+A)</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label id="drLabel">Debit Account (Dr)</label>
-      <select id="vDrAcc"><option value="">— Select —</option></select>
-    </div>
-    <div class="form-group">
-      <label id="crLabel">Credit Account (Cr)</label>
-      <select id="vCrAcc"><option value="">— Select —</option></select>
-    </div>
-    <div class="form-group">
-      <label>Amount (₹)</label>
-      <input type="number" id="vAmount" placeholder="0.00" min="0" step="0.01">
-    </div>
-    <div class="form-group">
-      <label>Narration (optional)</label>
-      <input type="text" id="vNarration" placeholder="Description...">
-    </div>
-    <div style="display:flex;gap:.75rem;margin-top:.5rem">
-      <button class="btn btn-primary" onclick="saveVoucher()" style="flex:1">Save &nbsp;(Alt+A)</button>
-      <button class="btn" onclick="closeVoucher()" style="flex:1">Cancel &nbsp;(Esc)</button>
-    </div>
-  </div>
+
+  </main>
 </div>
 
 <script src="/js/api.js"></script>
 <script src="/js/admin-nav.js"></script>
 <script>
-let currentRegister = 'ledger';
-let accounts = [];
-
-const REG_CONFIG = {
-  ledger:      { title:'Ledger',             canNew:false,  voucherType:null },
-  contra:      { title:'Contra Register',    canNew:true,   voucherType:'contra',     drLabel:'Cash/Bank Account (Dr)', crLabel:'Cash/Bank Account (Cr)' },
-  payment:     { title:'Payment Register',   canNew:true,   voucherType:'payment',    drLabel:'Expense / Party (Dr)',   crLabel:'Cash / Bank (Cr)' },
-  receipt:     { title:'Receipt Register',   canNew:true,   voucherType:'receipt',    drLabel:'Cash / Bank (Dr)',       crLabel:'Income / Party (Cr)' },
-  sales:       { title:'Sales Journal',      canNew:false,  voucherType:null },
-  purchases:   { title:'Purchase Journal',   canNew:false,  voucherType:null },
-  debit_note:  { title:'Debit Note Register',canNew:true,   voucherType:'debit_note', drLabel:'Supplier Account (Dr)',  crLabel:'Purchase Returns (Cr)' },
-  credit_note: { title:'Credit Note Register',canNew:true,  voucherType:'credit_note',drLabel:'Sales Returns (Dr)',     crLabel:'Customer Account (Cr)' },
+const CFG = {
+  ledger:     { title:'Ledger',              canNew:false },
+  contra:     { title:'Contra Register',     canNew:true, vtype:'contra',
+                drLabel:'Cash / Bank Account (Dr)', crLabel:'Cash / Bank Account (Cr)' },
+  payment:    { title:'Payment Register',    canNew:true, vtype:'payment',
+                drLabel:'Expense / Party (Dr)',      crLabel:'Cash / Bank (Cr)' },
+  receipt:    { title:'Receipt Register',    canNew:true, vtype:'receipt',
+                drLabel:'Cash / Bank (Dr)',           crLabel:'Income / Party (Cr)' },
+  sales:      { title:'Sales Journal',       canNew:false },
+  purchases:  { title:'Purchase Journal',    canNew:false },
+  debit_note: { title:'Debit Note Register', canNew:true, vtype:'debit_note',
+                drLabel:'Supplier Account (Dr)',      crLabel:'Purchase Returns (Cr)' },
+  credit_note:{ title:'Credit Note Register',canNew:true, vtype:'credit_note',
+                drLabel:'Sales Returns (Dr)',         crLabel:'Customer Account (Cr)' },
 };
+const VTAGS = {
+  contra:'ab-vtag-contra', payment:'ab-vtag-payment', receipt:'ab-vtag-receipt',
+  journal:'ab-vtag-journal', debit_note:'ab-vtag-debit_note', credit_note:'ab-vtag-credit_note'
+};
+
+let curReg        = 'ledger';
+let accounts      = [];
+let selectedRowId = null;
+let selectedRowNo = null;
 
 async function init() {
   const user = await AdminNav.init();
   if (!user) return;
   accounts = await API.get('/api/admin/accounts');
-  populateAccountDropdowns();
+  populateAcctDropdowns();
   const today = new Date().toISOString().slice(0,10);
-  const monthStart = today.slice(0,7)+'-01';
-  document.getElementById('fromDate').value = monthStart;
+  document.getElementById('fromDate').value = today.slice(0,7)+'-01';
   document.getElementById('toDate').value   = today;
-  populateLedgerDropdown();
-  openRegister('ledger');
+  populateLedgerDrop();
+  show('scHome');
 }
 
-function populateLedgerDropdown() {
-  const sel = document.getElementById('ledgerAccount');
+function populateLedgerDrop() {
+  const sel = document.getElementById('ledgerAcct');
   accounts.forEach(a => {
     const o = document.createElement('option');
-    o.value = a.id; o.textContent = a.name + ' (' + a.type + ')';
+    o.value = a.id; o.textContent = a.name+' ('+a.type+')';
     sel.appendChild(o);
   });
 }
-
-function populateAccountDropdowns() {
-  [document.getElementById('vDrAcc'), document.getElementById('vCrAcc')].forEach(sel => {
-    while (sel.options.length > 1) sel.remove(1);
+function populateAcctDropdowns() {
+  ['vDrAcc','vCrAcc'].forEach(id => {
+    const s = document.getElementById(id);
+    while (s.options.length > 1) s.remove(1);
     accounts.forEach(a => {
       const o = document.createElement('option');
-      o.value = a.id; o.textContent = a.name + ' (' + a.type + ')';
-      sel.appendChild(o);
+      o.value = a.id; o.textContent = a.name+' ('+a.type+')';
+      s.appendChild(o);
     });
   });
 }
 
-function openRegister(key) {
-  currentRegister = key;
-  document.querySelectorAll('.ab-menu-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('menu-'+key).classList.add('active');
-  const cfg = REG_CONFIG[key];
-  document.getElementById('regTitle').textContent = cfg.title;
-  document.getElementById('newEntryBtn').style.display = cfg.canNew ? 'inline-block' : 'none';
-  document.getElementById('ledgerAccount').style.display = key === 'ledger' ? 'inline-block' : 'none';
-  loadRegister();
+function show(id) {
+  ['scHome','scRegister','scVoucher'].forEach(s =>
+    document.getElementById(s).classList.toggle('hidden', s !== id)
+  );
 }
 
-async function loadRegister() {
+function goHome() { clearSelection(); show('scHome'); }
+
+function openRegister(key) {
+  curReg = key;
+  const cfg = CFG[key];
+  document.getElementById('regTitle').textContent = cfg.title;
+  document.getElementById('newBtn').style.display = cfg.canNew ? 'inline-flex' : 'none';
+  document.getElementById('ledgerAcct').style.display = key === 'ledger' ? 'inline-block' : 'none';
+  clearSelection();
+  show('scRegister');
+  loadReg();
+}
+
+async function loadReg() {
   const from = document.getElementById('fromDate').value;
   const to   = document.getElementById('toDate').value;
-  const head = document.getElementById('regHead');
-  const body = document.getElementById('regBody');
-  const foot = document.getElementById('regFoot');
-  const empty = document.getElementById('regEmpty');
-  body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:1.5rem;color:var(--muted)">Loading…</td></tr>';
-  head.innerHTML = ''; foot.innerHTML = ''; empty.style.display='none';
-
-  if (currentRegister === 'ledger') {
-    await loadLedger(from, to, head, body, foot, empty); return;
-  }
-  if (currentRegister === 'sales') {
-    await loadSales(from, to, head, body, foot, empty); return;
-  }
-  if (currentRegister === 'purchases') {
-    await loadPurchases(from, to, head, body, foot, empty); return;
-  }
-  await loadVouchers(currentRegister, from, to, head, body, foot, empty);
+  const head = document.getElementById('tblHead');
+  const body = document.getElementById('tblBody');
+  const foot = document.getElementById('tblFoot');
+  const empty = document.getElementById('tblEmpty');
+  body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>';
+  head.innerHTML=''; foot.innerHTML=''; empty.style.display='none';
+  clearSelection();
+  if (curReg==='ledger')    { await loadLedger(from,to,head,body,foot,empty); return; }
+  if (curReg==='sales')     { await loadSales(from,to,head,body,foot,empty);  return; }
+  if (curReg==='purchases') { await loadPurch(from,to,head,body,foot,empty);  return; }
+  await loadVouchers(curReg,from,to,head,body,foot,empty);
 }
 
-async function loadLedger(from, to, head, body, foot, empty) {
-  const accId = document.getElementById('ledgerAccount').value;
-  if (!accId) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📒</div>Select an account to view ledger'; return; }
+const fmtD   = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const fmtAmt = v => '₹'+parseFloat(v||0).toFixed(2);
+
+async function loadLedger(from,to,head,body,foot,empty) {
+  const accId = document.getElementById('ledgerAcct').value;
+  if (!accId) {
+    body.innerHTML='';
+    empty.innerHTML='<div class="ab-ei">📒</div><p>Select an account from the dropdown above</p>';
+    empty.style.display='block'; return;
+  }
   const data = await API.get('/api/admin/accountbooks/ledger?account_id='+accId+'&from='+from+'&to='+to);
-  head.innerHTML = `<tr><th>Date</th><th>Particulars</th><th>Voucher No</th><th>Type</th><th class="ab-num">Debit (₹)</th><th class="ab-num">Credit (₹)</th><th class="ab-num">Balance (₹)</th></tr>`;
-  if (!data.lines.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries'; return; }
-  let bal = data.account.opening_balance || 0;
-  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  head.innerHTML=`<tr><th>Date</th><th>Particulars</th><th>Voucher No</th><th>Type</th><th class="r">Debit (₹)</th><th class="r">Credit (₹)</th><th class="r">Balance</th></tr>`;
+  if (!data.lines||!data.lines.length) { body.innerHTML=''; empty.innerHTML='<div class="ab-ei">📭</div><p>No entries for this period</p>'; empty.style.display='block'; return; }
+  let bal=data.account.opening_balance||0, totDr=0, totCr=0;
   body.innerHTML = data.lines.map(l => {
-    bal += (l.debit||0) - (l.credit||0);
+    const dr=l.debit||0, cr=l.credit||0;
+    bal+=dr-cr; totDr+=dr; totCr+=cr;
     return `<tr>
       <td>${fmtD(l.date)}</td>
       <td>${l.particulars||'—'}</td>
-      <td class="ab-mono">${l.entry_no}</td>
-      <td><span class="ab-vtype">${l.voucher_type||'journal'}</span></td>
-      <td class="ab-num ab-dr">${l.debit>0?'₹'+l.debit.toFixed(2):'—'}</td>
-      <td class="ab-num ab-cr">${l.credit>0?'₹'+l.credit.toFixed(2):'—'}</td>
-      <td class="ab-num ab-bal ${bal>=0?'ab-pos':'ab-neg'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</td>
+      <td class="ab-vno">${l.entry_no}</td>
+      <td><span class="ab-vtag ${VTAGS[l.voucher_type]||'ab-vtag-journal'}">${l.voucher_type||'journal'}</span></td>
+      <td class="r">${dr>0?'<span class="ab-dr">'+fmtAmt(dr)+'</span>':'—'}</td>
+      <td class="r">${cr>0?'<span class="ab-cr">'+fmtAmt(cr)+'</span>':'—'}</td>
+      <td class="r"><span class="${bal>=0?'ab-bal-dr':'ab-bal-cr'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</span></td>
     </tr>`;
   }).join('');
-  const totDr = data.lines.reduce((s,l)=>s+(l.debit||0),0);
-  const totCr = data.lines.reduce((s,l)=>s+(l.credit||0),0);
-  foot.innerHTML = `<tr class="ab-foot"><td colspan="4">Closing Balance</td><td class="ab-num">₹${totDr.toFixed(2)}</td><td class="ab-num">₹${totCr.toFixed(2)}</td><td class="ab-num ab-bal ${bal>=0?'ab-pos':'ab-neg'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</td></tr>`;
+  foot.innerHTML=`<tr>
+    <td colspan="4" class="r">Closing Balance</td>
+    <td class="r">${fmtAmt(totDr)}</td>
+    <td class="r">${fmtAmt(totCr)}</td>
+    <td class="r"><span class="${bal>=0?'ab-bal-dr':'ab-bal-cr'}">₹${Math.abs(bal).toFixed(2)} ${bal>=0?'Dr':'Cr'}</span></td>
+  </tr>`;
 }
 
-async function loadVouchers(type, from, to, head, body, foot, empty) {
-  const data = await API.get('/api/admin/accountbooks/vouchers?type='+type+'&from='+from+'&to='+to);
-  head.innerHTML = `<tr><th>Date</th><th>Voucher No</th><th>Dr Account</th><th>Cr Account</th><th class="ab-num">Amount (₹)</th><th>Narration</th></tr>`;
-  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No entries'; return; }
-  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-  let total = 0;
-  body.innerHTML = data.map(v => { total+=v.amount||0; return `<tr>
-    <td>${fmtD(v.date)}</td>
-    <td class="ab-mono">${v.entry_no}</td>
-    <td>${v.dr_account||'—'}</td>
-    <td>${v.cr_account||'—'}</td>
-    <td class="ab-num ab-dr">₹${(v.amount||0).toFixed(2)}</td>
-    <td style="color:var(--muted);font-size:.82rem">${v.narration||'—'}</td>
-  </tr>`; }).join('');
-  foot.innerHTML = `<tr class="ab-foot"><td colspan="4">Total</td><td class="ab-num">₹${total.toFixed(2)}</td><td></td></tr>`;
+async function loadVouchers(type,from,to,head,body,foot,empty) {
+  const rows = await API.get('/api/admin/accountbooks/vouchers?type='+type+'&from='+from+'&to='+to);
+  head.innerHTML=`<tr><th>Date</th><th>Voucher No</th><th>Dr Account</th><th>Cr Account</th><th class="r">Amount (₹)</th><th>Narration</th><th></th></tr>`;
+  if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
+  let total=0;
+  body.innerHTML = rows.map(v => {
+    total+=v.amount||0;
+    return `<tr data-id="${v.id}" data-no="${v.entry_no}" onclick="selectRow(this)">
+      <td>${fmtD(v.date)}</td>
+      <td class="ab-vno">${v.entry_no}</td>
+      <td>${v.dr_account||'—'}</td>
+      <td>${v.cr_account||'—'}</td>
+      <td class="r"><span class="ab-dr">${fmtAmt(v.amount)}</span></td>
+      <td style="font-size:.78rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.narration||'—'}</td>
+      <td><button class="ab-del" onclick="event.stopPropagation();selectRowById('${v.id}','${v.entry_no}')" title="Delete">🗑</button></td>
+    </tr>`;
+  }).join('');
+  foot.innerHTML=`<tr><td colspan="4" class="r">Total</td><td class="r"><span class="ab-dr">${fmtAmt(total)}</span></td><td colspan="2"></td></tr>`;
 }
 
-async function loadSales(from, to, head, body, foot, empty) {
-  const data = await API.get('/api/admin/accountbooks/sales?from='+from+'&to='+to);
-  head.innerHTML = `<tr><th>Date</th><th>Order No</th><th>Customer</th><th>Phone</th><th>Items</th><th>Payment</th><th class="ab-num">Amount (₹)</th></tr>`;
-  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No sales'; return; }
-  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-  let total = 0;
-  body.innerHTML = data.map(o => { total+=o.total||0; return `<tr>
-    <td>${fmtD(o.date)}</td>
-    <td class="ab-mono">${o.order_no}</td>
-    <td>${o.customer_name}</td>
-    <td>${o.customer_phone||'—'}</td>
-    <td style="text-align:center">${o.item_count||0}</td>
+async function loadSales(from,to,head,body,foot,empty) {
+  const rows = await API.get('/api/admin/accountbooks/sales?from='+from+'&to='+to);
+  head.innerHTML=`<tr><th>Date</th><th>Order No</th><th>Customer</th><th>Phone</th><th style="text-align:center">Items</th><th>Payment</th><th class="r">Amount (₹)</th></tr>`;
+  if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
+  let total=0;
+  body.innerHTML = rows.map(o => { total+=o.total||0; return `<tr>
+    <td>${fmtD(o.date)}</td><td class="ab-vno">${o.order_no}</td><td>${o.customer_name}</td>
+    <td>${o.customer_phone||'—'}</td><td style="text-align:center">${o.item_count||0}</td>
     <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
-    <td class="ab-num ab-dr">₹${(o.total||0).toFixed(2)}</td>
+    <td class="r"><span class="ab-cr">${fmtAmt(o.total)}</span></td>
   </tr>`; }).join('');
-  foot.innerHTML = `<tr class="ab-foot"><td colspan="6">Total Sales</td><td class="ab-num">₹${total.toFixed(2)}</td></tr>`;
+  foot.innerHTML=`<tr><td colspan="6" class="r">Total Sales</td><td class="r"><span class="ab-cr">${fmtAmt(total)}</span></td></tr>`;
 }
 
-async function loadPurchases(from, to, head, body, foot, empty) {
-  const data = await API.get('/api/admin/accountbooks/purchases?from='+from+'&to='+to);
-  head.innerHTML = `<tr><th>Date</th><th>Bill No</th><th>Supplier</th><th class="ab-num">Total (₹)</th><th class="ab-num">Paid (₹)</th><th class="ab-num">Balance (₹)</th><th>Notes</th></tr>`;
-  if (!data.length) { body.innerHTML=''; empty.style.display='block'; document.getElementById('regEmpty').innerHTML='<div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>No purchases'; return; }
-  const fmtD = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-  let totTotal=0, totPaid=0;
-  body.innerHTML = data.map(p => { totTotal+=p.total||0; totPaid+=p.paid||0; const bal=(p.total||0)-(p.paid||0); return `<tr>
-    <td>${fmtD(p.date)}</td>
-    <td class="ab-mono">${p.bill_no||'—'}</td>
-    <td>${p.supplier||'—'}</td>
-    <td class="ab-num ab-cr">₹${(p.total||0).toFixed(2)}</td>
-    <td class="ab-num ab-pos">₹${(p.paid||0).toFixed(2)}</td>
-    <td class="ab-num ${bal>0?'ab-neg':'ab-pos'}">₹${Math.abs(bal).toFixed(2)}${bal>0?' (due)':''}</td>
-    <td style="color:var(--muted);font-size:.82rem">${p.notes||'—'}</td>
+async function loadPurch(from,to,head,body,foot,empty) {
+  const rows = await API.get('/api/admin/accountbooks/purchases?from='+from+'&to='+to);
+  head.innerHTML=`<tr><th>Date</th><th>Bill No</th><th>Supplier</th><th class="r">Total (₹)</th><th class="r">Paid (₹)</th><th class="r">Due (₹)</th><th>Notes</th></tr>`;
+  if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
+  let tt=0,tp=0;
+  body.innerHTML = rows.map(p => { tt+=p.total||0; tp+=p.paid||0; const due=(p.total||0)-(p.paid||0); return `<tr>
+    <td>${fmtD(p.date)}</td><td class="ab-vno">${p.bill_no||'—'}</td><td>${p.supplier||'—'}</td>
+    <td class="r"><span class="ab-dr">${fmtAmt(p.total)}</span></td>
+    <td class="r"><span class="ab-cr">${fmtAmt(p.paid)}</span></td>
+    <td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td>
+    <td style="font-size:.78rem;color:var(--muted)">${p.notes||'—'}</td>
   </tr>`; }).join('');
-  const totBal=totTotal-totPaid;
-  foot.innerHTML = `<tr class="ab-foot"><td colspan="3">Total</td><td class="ab-num">₹${totTotal.toFixed(2)}</td><td class="ab-num">₹${totPaid.toFixed(2)}</td><td class="ab-num ${totBal>0?'ab-neg':'ab-pos'}">₹${Math.abs(totBal).toFixed(2)}</td><td></td></tr>`;
+  const due=tt-tp;
+  foot.innerHTML=`<tr><td colspan="3" class="r">Total</td><td class="r"><span class="ab-dr">${fmtAmt(tt)}</span></td><td class="r"><span class="ab-cr">${fmtAmt(tp)}</span></td><td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td><td></td></tr>`;
 }
 
-function openNewVoucher() {
-  const cfg = REG_CONFIG[currentRegister];
+/* ── row selection for delete ── */
+function selectRow(tr) {
+  const id = tr.dataset.id, no = tr.dataset.no;
+  if (selectedRowId === id) { clearSelection(); return; }
+  document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
+  tr.classList.add('ab-selected');
+  selectedRowId = id; selectedRowNo = no;
+  document.getElementById('confirmMsg').textContent = `Delete voucher ${no}? This cannot be undone.`;
+  document.getElementById('confirmBar').style.display = 'flex';
+}
+function selectRowById(id, no) {
+  const tr = document.querySelector(`#tblBody tr[data-id="${id}"]`);
+  if (tr) selectRow(tr);
+}
+function clearSelection() {
+  selectedRowId = null; selectedRowNo = null;
+  document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
+  document.getElementById('confirmBar').style.display = 'none';
+}
+async function confirmDelete() {
+  if (!selectedRowId) return;
+  const res = await API.delete('/api/admin/accountbooks/vouchers/'+selectedRowId);
+  if (res.ok) { API.toast('Voucher '+selectedRowNo+' deleted'); clearSelection(); loadReg(); }
+  else API.toast(res.message||'Delete failed','error');
+}
+
+/* ── voucher entry ── */
+function openVoucher() {
+  const cfg = CFG[curReg];
   if (!cfg.canNew) return;
-  document.getElementById('voucherModalTitle').textContent = 'New ' + cfg.title.replace(' Register','');
-  document.getElementById('drLabel').textContent = cfg.drLabel || 'Debit Account (Dr)';
-  document.getElementById('crLabel').textContent = cfg.crLabel || 'Credit Account (Cr)';
-  document.getElementById('vDate').value = document.getElementById('toDate').value || new Date().toISOString().slice(0,10);
-  document.getElementById('vDrAcc').value = '';
-  document.getElementById('vCrAcc').value = '';
-  document.getElementById('vAmount').value = '';
+  document.getElementById('vchrTypeLabel').textContent = cfg.title.replace(' Register','') + ' Voucher';
+  document.getElementById('vchrNo').textContent        = '';
+  document.getElementById('vDrLabel').textContent      = cfg.drLabel||'Debit Account (Dr)';
+  document.getElementById('vCrLabel').textContent      = cfg.crLabel||'Credit Account (Cr)';
+  document.getElementById('vDate').value      = document.getElementById('toDate').value || new Date().toISOString().slice(0,10);
+  document.getElementById('vDrAcc').value     = '';
+  document.getElementById('vCrAcc').value     = '';
+  document.getElementById('vAmount').value    = '';
   document.getElementById('vNarration').value = '';
-  document.getElementById('voucherModal').classList.add('open');
-  document.getElementById('vAmount').focus();
+  show('scVoucher');
+  document.getElementById('vDrAcc').focus();
 }
+function closeVoucher() { show('scRegister'); }
 
 async function saveVoucher() {
-  const cfg = REG_CONFIG[currentRegister];
-  const res = await API.post('/api/admin/accountbooks/vouchers', {
-    date:         document.getElementById('vDate').value,
-    voucher_type: cfg.voucherType,
-    dr_account_id:parseInt(document.getElementById('vDrAcc').value),
-    cr_account_id:parseInt(document.getElementById('vCrAcc').value),
-    amount:       parseFloat(document.getElementById('vAmount').value),
-    narration:    document.getElementById('vNarration').value.trim() || null,
+  const cfg = CFG[curReg];
+  const drId = parseInt(document.getElementById('vDrAcc').value);
+  const crId = parseInt(document.getElementById('vCrAcc').value);
+  const amt  = parseFloat(document.getElementById('vAmount').value);
+  if (!drId)        { API.toast('Select a Debit account','warning'); return; }
+  if (!crId)        { API.toast('Select a Credit account','warning'); return; }
+  if (!amt||amt<=0) { API.toast('Enter a valid amount','warning'); return; }
+  if (drId===crId)  { API.toast('Dr and Cr accounts cannot be the same','warning'); return; }
+  const res = await API.post('/api/admin/accountbooks/vouchers',{
+    date:          document.getElementById('vDate').value,
+    voucher_type:  cfg.vtype,
+    dr_account_id: drId,
+    cr_account_id: crId,
+    amount:        amt,
+    narration:     document.getElementById('vNarration').value.trim()||null,
   });
-  if (res.ok) { API.toast('Voucher saved: '+res.entry_no); closeVoucher(); loadRegister(); }
-  else API.toast(res.message||'Error','error');
+  if (res.ok) { API.toast('Voucher saved — '+res.entry_no); closeVoucher(); loadReg(); }
+  else API.toast(res.message||'Error saving voucher','error');
 }
 
-function closeVoucher() { document.getElementById('voucherModal').classList.remove('open'); }
-document.getElementById('voucherModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeVoucher(); });
+/* ── keyboard shortcuts ── */
 document.addEventListener('keydown', e => {
-  if (e.altKey && e.key==='a') { e.preventDefault(); saveVoucher(); }
-  if (e.key==='Escape') closeVoucher();
+  const inInput = ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
+  const onHome  = !document.getElementById('scHome').classList.contains('hidden');
+  const onReg   = !document.getElementById('scRegister').classList.contains('hidden');
+  const onVchr  = !document.getElementById('scVoucher').classList.contains('hidden');
+
+  /* Esc — context-aware back/deselect */
+  if (e.key==='Escape') {
+    e.preventDefault();
+    if (onVchr) { closeVoucher(); return; }
+    if (onReg && selectedRowId) { clearSelection(); return; }
+    if (onReg) { goHome(); return; }
+    return;
+  }
+
+  if (e.altKey && e.key.toLowerCase()==='a') { e.preventDefault(); saveVoucher(); return; }
+  if (e.altKey && e.key.toLowerCase()==='d') { e.preventDefault(); if (selectedRowId) confirmDelete(); return; }
+  if (e.key==='F2') { e.preventDefault(); document.getElementById('fromDate').focus(); return; }
+
+  if (inInput) return;
+
+  if (!onVchr) {
+    if ((e.key==='N'||e.key==='n') && onReg) { e.preventDefault(); openVoucher(); return; }
+    if (e.ctrlKey && e.key==='F8') { e.preventDefault(); openRegister('credit_note'); return; }
+    if (e.ctrlKey && e.key==='F9') { e.preventDefault(); openRegister('debit_note');  return; }
+    if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if (e.key==='F4') { e.preventDefault(); openRegister('contra');    return; }
+      if (e.key==='F5') { e.preventDefault(); openRegister('payment');   return; }
+      if (e.key==='F6') { e.preventDefault(); openRegister('receipt');   return; }
+      if (e.key==='F8') { e.preventDefault(); openRegister('sales');     return; }
+      if (e.key==='F9') { e.preventDefault(); openRegister('purchases'); return; }
+      if (e.key==='l'||e.key==='L') { openRegister('ledger'); return; }
+    }
+  }
 });
+
 init();
 </script>
 </body>
