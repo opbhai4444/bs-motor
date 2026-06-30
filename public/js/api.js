@@ -7,8 +7,16 @@ const API = {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(data);
     }
-    const res = await fetch(url, opts);
-    return res.json();
+    try {
+      const res = await fetch(url, opts);
+      const json = await res.json();
+      if (!json.ok && json.message === 'Admin only' && window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('login')) {
+        window.location.href = '/admin/login.html';
+      }
+      return json;
+    } catch(e) {
+      return { ok: false, message: e.message };
+    }
   },
   get: (url) => API.req('GET', url),
   post: (url, data) => API.req('POST', url, data),

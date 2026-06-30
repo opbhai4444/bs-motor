@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BS Motors app icon — gold gear on dark navy -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Gold gear outer ring -->
+    <path
+        android:fillColor="#d4a017"
+        android:pathData="
+M54,22 L57.8,30.2 L66.8,28.4 L68.6,37.4 L76.8,41.2 L72.6,49.4 L78,56 L72.6,62.6 L76.8,70.8 L68.6,74.6 L66.8,83.6 L57.8,81.8 L54,90 L50.2,81.8 L41.2,83.6 L39.4,74.6 L31.2,70.8 L35.4,62.6 L30,56 L35.4,49.4 L31.2,41.2 L39.4,37.4 L41.2,28.4 L50.2,30.2 Z"/>
+
+    <!-- Dark circle cutout -->
+    <path
+        android:fillColor="#0a1628"
+        android:pathData="M54 40a16 16 0 1 0 0.001 0z"/>
+
+    <!-- Gold wrench diagonal -->
+    <path
+        android:fillColor="#d4a017"
+        android:pathData="M48,50 Q50,46 54,46 A8,8 0 0,1 62,54 Q62,58 58,60 L64,66 L62,68 L56,62 Q52,62 50,58 Q48,54 48,50Z"/>
+
+    <!-- Small circle highlight -->
+    <path
+        android:fillColor="#0a1628"
+        android:pathData="M54 50a4 4 0 1 0 0.001 0z"/>
+</vector>

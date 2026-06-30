@@ -103,7 +103,7 @@
   .ab-tbl thead th.r { text-align:right; }
   .ab-tbl tbody tr { border-bottom:1px solid #f0f2f6; cursor:pointer; transition:background .1s; }
   .ab-tbl tbody tr:hover { background:#f4f8ff; }
-  .ab-tbl tbody tr.ab-selected { background:#e8f0ff; outline:2px solid #3a7bd5; outline-offset:-2px; }
+  .ab-tbl tbody tr.ab-selected { background:#dae6ff; box-shadow:inset 3px 0 0 #2563eb; }
   .ab-tbl tbody td { padding:.58rem 1rem; font-size:.84rem; color:#1a2d44; }
   .ab-tbl tbody td.r { text-align:right; }
   .ab-tbl tfoot td {
@@ -199,6 +199,70 @@
 
   .ab-empty { text-align:center; padding:3rem; color:var(--muted); }
   .ab-empty .ab-ei { font-size:3rem; margin-bottom:.6rem; }
+
+  /* ─── INVOICE SCREEN ─────────────────────────────────────────── */
+  #scInvoice { background:#eef1f6; overflow-y:auto; justify-content:flex-start; }
+  .ab-inv-outer { max-width:760px; margin:1.2rem auto 2rem; }
+  .ab-inv-card { background:#fff; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.09); overflow:hidden; }
+  .ab-inv-head { background:linear-gradient(90deg,#1b3352,#24476e); padding:.85rem 1.3rem;
+                 display:flex; justify-content:space-between; align-items:center; }
+  .ab-inv-type { font-size:1.05rem; font-weight:900; color:#fff; }
+  .ab-inv-badge { font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+                  background:rgba(212,160,23,.2); color:var(--accent); border:1px solid rgba(212,160,23,.35);
+                  border-radius:4px; padding:.12rem .42rem; margin-left:.6rem; }
+  .ab-inv-head-right { display:flex; align-items:center; gap:.6rem; }
+  .ab-inv-no { font-size:.68rem; color:rgba(255,255,255,.35); font-family:monospace; }
+  .ab-inv-date-inp { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+                     color:#fff; padding:.3rem .55rem; border-radius:5px; font-size:.82rem; }
+  .ab-inv-date-inp:focus { outline:none; border-color:var(--accent); }
+  .ab-inv-date-inp::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.6); }
+  .ab-inv-party { padding:.65rem 1.3rem; border-bottom:1.5px solid #eef0f8; background:#fafbfd;
+                  display:flex; align-items:center; gap:.8rem; }
+  .ab-inv-party-lbl { font-size:.75rem; font-weight:800; color:var(--muted); min-width:76px; }
+  .ab-inv-party-inp { flex:1; padding:.42rem .7rem; border:1.5px solid #dde2ec; border-radius:7px;
+                      font-size:.88rem; background:#fff; transition:border-color .14s; }
+  .ab-inv-party-inp:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+  .ab-inv-items { padding:0 1.3rem .5rem; }
+  .ab-inv-tbl { width:100%; border-collapse:collapse; margin:.4rem 0; }
+  .ab-inv-tbl thead th { font-size:.63rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+                          color:var(--muted); padding:.38rem .28rem; border-bottom:2px solid #eaecf4; text-align:left; }
+  .ab-inv-tbl thead th.r { text-align:right; }
+  .ab-inv-tbl tbody td { padding:.3rem .22rem; vertical-align:middle; }
+  .ai-num  { font-size:.7rem; color:var(--muted); text-align:center; width:24px; }
+  .ai-inp  { width:100%; padding:.36rem .52rem; border:1.5px solid #e0e4ef; border-radius:6px;
+             font-size:.83rem; background:#f9fafc; transition:border-color .14s; box-sizing:border-box; }
+  .ai-inp:focus { outline:none; border-color:#2563eb; background:#fff; }
+  .ai-qty  { width:64px; text-align:right; }
+  .ai-rate { width:90px; text-align:right; }
+  .ai-total { width:98px; text-align:right; font-size:.84rem; font-weight:700;
+               color:#1a2d44; font-family:monospace; padding-right:.3rem; }
+  .ai-del { background:none; border:none; color:#ccc; cursor:pointer; padding:.18rem .3rem;
+            border-radius:4px; font-size:.88rem; line-height:1; transition:all .12s; }
+  .ai-del:hover { color:#e63946; background:#fff0f0; }
+  .ab-inv-addrow { background:none; border:1.5px dashed #c8d0e0; color:#6078a0; border-radius:7px;
+                   padding:.36rem .9rem; font-size:.78rem; cursor:pointer; margin:.3rem 0 .7rem;
+                   transition:all .14s; }
+  .ab-inv-addrow:hover { border-color:#2563eb; color:#2563eb; background:#f0f5ff; }
+  .ab-inv-foot { background:#f5f7fc; border-top:2px solid #e8ecf4; padding:.8rem 1.3rem;
+                 display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+  .ab-inv-narr { flex:1; }
+  .ab-inv-narr-lbl { font-size:.71rem; font-weight:700; color:var(--muted); margin-bottom:.22rem; }
+  .ab-inv-narr-inp { width:100%; padding:.4rem .58rem; border:1.5px solid #dde2ec; border-radius:7px;
+                     font-size:.84rem; background:#fff; transition:border-color .14s; }
+  .ab-inv-narr-inp:focus { outline:none; border-color:#2563eb; }
+  .ab-inv-summary { min-width:190px; }
+  .ab-inv-sum-row { display:flex; justify-content:space-between; padding:.15rem 0; font-size:.82rem; color:#555; gap:1rem; }
+  .ab-inv-sum-row.grand { font-size:.94rem; font-weight:900; color:#1d3557;
+                           border-top:2px solid #1d3557; margin-top:.28rem; padding-top:.28rem; }
+  .ab-inv-paid-inp { width:88px; padding:.18rem .38rem; border:1.5px solid #dde2ec; border-radius:5px;
+                     font-size:.83rem; text-align:right; background:#fff; }
+  .ab-inv-paid-inp:focus { outline:none; border-color:#2563eb; }
+  .ab-inv-actions { background:#eaedf4; border-top:1px solid #dde2ec; padding:.65rem 1.3rem;
+                    display:flex; justify-content:space-between; align-items:center; }
+  .ab-inv-hint { font-size:.7rem; color:var(--muted); }
+  .ab-inv-hint kbd { background:#e0e5ef; border:1px solid #cbd1de; border-radius:3px;
+                     padding:.04rem .26rem; font-size:.64rem; font-family:monospace; }
+  .ab-inv-btn-wrap { display:flex; gap:.6rem; }
 
   /* ─── Voucher type switcher bar ─────────────────────────────── */
   .ab-vtype-bar { display:flex; background:#0d1e35; border-bottom:2px solid rgba(212,160,23,.25); flex-shrink:0; overflow-x:auto; }
@@ -421,7 +485,7 @@
           <input type="date" id="fromDate" onchange="loadReg()">
           <span class="ab-period-lbl">To</span>
           <input type="date" id="toDate" onchange="loadReg()">
-          <button class="ab-new-btn" id="newBtn" style="display:none" onclick="openVoucher()">+ New <span style="opacity:.6;font-weight:400;font-size:.72rem">(N)</span></button>
+          <button class="ab-new-btn" id="newBtn" style="display:none" onclick="openNewEntry()">+ New <span style="opacity:.6;font-weight:400;font-size:.72rem">(N)</span></button>
         </div>
       </div>
       <div class="ab-reg-body">
@@ -513,6 +577,69 @@
       </div>
     </div>
 
+    <!-- ══ SCREEN 4: INVOICE ENTRY ════════════════════════════ -->
+    <div id="scInvoice" class="ab-screen hidden">
+      <div class="ab-inv-outer">
+        <div class="ab-inv-card">
+          <div class="ab-inv-head">
+            <div style="display:flex;align-items:center">
+              <span class="ab-inv-type" id="invTypeLabel">Sales Invoice</span>
+              <span class="ab-inv-badge" id="invBadge">SALES</span>
+            </div>
+            <div class="ab-inv-head-right">
+              <input type="date" id="invDate" class="ab-inv-date-inp">
+              <span class="ab-inv-no" id="invNo">auto</span>
+            </div>
+          </div>
+          <div class="ab-inv-party">
+            <span class="ab-inv-party-lbl" id="invPartyLabel">Customer</span>
+            <input type="text" id="invParty" class="ab-inv-party-inp" placeholder="Enter name…" autocomplete="off">
+          </div>
+          <div class="ab-inv-items">
+            <table class="ab-inv-tbl">
+              <thead>
+                <tr>
+                  <th style="width:24px">#</th>
+                  <th>Part / Description</th>
+                  <th class="r" style="width:64px">Qty</th>
+                  <th class="r" style="width:92px">Rate (₹)</th>
+                  <th class="r" style="width:100px">Amount (₹)</th>
+                  <th style="width:28px"></th>
+                </tr>
+              </thead>
+              <tbody id="invItemsBody"></tbody>
+            </table>
+            <button class="ab-inv-addrow" onclick="addInvRow()">+ Add Item &nbsp;<span style="opacity:.5;font-size:.67rem">Ctrl+Enter</span></button>
+          </div>
+          <div class="ab-inv-foot">
+            <div class="ab-inv-narr">
+              <div class="ab-inv-narr-lbl">Narration</div>
+              <input type="text" id="invNarration" class="ab-inv-narr-inp" placeholder="Optional note…">
+            </div>
+            <div class="ab-inv-summary">
+              <div class="ab-inv-sum-row"><span>Subtotal</span><span id="invSubtotal">₹0.00</span></div>
+              <div class="ab-inv-sum-row" id="invPaidRow">
+                <span>Paid</span>
+                <input type="number" id="invPaid" class="ab-inv-paid-inp" value="0" min="0" step="0.01" oninput="recalcInv()">
+              </div>
+              <div class="ab-inv-sum-row grand"><span id="invDueLabel">Due</span><span id="invDue">₹0.00</span></div>
+            </div>
+          </div>
+          <div class="ab-inv-actions">
+            <span class="ab-inv-hint">
+              <kbd>Ctrl+Enter</kbd> Add Row &nbsp;
+              <kbd>Alt+A</kbd> Accept &nbsp;
+              <kbd>Esc</kbd> Cancel
+            </span>
+            <div class="ab-inv-btn-wrap">
+              <button class="ab-vchr-cancel" onclick="closeInvoice()">Cancel</button>
+              <button class="ab-vchr-save"   onclick="saveInvoice()">Accept (Alt+A)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -528,14 +655,20 @@
 <script src="/js/admin-nav.js"></script>
 <script>
 const CFG = {
-  ledger:     { title:'Ledger',              canNew:false },
-  contra:     { title:'Contra Register',     canNew:true },
-  payment:    { title:'Payment Register',    canNew:true },
-  receipt:    { title:'Receipt Register',    canNew:true },
-  sales:      { title:'Sales',               canNew:false },
-  purchases:  { title:'Purchase',            canNew:false },
-  debit_note: { title:'Debit Note Register', canNew:true },
-  credit_note:{ title:'Credit Note Register',canNew:true },
+  ledger:     { title:'Ledger',              canNew:false, inv:false },
+  contra:     { title:'Contra Register',     canNew:true,  inv:false },
+  payment:    { title:'Payment Register',    canNew:true,  inv:false },
+  receipt:    { title:'Receipt Register',    canNew:true,  inv:false },
+  sales:      { title:'Sales Invoice',       canNew:true,  inv:true, invType:'sales' },
+  purchases:  { title:'Purchase Invoice',    canNew:true,  inv:true, invType:'purchase' },
+  debit_note: { title:'Debit Note',          canNew:true,  inv:true, invType:'debit_note' },
+  credit_note:{ title:'Credit Note',         canNew:true,  inv:true, invType:'credit_note' },
+};
+const INV_CFG = {
+  sales:       { label:'Sales Invoice',    badge:'SALES',    party:'Customer', prefix:'SI', rate:'price' },
+  purchase:    { label:'Purchase Invoice', badge:'PURCHASE', party:'Supplier', prefix:'PI', rate:'purchase_price' },
+  credit_note: { label:'Credit Note',      badge:'CR NOTE',  party:'Customer', prefix:'CN', rate:'price' },
+  debit_note:  { label:'Debit Note',       badge:'DR NOTE',  party:'Supplier', prefix:'DN', rate:'purchase_price' },
 };
 const VTYPE = {
   contra:      { label:'Contra Voucher',   drHint:'Cash / Bank',        crHint:'Cash / Bank' },
@@ -554,11 +687,19 @@ let curVoucherType = 'payment';
 let accounts       = [];
 let selectedRowId  = null;
 let selectedRowNo  = null;
+let allParts       = [];
+let invType        = 'sales';
+let invRowCnt      = 0;
+let selectedRowSrc = 'inv';
 
 async function init() {
   const user = await AdminNav.init();
   if (!user) return;
-  accounts = await API.get('/api/admin/accounts');
+  [accounts, allParts] = await Promise.all([
+    API.get('/api/admin/accounts'),
+    API.get('/api/admin/parts'),
+  ]);
+  allParts = allParts || [];
   populateAcctDropdowns();
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('fromDate').value = today.slice(0,7)+'-01';
@@ -588,7 +729,7 @@ function populateAcctDropdowns() {
 }
 
 function show(id) {
-  ['scHome','scRegister','scVoucher'].forEach(s =>
+  ['scHome','scRegister','scVoucher','scInvoice'].forEach(s =>
     document.getElementById(s).classList.toggle('hidden', s !== id)
   );
 }
@@ -605,6 +746,12 @@ function openRegister(key) {
   loadReg();
 }
 
+function openNewEntry() {
+  const cfg = CFG[curReg];
+  if (cfg && cfg.inv) openInvoice(cfg.invType);
+  else openVoucher();
+}
+
 async function loadReg() {
   const from = document.getElementById('fromDate').value;
   const to   = document.getElementById('toDate').value;
@@ -615,9 +762,11 @@ async function loadReg() {
   body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>';
   head.innerHTML=''; foot.innerHTML=''; empty.style.display='none';
   clearSelection();
-  if (curReg==='ledger')    { await loadLedger(from,to,head,body,foot,empty); return; }
-  if (curReg==='sales')     { await loadSales(from,to,head,body,foot,empty);  return; }
-  if (curReg==='purchases') { await loadPurch(from,to,head,body,foot,empty);  return; }
+  if (curReg==='ledger') { await loadLedger(from,to,head,body,foot,empty); return; }
+  if (['sales','purchases','credit_note','debit_note'].includes(curReg)) {
+    const t = curReg==='purchases' ? 'purchase' : curReg;
+    await loadInvReg(t,from,to,head,body,foot,empty); return;
+  }
   await loadVouchers(curReg,from,to,head,body,foot,empty);
 }
 
@@ -674,65 +823,106 @@ async function loadVouchers(type,from,to,head,body,foot,empty) {
     </tr>`;
   }).join('');
   foot.innerHTML=`<tr><td colspan="4" class="r">Total</td><td class="r"><span class="ab-dr">${fmtAmt(total)}</span></td><td colspan="2"></td></tr>`;
+  autoHighlight(document.querySelector('#tblBody tr[data-id]'));
 }
 
-async function loadSales(from,to,head,body,foot,empty) {
-  const rows = await API.get('/api/admin/accountbooks/sales?from='+from+'&to='+to);
-  head.innerHTML=`<tr><th>Date</th><th>Order No</th><th>Customer</th><th>Phone</th><th style="text-align:center">Items</th><th>Payment</th><th class="r">Amount (₹)</th></tr>`;
-  if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
-  let total=0;
-  body.innerHTML = rows.map(o => {
-    total+=o.total||0;
-    return `<tr data-id="${o.id}" data-no="${o.order_no}" onclick="selectRow(this)" style="cursor:pointer">
-      <td>${fmtD(o.date)}</td><td class="ab-vno">${o.order_no}</td><td>${o.customer_name}</td>
-      <td>${o.customer_phone||'—'}</td><td style="text-align:center">${o.item_count||0}</td>
-      <td><span class="status-badge ${o.payment_status==='paid'?'status-delivered':'status-pending'}">${o.payment_status}</span></td>
-      <td class="r"><span class="ab-cr">${fmtAmt(o.total)}</span></td>
-    </tr>`;
-  }).join('');
-  foot.innerHTML=`<tr><td colspan="6" class="r">Total Sales</td><td class="r"><span class="ab-cr">${fmtAmt(total)}</span></td></tr>`;
-}
+async function loadInvReg(type,from,to,head,body,foot,empty) {
+  const isSP = type==='sales' || type==='purchase';
+  const pLbl = (type==='sales'||type==='credit_note') ? 'Customer' : 'Supplier';
+  const amtCls = (type==='purchase'||type==='debit_note') ? 'ab-dr' : 'ab-cr';
 
-async function loadPurch(from,to,head,body,foot,empty) {
-  const rows = await API.get('/api/admin/accountbooks/purchases?from='+from+'&to='+to);
-  head.innerHTML=`<tr><th>Date</th><th>Bill No</th><th>Supplier</th><th class="r">Total (₹)</th><th class="r">Paid (₹)</th><th class="r">Due (₹)</th><th>Notes</th></tr>`;
+  let rows = [];
+  if (type === 'sales') {
+    // Merge manual invoices + consumer online orders
+    const [invData, ordData] = await Promise.all([
+      API.get('/api/admin/invoices?type=sales&from='+from+'&to='+to),
+      API.get('/api/admin/accountbooks/sales?from='+from+'&to='+to),
+    ]);
+    const invRows = (invData||[]).map(r => ({
+      _id: r.id, _no: r.inv_no, _src: 'inv',
+      date: r.date, party: r.party||'—', total: r.total||0,
+      paid: r.paid||0, notes: r.notes||null,
+    }));
+    const ordRows = (ordData||[]).map(o => ({
+      _id: o.id, _no: o.order_no, _src: 'ord',
+      date: o.date, party: o.customer_name||'—', total: o.total||0,
+      paid: o.payment_status==='paid' ? (o.total||0) : 0,
+      notes: o.payment_method||null,
+    }));
+    rows = [...invRows, ...ordRows].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  } else {
+    const raw = await API.get('/api/admin/invoices?type='+type+'&from='+from+'&to='+to);
+    rows = (raw||[]).map(r => ({
+      _id: r.id, _no: r.inv_no, _src: 'inv',
+      date: r.date, party: r.party||'—', total: r.total||0,
+      paid: r.paid||0, notes: r.notes||null,
+    }));
+  }
+
+  if (isSP) {
+    head.innerHTML=`<tr><th>Date</th><th>No</th><th>${pLbl}</th><th class="r">Total (₹)</th><th class="r">Paid (₹)</th><th class="r">Due (₹)</th><th>Notes</th><th></th></tr>`;
+  } else {
+    head.innerHTML=`<tr><th>Date</th><th>No</th><th>${pLbl}</th><th class="r">Amount (₹)</th><th>Notes</th><th></th></tr>`;
+  }
   if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
-  let tt=0,tp=0;
-  body.innerHTML = rows.map(p => {
-    tt+=p.total||0; tp+=p.paid||0; const due=(p.total||0)-(p.paid||0);
-    return `<tr data-id="${p.id}" data-no="${p.bill_no||p.id}" onclick="selectRow(this)" style="cursor:pointer">
-      <td>${fmtD(p.date)}</td><td class="ab-vno">${p.bill_no||'—'}</td><td>${p.supplier||'—'}</td>
-      <td class="r"><span class="ab-dr">${fmtAmt(p.total)}</span></td>
-      <td class="r"><span class="ab-cr">${fmtAmt(p.paid)}</span></td>
-      <td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td>
-      <td style="font-size:.78rem;color:var(--muted)">${p.notes||'—'}</td>
+
+  let tot=0,totPaid=0;
+  body.innerHTML = rows.map(r => {
+    tot+=r.total; totPaid+=r.paid;
+    const due=r.total-r.paid;
+    const isOrd = r._src==='ord';
+    const badge = isOrd ? '<span style="font-size:.6rem;background:#e0e7ff;color:#4338ca;border-radius:3px;padding:.05rem .3rem;margin-left:.3rem;font-weight:700">ORDER</span>' : '';
+    if (isSP) return `<tr data-id="${r._id}" data-no="${r._no}" data-src="${r._src}" onclick="selectRow(this)" style="cursor:pointer">
+      <td>${fmtD(r.date)}</td>
+      <td class="ab-vno">${r._no}${badge}</td>
+      <td>${r.party}</td>
+      <td class="r"><span class="${amtCls}">${fmtAmt(r.total)}</span></td>
+      <td class="r"><span class="ab-cr">${fmtAmt(r.paid)}</span></td>
+      <td class="r"><span class="${due>0.005?'ab-dr':'ab-cr'}">${fmtAmt(Math.abs(due))}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${r.notes||'—'}</td>
+      <td>${isOrd?'':`<button class="ab-del" onclick="event.stopPropagation();selectRowById('${r._id}','${r._no}','inv')" title="Delete">🗑</button>`}</td>
+    </tr>`;
+    return `<tr data-id="${r._id}" data-no="${r._no}" data-src="${r._src}" onclick="selectRow(this)" style="cursor:pointer">
+      <td>${fmtD(r.date)}</td>
+      <td class="ab-vno">${r._no}</td>
+      <td>${r.party}</td>
+      <td class="r"><span class="${amtCls}">${fmtAmt(r.total)}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${r.notes||'—'}</td>
+      <td><button class="ab-del" onclick="event.stopPropagation();selectRowById('${r._id}','${r._no}','inv')" title="Delete">🗑</button></td>
     </tr>`;
   }).join('');
-  const due=tt-tp;
-  foot.innerHTML=`<tr><td colspan="3" class="r">Total</td><td class="r"><span class="ab-dr">${fmtAmt(tt)}</span></td><td class="r"><span class="ab-cr">${fmtAmt(tp)}</span></td><td class="r"><span class="${due>0?'ab-dr':'ab-cr'}">${fmtAmt(due)}</span></td><td></td></tr>`;
+  if (isSP) {
+    const totDue=tot-totPaid;
+    foot.innerHTML=`<tr><td colspan="3" class="r">Total</td><td class="r"><span class="${amtCls}">${fmtAmt(tot)}</span></td><td class="r"><span class="ab-cr">${fmtAmt(totPaid)}</span></td><td class="r"><span class="${totDue>0.005?'ab-dr':'ab-cr'}">${fmtAmt(Math.abs(totDue))}</span></td><td colspan="2"></td></tr>`;
+  } else {
+    foot.innerHTML=`<tr><td colspan="3" class="r">Total</td><td class="r"><span class="${amtCls}">${fmtAmt(tot)}</span></td><td colspan="2"></td></tr>`;
+  }
+  autoHighlight(document.querySelector('#tblBody tr[data-id]'));
 }
 
 /* ── row selection ── */
-const isBillReg = () => curReg==='sales' || curReg==='purchases';
+const isInvReg = () => ['sales','purchases','credit_note','debit_note'].includes(curReg);
 
 function selectRow(tr) {
-  const id = tr.dataset.id, no = tr.dataset.no;
+  const id = tr.dataset.id, no = tr.dataset.no, src = tr.dataset.src || 'inv';
   if (selectedRowId === id) { clearSelection(); return; }
   document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
   tr.classList.add('ab-selected');
-  selectedRowId = id; selectedRowNo = no;
+  selectedRowId = id; selectedRowNo = no; selectedRowSrc = src;
   const prevBtn = document.getElementById('previewBtn');
   const delBtn  = document.getElementById('deleteBtn');
-  if (isBillReg()) {
-    document.getElementById('confirmMsg').textContent = `${no} selected — Alt+P to preview bill`;
-    prevBtn.style.display='inline-block'; delBtn.style.display='none';
+  if (isInvReg()) {
+    document.getElementById('confirmMsg').textContent = `${no} selected`;
+    prevBtn.style.display = 'inline-block';
+    delBtn.style.display  = src === 'ord' ? 'none' : 'inline-block';
   } else {
     document.getElementById('confirmMsg').textContent = `Delete ${no}? This cannot be undone.`;
-    prevBtn.style.display='none'; delBtn.style.display='inline-block';
+    prevBtn.style.display = 'none';
+    delBtn.style.display  = 'inline-block';
   }
   document.getElementById('confirmBar').style.display = 'flex';
 }
-function selectRowById(id, no) {
+function selectRowById(id, no, src) {
   const tr = document.querySelector(`#tblBody tr[data-id="${id}"]`);
   if (tr) selectRow(tr);
 }
@@ -741,10 +931,21 @@ function clearSelection() {
   document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
   document.getElementById('confirmBar').style.display = 'none';
 }
+function autoHighlight(tr) {
+  if (!tr || !tr.dataset.id) return;
+  document.querySelectorAll('#tblBody tr').forEach(r => r.classList.remove('ab-selected'));
+  tr.classList.add('ab-selected');
+  selectedRowId = tr.dataset.id;
+  selectedRowNo = tr.dataset.no;
+}
 async function confirmDelete() {
   if (!selectedRowId) return;
-  const res = await API.delete('/api/admin/accountbooks/vouchers/'+selectedRowId);
-  if (res.ok) { API.toast('Voucher '+selectedRowNo+' deleted'); clearSelection(); loadReg(); }
+  if (selectedRowSrc === 'ord') { API.toast('Online orders cannot be deleted here','warning'); return; }
+  const url = isInvReg()
+    ? '/api/admin/invoices/'+selectedRowId
+    : '/api/admin/accountbooks/vouchers/'+selectedRowId;
+  const res = await API.delete(url);
+  if (res.ok) { API.toast(selectedRowNo+' deleted'); clearSelection(); loadReg(); }
   else API.toast(res.message||'Delete failed','error');
 }
 
@@ -803,89 +1004,210 @@ async function saveVoucher() {
 
 /* ── bill preview ── */
 async function showPreview() {
-  if (!selectedRowId || !isBillReg()) return;
+  if (!selectedRowId || !isInvReg()) return;
   const ov  = document.getElementById('previewOv');
   const box = document.getElementById('billContent');
   box.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)">Loading…</div>';
   ov.style.display = 'flex';
+  try {
+    if (selectedRowSrc === 'ord') {
+      // Consumer order preview
+      const d = await API.get('/api/admin/accountbooks/preview/order/'+selectedRowId);
+      if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+(d.message||'Not found')+'</div>'; return; }
+      const o=d.order, items=d.items;
+      box.innerHTML = `
+        <div class="b-head">
+          <div><div class="b-brand">⚙️ BS Motors</div><div class="b-brand-sub">Genuine Auto Parts</div></div>
+          <span class="b-badge">Online Order</span>
+        </div>
+        <div class="b-meta">
+          <div><div class="b-meta-lbl">Order No</div><div class="b-meta-val">${o.order_no}</div></div>
+          <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(o.created_at)}</div></div>
+          <div><div class="b-meta-lbl">Customer</div><div class="b-meta-val">${o.customer_name}</div></div>
+          <div><div class="b-meta-lbl">Phone</div><div class="b-meta-val">${o.customer_phone}</div></div>
+        </div>
+        <div class="b-items-hdr cols4"><span>Item</span><span>Qty</span><span>Rate</span><span>Amount</span></div>
+        ${items.map(i=>`<div class="b-item"><div class="b-item-row cols4">
+          <div><div class="b-item-name">${i.name_en}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
+          <div class="b-num">${i.qty}</div>
+          <div class="b-num">₹${parseFloat(i.unit_price).toFixed(2)}</div>
+          <div class="b-num-bold">₹${parseFloat(i.total).toFixed(2)}</div>
+        </div></div>`).join('')}
+        <div class="b-totals">
+          <div class="b-grand"><span>Total</span><span>${fmtAmt(o.total)}</span></div>
+        </div>
+        <div class="b-pay-row">
+          <span class="b-pay-method">${PAY_ICONS[o.payment_method]||'💳'} ${(o.payment_method||'cash').toUpperCase()}</span>
+          <span class="b-pay-st ${o.payment_status==='paid'?'b-st-paid':'b-st-pending'}">${o.payment_status}</span>
+        </div>
+        ${o.notes?`<div class="b-note">📝 ${o.notes}</div>`:''}
+        <div class="b-note">Thank you for shopping with BS Motors! 🙏</div>`;
+      return;
+    }
 
-  if (curReg === 'sales') {
-    const d = await API.get('/api/admin/accountbooks/preview/order/'+selectedRowId);
-    if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+d.message+'</div>'; return; }
-    const o=d.order, items=d.items;
+    const d = await API.get('/api/admin/invoices/'+selectedRowId);
+    if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+(d.message||'Not found')+'</div>'; return; }
+    const inv=d.inv, items=d.items;
+    const cfg = INV_CFG[inv.type] || { label:inv.type, party:'Party' };
+    const isSP = inv.type==='sales'||inv.type==='purchase';
+    const due = (inv.total||0)-(inv.paid||0);
     box.innerHTML = `
       <div class="b-head">
         <div><div class="b-brand">⚙️ BS Motors</div><div class="b-brand-sub">Genuine Auto Parts</div></div>
-        <span class="b-badge">Sales Receipt</span>
+        <span class="b-badge">${cfg.label}</span>
       </div>
       <div class="b-meta">
-        <div><div class="b-meta-lbl">Order No</div><div class="b-meta-val">${o.order_no}</div></div>
-        <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(o.created_at)}</div></div>
-        <div><div class="b-meta-lbl">Customer</div><div class="b-meta-val">${o.customer_name}</div></div>
-        <div><div class="b-meta-lbl">Phone</div><div class="b-meta-val">${o.customer_phone}</div></div>
+        <div><div class="b-meta-lbl">Invoice No</div><div class="b-meta-val">${inv.inv_no}</div></div>
+        <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(inv.date)}</div></div>
+        ${inv.party?`<div><div class="b-meta-lbl">${cfg.party}</div><div class="b-meta-val">${inv.party}</div></div>`:''}
       </div>
       <div class="b-items-hdr cols4"><span>Item</span><span>Qty</span><span>Rate</span><span>Amount</span></div>
       ${items.map(i=>`<div class="b-item"><div class="b-item-row cols4">
-        <div><div class="b-item-name">${i.name_en}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
+        <div><div class="b-item-name">${i.description}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
         <div class="b-num">${i.qty}</div>
         <div class="b-num">₹${parseFloat(i.unit_price).toFixed(2)}</div>
         <div class="b-num-bold">₹${parseFloat(i.total).toFixed(2)}</div>
       </div></div>`).join('')}
       <div class="b-totals">
-        <div class="b-tot-row"><span>Subtotal</span><span>${fmtAmt(o.subtotal)}</span></div>
-        <div class="b-tot-row"><span>Delivery</span><span class="b-free">FREE</span></div>
-        <div class="b-grand"><span>Total</span><span>${fmtAmt(o.total)}</span></div>
+        <div class="b-tot-row"><span>Subtotal</span><span>${fmtAmt(inv.total)}</span></div>
+        ${isSP?`<div class="b-tot-row"><span>Paid</span><span class="ab-cr">${fmtAmt(inv.paid)}</span></div>
+        <div class="b-grand ${due>0.005?'due':''}"><span>${due>0.005?'Balance Due':'Settled'}</span><span>${fmtAmt(Math.abs(due))}</span></div>`
+        :`<div class="b-grand"><span>Total</span><span>${fmtAmt(inv.total)}</span></div>`}
       </div>
-      <div class="b-pay-row">
-        <span class="b-pay-method">${PAY_ICONS[o.payment_method]||'💳'} ${(o.payment_method||'cash').toUpperCase()}</span>
-        <span class="b-pay-st ${o.payment_status==='paid'?'b-st-paid':'b-st-pending'}">${o.payment_status}</span>
-      </div>
-      ${o.notes?`<div class="b-note" style="border-top:1px solid #eef0f5">📝 ${o.notes}</div>`:''}
-      <div class="b-note">Thank you for shopping with BS Motors! 🙏</div>`;
-  } else {
-    const d = await API.get('/api/admin/accountbooks/preview/purchase/'+selectedRowId);
-    if (!d.ok) { box.innerHTML='<div style="padding:2rem;text-align:center;color:#c0392b">'+d.message+'</div>'; return; }
-    const p=d.purchase, items=d.items, due=(p.total||0)-(p.paid||0);
-    box.innerHTML = `
-      <div class="b-head">
-        <div><div class="b-brand">⚙️ BS Motors</div><div class="b-brand-sub">Purchase Record</div></div>
-        <span class="b-badge">Purchase Memo</span>
-      </div>
-      <div class="b-meta">
-        <div><div class="b-meta-lbl">Bill No</div><div class="b-meta-val">${p.bill_no||'—'}</div></div>
-        <div><div class="b-meta-lbl">Date</div><div class="b-meta-val">${fmtD(p.date)}</div></div>
-        <div><div class="b-meta-lbl">Supplier</div><div class="b-meta-val">${p.supplier||'—'}</div></div>
-      </div>
-      ${items.length ? `
-        <div class="b-items-hdr cols3"><span>Item</span><span>Qty</span><span>Amount</span></div>
-        ${items.map(i=>`<div class="b-item"><div class="b-item-row cols3">
-          <div><div class="b-item-name">${i.name_en}</div>${i.brand?'<div class="b-item-brand">'+i.brand+'</div>':''}</div>
-          <div class="b-num">${i.qty}</div>
-          <div class="b-num-bold">₹${parseFloat(i.total).toFixed(2)}</div>
-        </div></div>`).join('')}`
-        : '<div style="padding:.8rem 1.3rem;font-size:.8rem;color:var(--muted)">No line items recorded</div>'}
-      <div class="b-totals">
-        <div class="b-tot-row"><span>Total</span><span>${fmtAmt(p.total)}</span></div>
-        <div class="b-tot-row"><span>Paid</span><span class="ab-cr">${fmtAmt(p.paid)}</span></div>
-        <div class="b-grand ${due>0?'due':''}"><span>${due>0?'Balance Due':'Settled'}</span><span>${fmtAmt(Math.abs(due))}</span></div>
-      </div>
-      ${p.notes?`<div class="b-note">📝 ${p.notes}</div>`:''}`;
+      ${inv.notes?`<div class="b-note">📝 ${inv.notes}</div>`:''}
+      <div class="b-note">BS Motors — Genuine Auto Parts</div>`;
+  } catch(err) {
+    box.innerHTML = '<div style="padding:2rem;text-align:center;color:#c0392b">Preview failed: '+(err.message||'error')+'</div>';
   }
 }
 
 function closePreview() { document.getElementById('previewOv').style.display='none'; }
+
+/* ── invoice entry ── */
+function openInvoice(type) {
+  invType = type;
+  const cfg = INV_CFG[type];
+  document.getElementById('invTypeLabel').textContent  = cfg.label;
+  document.getElementById('invBadge').textContent      = cfg.badge;
+  document.getElementById('invPartyLabel').textContent = cfg.party;
+  document.getElementById('invParty').value    = '';
+  document.getElementById('invDate').value     = document.getElementById('toDate').value || new Date().toISOString().slice(0,10);
+  document.getElementById('invNo').textContent = cfg.prefix + '-pending';
+  document.getElementById('invNarration').value = '';
+  document.getElementById('invPaid').value = '0';
+  const isSP = type==='sales'||type==='purchase';
+  document.getElementById('invPaidRow').style.display  = isSP ? 'flex' : 'none';
+  document.getElementById('invDueLabel').textContent   = isSP ? 'Due' : 'Total';
+  invRowCnt = 0;
+  document.getElementById('invItemsBody').innerHTML = '';
+  addInvRow(); addInvRow(); addInvRow();
+  recalcInv();
+  show('scInvoice');
+  document.getElementById('invParty').focus();
+}
+
+function addInvRow() {
+  invRowCnt++;
+  const n = invRowCnt;
+  const tbody = document.getElementById('invItemsBody');
+  const tr = document.createElement('tr');
+  tr.id = 'invRow'+n;
+  const opts = allParts.map(p => `<option value="${p.name_en.replace(/"/g,'&quot;')}">`).join('');
+  tr.innerHTML = `
+    <td class="ai-num">${n}</td>
+    <td style="min-width:160px">
+      <input class="ai-inp" type="text" list="pl${n}" id="invDesc${n}"
+             placeholder="Part or description…"
+             oninput="onDescInput(${n})" onchange="onDescChange(${n})" autocomplete="off">
+      <datalist id="pl${n}">${opts}</datalist>
+      <input type="hidden" id="invPid${n}" value="">
+    </td>
+    <td><input class="ai-inp ai-qty"  type="number" id="invQty${n}"  value="1"    min="0.01" step="any" oninput="recalcRow(${n})"></td>
+    <td><input class="ai-inp ai-rate" type="number" id="invRate${n}" value="0.00" min="0"    step="any" oninput="recalcRow(${n})"></td>
+    <td class="ai-total" id="invLT${n}">0.00</td>
+    <td><button class="ai-del" onclick="removeInvRow(${n})" title="Remove">×</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function removeInvRow(n) {
+  const tr = document.getElementById('invRow'+n);
+  if (tr) { tr.remove(); recalcInv(); }
+}
+
+function onDescInput(n) {
+  document.getElementById('invPid'+n).value = '';
+}
+
+function onDescChange(n) {
+  const val = document.getElementById('invDesc'+n).value.trim().toLowerCase();
+  if (!val) return;
+  const part = allParts.find(p => p.name_en.toLowerCase() === val);
+  if (!part) return;
+  document.getElementById('invPid'+n).value = part.id;
+  const rateKey = INV_CFG[invType].rate;
+  document.getElementById('invRate'+n).value = parseFloat(part[rateKey]||0).toFixed(2);
+  recalcRow(n);
+}
+
+function recalcRow(n) {
+  const qty  = parseFloat(document.getElementById('invQty'+n)?.value)  || 0;
+  const rate = parseFloat(document.getElementById('invRate'+n)?.value) || 0;
+  const el   = document.getElementById('invLT'+n);
+  if (el) el.textContent = (qty*rate).toFixed(2);
+  recalcInv();
+}
+
+function recalcInv() {
+  let sub = 0;
+  document.querySelectorAll('#invItemsBody tr').forEach(tr => {
+    const n = tr.id.replace('invRow','');
+    sub += (parseFloat(document.getElementById('invQty'+n)?.value)||0) *
+           (parseFloat(document.getElementById('invRate'+n)?.value)||0);
+  });
+  const paid = parseFloat(document.getElementById('invPaid')?.value) || 0;
+  const isSP = invType==='sales'||invType==='purchase';
+  document.getElementById('invSubtotal').textContent = '₹'+sub.toFixed(2);
+  document.getElementById('invDue').textContent = '₹'+Math.max(0, isSP ? sub-paid : sub).toFixed(2);
+}
+
+function closeInvoice() { show('scRegister'); }
+
+async function saveInvoice() {
+  const party = document.getElementById('invParty').value.trim();
+  const date  = document.getElementById('invDate').value;
+  const notes = document.getElementById('invNarration').value.trim() || null;
+  const paid  = parseFloat(document.getElementById('invPaid').value) || 0;
+  if (!date) { API.toast('Date is required','warning'); return; }
+  const items = [];
+  document.querySelectorAll('#invItemsBody tr').forEach(tr => {
+    const n    = tr.id.replace('invRow','');
+    const desc = document.getElementById('invDesc'+n)?.value.trim();
+    const qty  = parseFloat(document.getElementById('invQty'+n)?.value)  || 0;
+    const rate = parseFloat(document.getElementById('invRate'+n)?.value) || 0;
+    if (desc && qty > 0) items.push({
+      part_id:     parseInt(document.getElementById('invPid'+n)?.value) || null,
+      description: desc, qty, unit_price: rate, total: qty*rate,
+    });
+  });
+  if (!items.length) { API.toast('Add at least one item','warning'); return; }
+  const res = await API.post('/api/admin/invoices', { type:invType, party, date, notes, paid, items });
+  if (res.ok) { API.toast('Saved — '+res.inv_no); closeInvoice(); loadReg(); }
+  else API.toast(res.message||'Error saving invoice','error');
+}
 
 /* ── keyboard shortcuts ── */
 document.addEventListener('keydown', e => {
   const inInput  = ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
   const onReg    = !document.getElementById('scRegister').classList.contains('hidden');
   const onVchr   = !document.getElementById('scVoucher').classList.contains('hidden');
+  const onInv    = !document.getElementById('scInvoice').classList.contains('hidden');
   const prevOpen = document.getElementById('previewOv').style.display !== 'none';
 
   if (e.key === 'Escape') {
     e.preventDefault();
     if (prevOpen)               { closePreview(); return; }
     if (onVchr)                 { closeVoucher(); return; }
+    if (onInv)                  { closeInvoice(); return; }
     if (onReg && selectedRowId) { clearSelection(); return; }
     if (onReg)                  { goHome(); return; }
     return;
@@ -893,10 +1215,15 @@ document.addEventListener('keydown', e => {
 
   if (e.altKey) {
     const k = e.key.toLowerCase();
-    if (k==='a') { e.preventDefault(); if (onVchr) saveVoucher(); return; }
-    if (k==='c') { e.preventDefault(); if (!prevOpen && !onVchr) openVoucher(); return; }
-    if (k==='d') { e.preventDefault(); if (selectedRowId && !isBillReg()) confirmDelete(); return; }
-    if (k==='p') { e.preventDefault(); if (selectedRowId && isBillReg()) showPreview(); return; }
+    if (k==='a') { e.preventDefault(); if (onVchr) saveVoucher(); else if (onInv) saveInvoice(); return; }
+    if (k==='c') { e.preventDefault(); if (!prevOpen && !onVchr && !onInv) openNewEntry(); return; }
+    if (k==='d') { e.preventDefault(); if (selectedRowId) confirmDelete(); return; }
+    if (k==='p') { e.preventDefault(); if (selectedRowId && isInvReg()) showPreview(); return; }
+    return;
+  }
+
+  if (onInv) {
+    if (e.ctrlKey && e.key==='Enter') { e.preventDefault(); addInvRow(); }
     return;
   }
 

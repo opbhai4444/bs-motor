@@ -103,6 +103,18 @@
     .confirm-btn { background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:.28rem .95rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;transition:background .15s,border-color .15s;display:flex;align-items:center;gap:.35rem; }
     .confirm-btn:hover { background:rgba(255,255,255,.18); }
     .confirm-yes:hover { background:rgba(46,213,115,.25);border-color:#2ed573; }
+
+    /* Image Zone */
+    .img-zone { display:flex;align-items:center;justify-content:center;width:120px;height:90px;border:1.5px dashed #c0cce0;border-radius:6px;background:#f5f8fd;cursor:pointer;overflow:hidden;transition:border-color .18s,background .18s,box-shadow .18s;flex-shrink:0; }
+    .img-zone:hover { border-color:#1d3557;background:#edf2ff; }
+    .img-zone:focus { outline:none;border-color:#1d3557;box-shadow:0 0 0 2.5px rgba(29,53,87,.15); }
+    .img-zone.has-img { border-style:solid;border-color:#b0bfd8;background:#fff; }
+    .img-action-btn { font-size:.68rem;padding:.18rem .55rem;background:#f0f4fb;color:#3a4560;border:1px solid #d0d8e8;border-radius:4px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s;font-family:inherit;line-height:1.5; }
+    .img-action-btn:hover { background:#dde8ff;border-color:#1d3557;color:#1d3557; }
+    .img-action-clear { color:#c53030;border-color:#feb2b2; }
+    .img-action-clear:hover { background:#fff5f5;border-color:#c53030;color:#c53030; }
+    .img-action-linked { color:#1d4ed8;border-color:#93c5fd; }
+    .img-action-linked:hover { background:#eff6ff;border-color:#1d4ed8;color:#1d4ed8; }
     .confirm-no:hover { background:rgba(255,71,87,.2);border-color:#ff4757; }
     .confirm-key { font-family:'Courier New',monospace;font-size:.78rem;font-weight:800;color:var(--accent);text-decoration:underline;text-underline-offset:2px; }
     .confirm-bar.confirm-delete .confirm-key { color:#fca5a5; }
@@ -163,6 +175,12 @@
     <span class="sc-sep">-</span>
     <span class="sc-desc">New Group</span>
   </button>
+  <div class="sc-section-label">Alter</div>
+  <button class="sc-item" onclick="(() => { const r=_visibleRows[_cursor]; if(r&&r.type==='item') openEditById(r.part.id); else if(r&&r.type==='group'&&r.group) openGroupEdit(r.group); else if(_groupPath.length>1){const g=groups.find(x=>eqCI(x.name,_groupPath[_groupPath.length-1]));if(g)openGroupEdit(g);} })()">
+    <span class="sc-key" style="font-size:.64rem">Ctrl</span>
+    <span class="sc-sep">↵</span>
+    <span class="sc-desc">Alter</span>
+  </button>
   <div class="sc-footer">BS&nbsp;Motors<br>Inventory&nbsp;Module</div>
 </aside>
 
@@ -186,18 +204,27 @@
             <span class="t-label">Name</span>
             <span class="t-colon">:</span>
             <input class="t-input" type="text" id="fNameEn" required autocomplete="off">
-            <span class="t-label sm">Brand</span>
-            <span class="t-colon">:</span>
-            <div class="t-under" id="brandDisplay" tabindex="0" onkeydown="handleBrandKey(event)" onclick="if(brandPanelOpen)closeBrandPanel();else openBrandPanel();" style="width:120px;flex:none"><span id="brandValue">—</span></div>
-            <input type="hidden" id="fBrand">
-            <datalist id="brandList"></datalist>
           </div>
-          <div id="fNameEnWarn" style="display:none;color:#e63946;font-size:.72rem;font-weight:600;padding:.05rem .35rem .1rem 148px;">&#9888; Same item name already exists</div>
+          <div id="linkPreview" style="display:none;padding:.18rem .35rem .18rem 148px;font-size:.74rem;font-weight:600;color:#1d4ed8;">&#128279; Set linked &rarr; <span id="linkPreviewName" style="font-weight:400;color:#2563eb"></span> &nbsp;<a href="#" id="linkUnlinkBtn" style="font-size:.7rem;color:#e63946;text-decoration:none;" onclick="clearSetLink(event)">&#x2715; unlink</a></div>
+          <div class="t-row">
+            <span class="t-label">Part No.</span>
+            <span class="t-colon">:</span>
+            <input class="t-input no-cap" type="text" id="fSku">
+          </div>
+          <div id="fSkuWarn" style="display:none;color:#e63946;font-size:.72rem;font-weight:600;padding:.05rem .35rem .1rem 148px;">&#9888; Same Part No already exists</div>
           <div class="t-row">
             <span class="t-label italic">(alias)</span>
             <span class="t-colon">:</span>
             <input class="t-input" type="text" id="fNameHi">
           </div>
+          <div class="t-row">
+            <span class="t-label">Brand</span>
+            <span class="t-colon">:</span>
+            <div class="t-under" id="brandDisplay" tabindex="0" onkeydown="handleBrandKey(event)" onclick="if(brandPanelOpen)closeBrandPanel();else openBrandPanel();" style="flex:1"><span id="brandValue">—</span></div>
+            <input type="hidden" id="fBrand">
+            <datalist id="brandList"></datalist>
+          </div>
+          <div id="fBrandWarn" style="display:none;color:#e63946;font-size:.72rem;font-weight:600;padding:.05rem .35rem .1rem 148px;">&#9888; Same item with this brand already exists</div>
           <div class="t-spacer"></div>
           <div class="t-row">
             <span class="t-label">Under</span>
@@ -214,12 +241,12 @@
               <option value="Kit">Kit</option>
             </select>
           </div>
-          <div class="t-row">
-            <span class="t-label">Part No.</span>
-            <span class="t-colon">:</span>
-            <input class="t-input no-cap" type="text" id="fSku">
-          </div>
           <div class="t-spacer"></div>
+          <div class="t-row">
+            <span class="t-label">MRP (&#8377;)</span>
+            <span class="t-colon">:</span>
+            <input class="t-input num" type="number" id="fMrp" step="0.01" min="0" value="0">
+          </div>
           <div class="t-row">
             <span class="t-label">Selling Price (&#8377;)</span>
             <span class="t-colon">:</span>
@@ -236,10 +263,21 @@
             <input class="t-input num" type="number" id="fStock" min="0" value="0">
           </div>
           <div class="t-spacer"></div>
-          <div class="t-row">
-            <span class="t-label">Part Image</span>
-            <span class="t-colon">:</span>
-            <input type="file" id="fImage" accept="image/*" style="font-size:.78rem;flex:1">
+          <div class="t-row" style="align-items:flex-start;gap:0">
+            <span class="t-label" style="padding-top:.4rem">Part Image</span>
+            <span class="t-colon" style="padding-top:.4rem">:</span>
+            <div id="imgZone" class="img-zone img-zone-nav" tabindex="0" onkeydown="handleImgZoneKey(event)" onclick="if(!event.target.closest('button'))document.getElementById('fImage').click()" title="Click / Ctrl+V = set image · Enter = next field">
+              <img id="imgPreview" src="" alt="" style="display:none;max-width:108px;max-height:80px;object-fit:contain;border-radius:3px;pointer-events:none">
+              <div id="imgPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;color:#a0b0cc;font-size:.72rem;pointer-events:none;padding:.3rem">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Click / Ctrl+V</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.28rem;margin-left:.5rem;padding-top:.3rem">
+              <button type="button" id="btnGetLinked" class="img-action-btn img-action-linked" onclick="getLinkedImage()" style="display:none">&#8596; From linked</button>
+              <button type="button" id="btnClearImg" class="img-action-btn img-action-clear" onclick="clearPartImage()" style="display:none">&#x2715; Clear</button>
+            </div>
+            <input type="file" id="fImage" accept="image/*" style="display:none">
           </div>
           <div id="activeToggle" style="display:none">
             <div class="t-spacer"></div>
@@ -316,9 +354,17 @@
           <div class="t-gp-search" id="bPanelSearch" style="display:none"></div>
           <div class="t-gp-create" onclick="openBrandCreate()">+ Add New Brand</div>
           <div id="brandCreateBox" style="display:none;flex-direction:column;padding:.5rem .7rem;background:#eef4ff;border-bottom:2px solid #c3d5f8;gap:.22rem;flex-shrink:0;">
-            <div style="font-size:.7rem;font-weight:700;color:var(--secondary);letter-spacing:.06em;text-transform:uppercase;">New Brand</div>
+            <div id="brandCreateTitle" style="font-size:.7rem;font-weight:700;color:var(--secondary);letter-spacing:.06em;text-transform:uppercase;">New Brand</div>
             <input id="newBrandInput" class="t-input no-cap" type="text" placeholder="Enter brand name…" autocomplete="off" style="width:100%;font-size:.82rem;">
-            <div style="font-size:.67rem;color:#8a99b5;">Enter — Accept &nbsp;|&nbsp; Esc — Cancel</div>
+            <div style="display:flex;align-items:center;gap:.35rem;margin-top:.1rem;">
+              <span style="font-size:.74rem;color:#5a6a85;min-width:38px">P Less</span>
+              <input id="newBrandPLess" class="t-input num" type="number" step="0.01" min="0" max="100" value="0" style="width:58px;flex:none;font-size:.82rem;">
+              <span style="font-size:.74rem;color:#8a99b5">%</span>
+              <span style="font-size:.74rem;color:#5a6a85;min-width:38px;margin-left:.4rem">S Less</span>
+              <input id="newBrandSLess" class="t-input num" type="number" step="0.01" min="0" max="100" value="0" style="width:58px;flex:none;font-size:.82rem;">
+              <span style="font-size:.74rem;color:#8a99b5">%</span>
+            </div>
+            <div style="font-size:.67rem;color:#8a99b5;">Enter — Next &nbsp;|&nbsp; Esc — Cancel</div>
           </div>
           <div class="t-gp-list" id="brandPanelList"></div>
         </div>
@@ -436,6 +482,17 @@
             </div>
           </div>
         </div>
+        <div class="t-sub-head-bar">Advanced</div>
+        <div class="t-gm-body-pad">
+          <div class="t-row">
+            <span class="t-label">Set Linking</span>
+            <span class="t-colon">:</span>
+            <select class="t-select" id="gSetLinking">
+              <option value="0">&#9670; No</option>
+              <option value="1">Yes &mdash; Link LH / RH pairs</option>
+            </select>
+          </div>
+        </div>
         </div><!-- end inner scroll -->
       </div><!-- end tally-body -->
       <div class="tally-footer">
@@ -450,30 +507,29 @@
   </div>
 </div>
 
-<div class="screen-footer">&#x2191;&#x2193; Navigate &nbsp;|&nbsp; Ctrl+&#x23CE; Alter &nbsp;|&nbsp; Esc Back &nbsp;|&nbsp; Alt+C New Item &nbsp;|&nbsp; Alt+G New Group</div>
+<div class="screen-footer">&#x2191;&#x2193; Navigate &nbsp;|&nbsp; Ctrl+&#x23CE; Alter &nbsp;|&nbsp; Ctrl+Shift+C Copy &nbsp;|&nbsp; Esc Back &nbsp;|&nbsp; Alt+C New Item &nbsp;|&nbsp; Alt+G New Group</div>
 
 <script src="/js/api.js"></script>
 <script src="/js/admin-nav.js"></script>
 <script>
-// ── State ──
-let groups = [];
-let allParts = [];
-let allBrands = [];
-let filteredParts = [];
-let _groupPath = ['Primary']; // drill-down breadcrumb
-let _cursor = 0;
-let _visibleRows = [];
-let groupPanelOpen = false;
-let groupHighlightIdx = -1;
-let groupSearchQuery = '';
-let brandPanelOpen = false;
-let brandHighlightIdx = -1;
-let brandSearchQuery = '';
-let gUnderPanelOpen = false;
-let gUnderHighlightIdx = -1;
-let gUnderSearchQuery = '';
+// ══ STATE ════════════════════════════════════════════════════════
+let groups = [], allParts = [], allBrands = [], allBrandsData = [], filteredParts = [];
+let _groupPath = ['Primary'];
+let _cursor = 0, _visibleRows = [];
+let groupPanelOpen = false, groupHighlightIdx = -1, groupSearchQuery = '';
+let brandPanelOpen = false, brandHighlightIdx = -1, brandSearchQuery = '', brandAlterOriginalName = null;
+let gUnderPanelOpen = false, gUnderHighlightIdx = -1, gUnderSearchQuery = '';
+let _copyMode = false, _copyOriginalName = '', _copyOriginalSku = '', _copyOriginalAlias = '';
+let _linkedPartId = 0, pendingImageFile = null;
+let _confirmMode = null, _confirmBarEl = null, _confirmCallbacks = null;
+let _lastFocused = null, _lastGroupFocused = null;
 
-// ── Init ──
+// ══ HELPERS ══════════════════════════════════════════════════════
+const eqCI = (a, b) => (a||'').toLowerCase() === (b||'').toLowerCase();
+const roundPrice = p => { const n = Math.floor(p), last = n % 10; return last <= 5 ? n - last + 5 : n - last + 10; };
+function h(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══ DATA ═════════════════════════════════════════════════════════
 async function init() {
   const user = await AdminNav.init();
   if (!user) return;
@@ -492,7 +548,14 @@ async function loadAll() {
   ]);
   groups = grpData;
   allParts = partsData;
-  allBrands = brandsData;
+  const seenBrands = new Set();
+  allBrandsData = brandsData.filter(b => {
+    if (!b || typeof b !== 'object') return false;
+    const k = (b.name || '').toLowerCase();
+    if (seenBrands.has(k)) return false;
+    seenBrands.add(k); return true;
+  });
+  allBrands = allBrandsData.map(b => b.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
   filteredParts = allParts;
   rebuildFilterBars();
   renderTree();
@@ -530,31 +593,27 @@ function rebuildFilterBars() {
   });
 }
 
-// ── Drill-down tree ──
+// ══ STOCK TREE ═══════════════════════════════════════════════════
 function currentGroup() { return _groupPath[_groupPath.length - 1]; }
 
 function countGroupItems(groupName) {
-  const subGroups = groups.filter(g => (g.parent || 'Primary') === groupName);
-  const direct = filteredParts.filter(p => (p.category || 'Primary') === groupName).length;
+  const subGroups = groups.filter(g => eqCI(g.parent || 'Primary', groupName));
+  const direct = filteredParts.filter(p => eqCI(p.category || 'Primary', groupName)).length;
   return direct + subGroups.reduce((s, g) => s + countGroupItems(g.name), 0);
 }
 
 function buildDrillDown() {
   const cur = currentGroup();
   const subGroups = groups
-    .filter(g => (g.parent || 'Primary') === cur)
+    .filter(g => eqCI(g.parent || 'Primary', cur))
     .sort((a, b) => a.name.localeCompare(b.name));
   const items = filteredParts
-    .filter(p => (p.category || 'Primary') === cur)
+    .filter(p => eqCI(p.category || 'Primary', cur))
     .sort((a, b) => a.name_en.localeCompare(b.name_en));
   return [
     ...subGroups.map(g => ({ type: 'group', name: g.name, group: g, total: countGroupItems(g.name) })),
     ...items.map(p => ({ type: 'item', part: p }))
   ];
-}
-
-function h(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderBreadcrumb() {
@@ -594,8 +653,7 @@ function renderTree() {
       return `<div class="tree-row tree-item-row${cur}" data-idx="${i}" data-id="${p.id}" onclick="handleRowClick(${i})">
         <div class="tree-name-cell" style="padding-left:1.2rem">
           <div style="min-width:0">
-            <div class="item-name">${h(p.name_en)}</div>
-
+            <div class="item-name">${h(p.name_en)}${p.linked_part_id ? ' <span style="font-size:.7rem;color:#2563eb" title="Set linked">&#128279;</span>' : ''}</div>
           </div>
         </div>
         <div class="tree-col">${p.brand ? h(p.brand) : '&mdash;'}</div>
@@ -636,7 +694,373 @@ function scrollCursorIntoView() {
   if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-// ── Group Panel (Under selector in item modal) ──
+// ══ PART MODAL ═══════════════════════════════════════════════════
+function updateHsnFields() {
+  document.getElementById('hsnSpecifyRows').style.display = document.getElementById('fHsnMode').value === 'specify' ? '' : 'none';
+}
+function updateGstFields() {
+  document.getElementById('gstSpecifyRows').style.display = document.getElementById('fGstMode').value === 'specify' ? '' : 'none';
+}
+
+function resetForm() {
+  document.getElementById('partForm').reset();
+  document.getElementById('editId').value = '';
+  document.getElementById('fCategory').value = 'Primary';
+  document.getElementById('underValue').textContent = 'Primary';
+  document.getElementById('fGstApply').selectedIndex = 0;
+  document.getElementById('fBrand').value = '';
+  document.getElementById('brandValue').textContent = '—';
+  groupPanelOpen = false; groupSearchQuery = '';
+  document.getElementById('groupPanel').style.display = 'none';
+  document.getElementById('underDisplay').classList.remove('active');
+  document.getElementById('fHsnMode').value = 'group'; updateHsnFields();
+  document.getElementById('fGstMode').value = 'group'; updateGstFields();
+  document.getElementById('fMrp').value = 0;
+  document.getElementById('fSkuWarn').style.display = 'none';
+  document.getElementById('fBrandWarn').style.display = 'none';
+  document.getElementById('brandDisplay').style.borderBottom = '';
+  _copyMode = false;
+  _copyOriginalName = _copyOriginalSku = _copyOriginalAlias = '';
+  document.getElementById('fSku').style.borderBottom = '';
+  document.getElementById('fNameHi').style.borderBottom = '';
+  _linkedPartId = 0;
+  document.getElementById('linkPreview').style.display = 'none';
+  pendingImageFile = null;
+  document.getElementById('fImage').value = '';
+  updateImgPreview('');
+  document.getElementById('btnGetLinked').style.display = 'none';
+}
+
+function openAdd() {
+  resetForm();
+  document.getElementById('modalTitle').textContent = 'Stock Item Creation';
+  document.getElementById('activeToggle').style.display = 'none';
+  const cur = currentGroup();
+  document.getElementById('fCategory').value = cur;
+  document.getElementById('underValue').textContent = cur;
+  document.getElementById('partModal').classList.add('open');
+  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
+}
+
+function openEdit(p) {
+  resetForm();
+  document.getElementById('modalTitle').textContent = 'Stock Item Alteration';
+  document.getElementById('editId').value = p.id;
+  document.getElementById('fNameEn').value = p.name_en;
+  document.getElementById('fNameHi').value = p.name_hi || '';
+  document.getElementById('fSku').value = (p.sku && !p.sku.startsWith('AUTO-')) ? p.sku : '';
+  document.getElementById('fCategory').value = p.category || 'Primary';
+  document.getElementById('underValue').textContent = p.category || 'Primary';
+  document.getElementById('fBrand').value = p.brand || '';
+  document.getElementById('brandValue').textContent = p.brand || '—';
+  document.getElementById('fModels').value = p.compatible_models || '';
+  document.getElementById('fMrp').value = p.mrp || 0;
+  document.getElementById('fPrice').value = p.price ? roundPrice(p.price) : 0;
+  document.getElementById('fPurchasePrice').value = p.purchase_price || 0;
+  document.getElementById('fStock').value = p.stock;
+  document.getElementById('fUnit').value = (p.unit === 'pc' || p.unit === 'Pcs') ? 'Pcs' : (p.unit || 'Pcs');
+  document.getElementById('fDesc').value = p.description || '';
+  document.getElementById('fActiveSelect').value = p.is_active ? '1' : '0';
+  document.getElementById('activeToggle').style.display = 'block';
+  if (p.linked_part_id) {
+    _linkedPartId = p.linked_part_id;
+    const lp = allParts.find(x => x.id === p.linked_part_id);
+    document.getElementById('linkPreviewName').textContent = lp ? lp.name_en + (lp.sku && !lp.sku.startsWith('AUTO-') ? ' ['+lp.sku+']' : '') : '#'+p.linked_part_id;
+    document.getElementById('linkPreview').style.display = '';
+    document.getElementById('btnGetLinked').style.display = '';
+  } else {
+    runSetLink(p.name_en);
+  }
+  updateImgPreview(p.image || '');
+  document.getElementById('partModal').classList.add('open');
+  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
+}
+
+async function togglePartStatus(id, currentActive) {
+  const res = await API.put('/api/admin/parts/' + id, { is_active: currentActive ? 0 : 1 });
+  if (res.ok) { await loadAll(); API.toast(currentActive ? 'Marked Inactive' : 'Marked Active'); }
+  else API.toast(res.message || 'Error', 'error');
+}
+
+function openEditById(id) {
+  const p = allParts.find(x => x.id === id) || filteredParts.find(x => x.id === id);
+  if (p) openEdit(p);
+}
+
+function openCopy(p) {
+  resetForm();
+  _copyMode = true;
+  _copyOriginalName  = p.name_en;
+  _copyOriginalSku   = (p.sku && !p.sku.startsWith('AUTO-')) ? p.sku : '';
+  _copyOriginalAlias = p.name_hi || '';
+  document.getElementById('modalTitle').textContent = 'Stock Item Creation (Copy)';
+  document.getElementById('fNameEn').value          = p.name_en;
+  document.getElementById('fNameHi').value          = p.name_hi || '';
+  document.getElementById('fSku').value             = _copyOriginalSku;
+  document.getElementById('fCategory').value        = p.category || 'Primary';
+  document.getElementById('underValue').textContent = p.category || 'Primary';
+  document.getElementById('fBrand').value           = p.brand || '';
+  document.getElementById('brandValue').textContent = p.brand || '—';
+  document.getElementById('fModels').value          = p.compatible_models || '';
+  document.getElementById('fMrp').value             = p.mrp || 0;
+  document.getElementById('fPrice').value           = p.price ? roundPrice(p.price) : 0;
+  document.getElementById('fPurchasePrice').value   = p.purchase_price || 0;
+  document.getElementById('fStock').value           = 0;
+  document.getElementById('fUnit').value            = (p.unit === 'pc' || p.unit === 'Pcs') ? 'Pcs' : (p.unit || 'Pcs');
+  document.getElementById('activeToggle').style.display = 'none';
+  if (_copyOriginalSku)   document.getElementById('fSku').style.borderBottom    = '2px solid #e63946';
+  if (_copyOriginalAlias) document.getElementById('fNameHi').style.borderBottom = '2px solid #e63946';
+  document.getElementById('partModal').classList.add('open');
+  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
+}
+
+function closePartModal() {
+  hideConfirm();
+  brandSearchQuery = '';
+  closeBrandPanel();
+  document.getElementById('partModal').classList.remove('open');
+  groupPanelOpen = false; groupSearchQuery = '';
+  document.getElementById('groupPanel').style.display = 'none';
+  document.getElementById('underDisplay').classList.remove('active');
+}
+
+// ══ SET LINKING ══════════════════════════════════════════════════
+function runSetLink(name) {
+  _linkedPartId = 0;
+  document.getElementById('linkPreview').style.display = 'none';
+  document.getElementById('btnGetLinked').style.display = 'none';
+  const groupName = document.getElementById('fCategory').value;
+  const group = groups.find(g => eqCI(g.name, groupName));
+  if (!group || !group.set_linking) return;
+  let counter = null;
+  if (/\bLh\b/.test(name))       counter = name.replace(/\bLh\b/, 'Rh');
+  else if (/\bRh\b/.test(name))  counter = name.replace(/\bRh\b/, 'Lh');
+  if (!counter) return;
+  const editId = parseInt(document.getElementById('editId').value) || 0;
+  const match = allParts.find(p => p.name_en.toLowerCase() === counter.toLowerCase() && p.id !== editId);
+  if (!match) return;
+  _linkedPartId = match.id;
+  document.getElementById('linkPreviewName').textContent = match.name_en + (match.sku && !match.sku.startsWith('AUTO-') ? ' ['+match.sku+']' : '');
+  document.getElementById('linkPreview').style.display = '';
+  document.getElementById('btnGetLinked').style.display = '';
+}
+
+function clearSetLink(e) {
+  e.preventDefault();
+  _linkedPartId = 0;
+  document.getElementById('linkPreview').style.display = 'none';
+  document.getElementById('btnGetLinked').style.display = 'none';
+}
+
+// ══ PART IMAGE ═══════════════════════════════════════════════════
+function updateImgPreview(src) {
+  const preview = document.getElementById('imgPreview');
+  const ph = document.getElementById('imgPlaceholder');
+  const zone = document.getElementById('imgZone');
+  const clearBtn = document.getElementById('btnClearImg');
+  if (src) {
+    preview.src = src;
+    preview.style.display = '';
+    ph.style.display = 'none';
+    zone.classList.add('has-img');
+    clearBtn.style.display = '';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    ph.style.display = '';
+    zone.classList.remove('has-img');
+    clearBtn.style.display = 'none';
+  }
+}
+
+function setPendingImage(file) {
+  pendingImageFile = file;
+  updateImgPreview(URL.createObjectURL(file));
+}
+
+function clearPartImage() {
+  pendingImageFile = null;
+  document.getElementById('fImage').value = '';
+  updateImgPreview('');
+}
+
+async function getLinkedImage() {
+  if (!_linkedPartId) return API.toast('No linked part set', 'warning');
+  const linked = allParts.find(p => p.id === _linkedPartId);
+  if (!linked || !linked.image) return API.toast('Linked part has no image', 'warning');
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  const loaded = await new Promise(resolve => {
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = linked.image;
+  });
+  if (!loaded) return API.toast('Could not load linked image', 'error');
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(img, 0, 0);
+  canvas.toBlob(blob => {
+    if (blob) { setPendingImage(new File([blob], 'linked-flipped.jpg', { type: 'image/jpeg' })); API.toast('Image flipped from linked part'); }
+  }, 'image/jpeg', 0.92);
+}
+
+function handleImgZoneKey(e) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'Enter') { e.preventDefault(); navigateNext(document.getElementById('imgZone'), e); return; }
+  if (e.key === ' ') { e.preventDefault(); document.getElementById('fImage').click(); return; }
+  if (e.key === 'Backspace') { e.preventDefault(); navigatePrev(document.getElementById('imgZone')); }
+}
+
+// ══ BRAND PANEL ══════════════════════════════════════════════════
+function getAllBrands() {
+  const fromParts = allParts.map(p => p.brand).filter(Boolean);
+  return [...new Set([...allBrands, ...fromParts])].sort((a, b) => a.localeCompare(b));
+}
+function getFilteredBrands() {
+  const q = brandSearchQuery.toLowerCase();
+  const all = getAllBrands();
+  return q ? all.filter(b => b.toLowerCase().includes(q)) : all;
+}
+function renderBrandPanel() {
+  const filtered = getFilteredBrands();
+  if (brandHighlightIdx >= filtered.length) brandHighlightIdx = -1;
+  const srch = document.getElementById('bPanelSearch');
+  if (brandSearchQuery) { srch.textContent = brandSearchQuery; srch.style.display = ''; }
+  else srch.style.display = 'none';
+  document.getElementById('brandPanelList').innerHTML = filtered.length
+    ? filtered.map((b, i) =>
+        `<div class="t-gp-item${i === brandHighlightIdx ? ' selected' : ''}" onmousedown="event.preventDefault();selectBrand('${b.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">` +
+        h(b) + `</div>`
+      ).join('')
+    : `<div style="padding:.5rem .9rem;font-size:.8rem;color:#aaa;font-style:italic">No brands yet</div>`;
+  const sel = document.querySelector('#brandPanelList .selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+function openBrandPanel() {
+  if (brandPanelOpen) return;
+  brandPanelOpen = true; brandHighlightIdx = -1;
+  document.getElementById('brandDisplay').classList.add('active');
+  const p = document.getElementById('brandPanel');
+  p.style.display = 'flex'; p.style.flexDirection = 'column';
+  renderBrandPanel();
+}
+function openBrandAlter(name) {
+  if (!brandPanelOpen) openBrandPanel();
+  const bd = allBrandsData.find(b => eqCI(b.name, name));
+  brandAlterOriginalName = bd ? bd.name : name;
+  document.getElementById('brandCreateTitle').textContent = 'Alter Brand';
+  document.getElementById('newBrandInput').value = bd ? bd.name : name;
+  document.getElementById('newBrandPLess').value = bd ? (bd.p_less || 0) : 0;
+  document.getElementById('newBrandSLess').value = bd ? (bd.s_less || 0) : 0;
+  const box = document.getElementById('brandCreateBox');
+  box.style.display = 'flex'; box.style.flexDirection = 'column';
+  setTimeout(() => document.getElementById('newBrandInput').focus(), 30);
+}
+function closeBrandCreate() {
+  document.getElementById('brandCreateBox').style.display = 'none';
+  document.getElementById('newBrandInput').value = '';
+  document.getElementById('newBrandPLess').value = '0';
+  document.getElementById('newBrandSLess').value = '0';
+}
+function openBrandCreate() {
+  if (!brandPanelOpen) openBrandPanel();
+  brandAlterOriginalName = null;
+  document.getElementById('brandCreateTitle').textContent = 'New Brand';
+  document.getElementById('newBrandPLess').value = '0';
+  document.getElementById('newBrandSLess').value = '0';
+  const box = document.getElementById('brandCreateBox');
+  box.style.display = 'flex'; box.style.flexDirection = 'column';
+  setTimeout(() => document.getElementById('newBrandInput').focus(), 30);
+}
+function closeBrandPanel() {
+  brandPanelOpen = false; brandHighlightIdx = -1;
+  closeBrandCreate();
+  document.getElementById('bPanelSearch').style.display = 'none';
+  document.getElementById('brandDisplay').classList.remove('active');
+  document.getElementById('brandPanel').style.display = 'none';
+}
+function selectBrand(name) {
+  document.getElementById('fBrand').value = name;
+  document.getElementById('brandValue').textContent = name || '—';
+  brandSearchQuery = '';
+  closeBrandPanel();
+  navigateNext(document.getElementById('brandDisplay'));
+}
+function handleBrandKey(e) {
+  e.stopImmediatePropagation();
+  if (_confirmMode) { e.preventDefault(); return; }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (brandPanelOpen) { brandSearchQuery = ''; closeBrandPanel(); }
+    return;
+  }
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (brandSearchQuery.length > 0) {
+      brandSearchQuery = brandSearchQuery.slice(0, -1);
+      if (!brandPanelOpen) openBrandPanel();
+      brandHighlightIdx = 0;
+      renderBrandPanel();
+    } else {
+      if (brandPanelOpen) closeBrandPanel();
+      navigatePrev(document.getElementById('brandDisplay'));
+    }
+    return;
+  }
+  if (e.key === ' ') { e.preventDefault(); if (!brandPanelOpen) openBrandPanel(); return; }
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    const brandToAlter = (brandPanelOpen && brandHighlightIdx >= 0)
+      ? getFilteredBrands()[brandHighlightIdx]
+      : document.getElementById('fBrand').value.trim();
+    if (brandToAlter) openBrandAlter(brandToAlter);
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (brandPanelOpen) {
+      const filtered = getFilteredBrands();
+      if (filtered[brandHighlightIdx]) selectBrand(filtered[brandHighlightIdx]);
+      else navigateNext(document.getElementById('brandDisplay'));
+    } else { navigateNext(document.getElementById('brandDisplay')); }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!brandPanelOpen) { openBrandPanel(); return; }
+    brandHighlightIdx = Math.min(brandHighlightIdx + 1, getFilteredBrands().length - 1);
+    renderBrandPanel(); return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    brandHighlightIdx = Math.max(brandHighlightIdx - 1, 0);
+    renderBrandPanel(); return;
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (!brandPanelOpen) openBrandPanel();
+    return;
+  }
+  if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+    e.preventDefault();
+    if (!brandPanelOpen) openBrandPanel();
+    openBrandCreate();
+    return;
+  }
+  if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    brandSearchQuery += e.key;
+    brandHighlightIdx = 0;
+    if (!brandPanelOpen) openBrandPanel();
+    renderBrandPanel();
+  }
+}
+
+// ══ GROUP PANEL ═══════════════════════════════════════════════════
 function getGroupNames() {
   return ['Primary', ...groups.map(g => g.name)].sort((a, b) => {
     if (a === 'Primary') return -1;
@@ -655,7 +1079,6 @@ function renderGroupPanel() {
   const filtered = getFilteredGroupNames();
   if (groupHighlightIdx < 0 || groupHighlightIdx >= filtered.length) groupHighlightIdx = 0;
 
-  // Search indicator
   const searchEl = document.getElementById('gPanelSearch');
   const titleEl = document.getElementById('gPanelTitle');
   if (groupSearchQuery) {
@@ -761,13 +1184,11 @@ function handleUnderKey(e) {
     return;
   }
 
-  // Letter search — auto-opens panel and filters
   if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
     e.preventDefault();
     groupSearchQuery += e.key;
     groupHighlightIdx = 0;
     if (!groupPanelOpen) {
-      // Open panel without toggling via toggleGroupPanel (which resets query)
       groupPanelOpen = true;
       const panel = document.getElementById('groupPanel');
       document.getElementById('underDisplay').classList.add('active');
@@ -786,218 +1207,11 @@ function selectGroup(name) {
   groupPanelOpen = false;
   document.getElementById('groupPanel').style.display = 'none';
   document.getElementById('underDisplay').classList.remove('active');
+  if (!_linkedPartId) runSetLink(document.getElementById('fNameEn').value.trim());
   document.getElementById('fUnit').focus();
 }
 
-document.getElementById('underDisplay').addEventListener('blur', function() {
-  if (!groupPanelOpen) return;
-  setTimeout(function() {
-    if (!document.getElementById('groupPanel').contains(document.activeElement)) {
-      groupPanelOpen = false; groupSearchQuery = '';
-      document.getElementById('groupPanel').style.display = 'none';
-      document.getElementById('underDisplay').classList.remove('active');
-    }
-  }, 0);
-});
-
-document.getElementById('partModal').addEventListener('mousedown', e => {
-  if (!groupPanelOpen) return;
-  const panel = document.getElementById('groupPanel');
-  const under = document.getElementById('underDisplay');
-  if (!panel.contains(e.target) && !under.contains(e.target)) {
-    groupPanelOpen = false; groupSearchQuery = '';
-    panel.style.display = 'none';
-    under.classList.remove('active');
-  }
-});
-
-// ── Modal Open/Close ──
-function resetForm() {
-  document.getElementById('partForm').reset();
-  document.getElementById('editId').value = '';
-  document.getElementById('fCategory').value = 'Primary';
-  document.getElementById('underValue').textContent = 'Primary';
-  document.getElementById('fGstApply').selectedIndex = 0;
-  document.getElementById('fBrand').value = '';
-  document.getElementById('brandValue').textContent = '—';
-  groupPanelOpen = false; groupSearchQuery = '';
-  document.getElementById('groupPanel').style.display = 'none';
-  document.getElementById('underDisplay').classList.remove('active');
-  document.getElementById('fHsnMode').value = 'group'; updateHsnFields();
-  document.getElementById('fGstMode').value = 'group'; updateGstFields();
-  document.getElementById('fNameEnWarn').style.display = 'none';
-}
-
-function openAdd() {
-  resetForm();
-  document.getElementById('modalTitle').textContent = 'Stock Item Creation';
-  document.getElementById('activeToggle').style.display = 'none';
-  // Default to current browsing group
-  const cur = currentGroup();
-  document.getElementById('fCategory').value = cur;
-  document.getElementById('underValue').textContent = cur;
-  document.getElementById('partModal').classList.add('open');
-  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
-}
-
-function openEdit(p) {
-  resetForm();
-  document.getElementById('modalTitle').textContent = 'Stock Item Alteration';
-  document.getElementById('editId').value = p.id;
-  document.getElementById('fNameEn').value = p.name_en;
-  document.getElementById('fNameHi').value = p.name_hi || '';
-  document.getElementById('fSku').value = (p.sku && !p.sku.startsWith('AUTO-')) ? p.sku : '';
-  document.getElementById('fCategory').value = p.category || 'Primary';
-  document.getElementById('underValue').textContent = p.category || 'Primary';
-  document.getElementById('fBrand').value = p.brand || '';
-  document.getElementById('brandValue').textContent = p.brand || '—';
-  document.getElementById('fModels').value = p.compatible_models || '';
-  document.getElementById('fPrice').value = p.price;
-  document.getElementById('fPurchasePrice').value = p.purchase_price || 0;
-  document.getElementById('fStock').value = p.stock;
-  document.getElementById('fUnit').value = (p.unit === 'pc' || p.unit === 'Pcs') ? 'Pcs' : (p.unit || 'Pcs');
-  document.getElementById('fDesc').value = p.description || '';
-  document.getElementById('fActiveSelect').value = p.is_active ? '1' : '0';
-  document.getElementById('activeToggle').style.display = 'block';
-  document.getElementById('partModal').classList.add('open');
-  setTimeout(() => document.getElementById('fNameEn').focus(), 120);
-}
-
-async function togglePartStatus(id, currentActive) {
-  const res = await API.put('/api/admin/parts/' + id, { is_active: currentActive ? 0 : 1 });
-  if (res.ok) { await loadAll(); API.toast(currentActive ? 'Marked Inactive' : 'Marked Active'); }
-  else API.toast(res.message || 'Error', 'error');
-}
-
-function openEditById(id) {
-  const p = allParts.find(x => x.id === id) || filteredParts.find(x => x.id === id);
-  if (p) openEdit(p);
-}
-
-// ── Brand Panel ──
-function getAllBrands() {
-  const fromParts = allParts.map(p => p.brand).filter(Boolean);
-  return [...new Set([...allBrands, ...fromParts])].sort((a, b) => a.localeCompare(b));
-}
-function getFilteredBrands() {
-  const q = brandSearchQuery.toLowerCase();
-  const all = getAllBrands();
-  return q ? all.filter(b => b.toLowerCase().includes(q)) : all;
-}
-function renderBrandPanel() {
-  const filtered = getFilteredBrands();
-  if (brandHighlightIdx >= filtered.length) brandHighlightIdx = -1;
-  const srch = document.getElementById('bPanelSearch');
-  if (brandSearchQuery) { srch.textContent = brandSearchQuery; srch.style.display = ''; }
-  else srch.style.display = 'none';
-  document.getElementById('brandPanelList').innerHTML = filtered.length
-    ? filtered.map((b, i) =>
-        `<div class="t-gp-item${i === brandHighlightIdx ? ' selected' : ''}" onmousedown="event.preventDefault();selectBrand('${b.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">` +
-        h(b) + `</div>`
-      ).join('')
-    : `<div style="padding:.5rem .9rem;font-size:.8rem;color:#aaa;font-style:italic">No brands yet</div>`;
-  const sel = document.querySelector('#brandPanelList .selected');
-  if (sel) sel.scrollIntoView({ block: 'nearest' });
-}
-function openBrandPanel() {
-  if (brandPanelOpen) return;
-  brandPanelOpen = true; brandHighlightIdx = -1;
-  document.getElementById('brandDisplay').classList.add('active');
-  const p = document.getElementById('brandPanel');
-  p.style.display = 'flex'; p.style.flexDirection = 'column';
-  renderBrandPanel();
-}
-function closeBrandCreate() {
-  document.getElementById('brandCreateBox').style.display = 'none';
-  document.getElementById('newBrandInput').value = '';
-}
-function openBrandCreate() {
-  if (!brandPanelOpen) openBrandPanel();
-  const box = document.getElementById('brandCreateBox');
-  box.style.display = 'flex'; box.style.flexDirection = 'column';
-  document.getElementById('newBrandInput').focus();
-}
-function closeBrandPanel() {
-  brandPanelOpen = false; brandHighlightIdx = -1;
-  closeBrandCreate();
-  document.getElementById('bPanelSearch').style.display = 'none';
-  document.getElementById('brandDisplay').classList.remove('active');
-  document.getElementById('brandPanel').style.display = 'none';
-}
-function selectBrand(name) {
-  document.getElementById('fBrand').value = name;
-  document.getElementById('brandValue').textContent = name || '—';
-  brandSearchQuery = '';
-  closeBrandPanel();
-  navigateNext(document.getElementById('brandDisplay'));
-}
-function handleBrandKey(e) {
-  e.stopImmediatePropagation();
-  if (_confirmMode) { e.preventDefault(); return; }
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    if (brandPanelOpen) { brandSearchQuery = ''; closeBrandPanel(); }
-    return;
-  }
-  if (e.key === 'Backspace') {
-    e.preventDefault();
-    if (brandSearchQuery.length > 0) {
-      brandSearchQuery = brandSearchQuery.slice(0, -1);
-      if (!brandPanelOpen) openBrandPanel();
-      brandHighlightIdx = 0;
-      renderBrandPanel();
-    } else {
-      if (brandPanelOpen) closeBrandPanel();
-      navigatePrev(document.getElementById('brandDisplay'));
-    }
-    return;
-  }
-  if (e.key === ' ') { e.preventDefault(); if (!brandPanelOpen) openBrandPanel(); return; }
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (brandPanelOpen) {
-      const filtered = getFilteredBrands();
-      if (filtered[brandHighlightIdx]) selectBrand(filtered[brandHighlightIdx]);
-      else navigateNext(document.getElementById('brandDisplay'));
-    } else { navigateNext(document.getElementById('brandDisplay')); }
-    return;
-  }
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (!brandPanelOpen) { openBrandPanel(); return; }
-    brandHighlightIdx = Math.min(brandHighlightIdx + 1, getFilteredBrands().length - 1);
-    renderBrandPanel(); return;
-  }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    brandHighlightIdx = Math.max(brandHighlightIdx - 1, 0);
-    renderBrandPanel(); return;
-  }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-    e.preventDefault();
-    if (!brandPanelOpen) openBrandPanel();
-    return;
-  }
-  if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault();
-    brandSearchQuery += e.key;
-    brandHighlightIdx = 0;
-    if (!brandPanelOpen) openBrandPanel();
-    renderBrandPanel();
-  }
-}
-
-function closePartModal() {
-  hideConfirm();
-  brandSearchQuery = '';
-  closeBrandPanel();
-  document.getElementById('partModal').classList.remove('open');
-  groupPanelOpen = false; groupSearchQuery = '';
-  document.getElementById('groupPanel').style.display = 'none';
-  document.getElementById('underDisplay').classList.remove('active');
-}
-
-// ── gUnder Panel (group modal Under field) ──
+// ══ GUNDER PANEL ═════════════════════════════════════════════════
 function getGUnderNames() {
   const exclude = document.getElementById('gName').value.trim();
   return ['Primary', ...groups.filter(g => g.name !== exclude).map(g => g.name)].sort((a, b) => a === 'Primary' ? -1 : b === 'Primary' ? 1 : a.localeCompare(b));
@@ -1109,7 +1323,7 @@ function handleGUnderKey(e) {
   }
 }
 
-// ── Group Modal ──
+// ══ GROUP MODAL ═══════════════════════════════════════════════════
 function updateGHsnFields() {
   document.getElementById('gHsnRows').style.display = document.getElementById('gHsnMode').value === 'specify' ? '' : 'none';
 }
@@ -1129,6 +1343,7 @@ function resetGroupForm(excludeName) {
   document.getElementById('gGstRate').value = '0';
   document.getElementById('gUnder').value = 'Primary';
   document.getElementById('gUnderValue').textContent = '◆ Primary';
+  document.getElementById('gSetLinking').value = '0';
   closeGUnderPanel();
   hideConfirm();
   document.getElementById('gNameWarn').style.display = 'none';
@@ -1148,6 +1363,7 @@ function openGroupEdit(groupObj) {
   const parent = groupObj.parent || 'Primary';
   document.getElementById('gUnder').value = parent;
   document.getElementById('gUnderValue').textContent = parent === 'Primary' ? '◆ Primary' : parent;
+  document.getElementById('gSetLinking').value = groupObj.set_linking ? '1' : '0';
   document.getElementById('groupModalTitle').textContent = 'Stock Group Alteration';
   document.getElementById('groupModal').classList.add('open');
   setTimeout(() => document.getElementById('gName').focus(), 120);
@@ -1163,13 +1379,14 @@ async function saveGroup() {
   const id = document.getElementById('gEditId').value;
   const name = document.getElementById('gName').value.trim();
   const parent = document.getElementById('gUnder').value || 'Primary';
+  const set_linking = parseInt(document.getElementById('gSetLinking').value) || 0;
   if (!name) { API.toast('Enter a group name', 'warning'); return; }
   if (!id && groups.find(g => g.name.toLowerCase() === name.toLowerCase())) {
     API.toast('Group already exists', 'warning'); return;
   }
   const res = id
-    ? await API.put('/api/admin/groups/' + id, { name, parent })
-    : await API.post('/api/admin/groups', { name, parent });
+    ? await API.put('/api/admin/groups/' + id, { name, parent, set_linking })
+    : await API.post('/api/admin/groups', { name, parent, set_linking });
   if (res.ok) {
     closeGroupModal();
     await loadAll();
@@ -1179,11 +1396,7 @@ async function saveGroup() {
   }
 }
 
-// ── Confirm System ──
-let _confirmMode = null;
-let _confirmBarEl = null;
-let _confirmCallbacks = null;
-
+// ══ CONFIRM SYSTEM ════════════════════════════════════════════════
 function showConfirm(mode, barEl, callbacks) {
   _confirmMode = mode;
   _confirmBarEl = barEl;
@@ -1262,43 +1475,8 @@ function showDeleteConfirm() {
   });
 }
 
-// ── Form Submit ──
-document.getElementById('partForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id = document.getElementById('editId').value;
-  const fd = new FormData();
-  fd.append('name_en', document.getElementById('fNameEn').value);
-  fd.append('name_hi', document.getElementById('fNameHi').value);
-  fd.append('sku', document.getElementById('fSku').value);
-  fd.append('category', document.getElementById('fCategory').value);
-  fd.append('brand', document.getElementById('fBrand').value);
-  fd.append('compatible_models', document.getElementById('fModels').value);
-  fd.append('price', document.getElementById('fPrice').value);
-  fd.append('purchase_price', document.getElementById('fPurchasePrice').value);
-  fd.append('stock', document.getElementById('fStock').value);
-  fd.append('unit', document.getElementById('fUnit').value);
-  fd.append('description', document.getElementById('fDesc') ? document.getElementById('fDesc').value : '');
-  if (id) fd.append('is_active', document.getElementById('fActiveSelect').value);
-  const img = document.getElementById('fImage').files[0];
-  if (img) fd.append('image', img);
-  const res = id
-    ? await API.req('PUT', '/api/admin/parts/' + id, fd)
-    : await API.req('POST', '/api/admin/parts', fd);
-  if (res.ok) { API.toast(id ? 'Part updated!' : 'Part added!'); closePartModal(); loadAll(); }
-  else API.toast(res.message || 'Error', 'error');
-});
-
-// ── Tally Form Navigation ──
-const FORM_SEL = 'input:not([type="hidden"]):not([type="file"]):not([disabled]), select:not([disabled]), .t-under';
-let _lastFocused = null;
-let _lastGroupFocused = null;
-
-function updateHsnFields() {
-  document.getElementById('hsnSpecifyRows').style.display = document.getElementById('fHsnMode').value === 'specify' ? '' : 'none';
-}
-function updateGstFields() {
-  document.getElementById('gstSpecifyRows').style.display = document.getElementById('fGstMode').value === 'specify' ? '' : 'none';
-}
+// ══ FORM NAVIGATION ═══════════════════════════════════════════════
+const FORM_SEL = 'input:not([type="hidden"]):not([type="file"]):not([disabled]), select:not([disabled]), .t-under, .img-zone-nav';
 
 function getFocusableList() {
   const skip = new Set();
@@ -1317,6 +1495,58 @@ function getFocusableGroupList() {
 }
 
 function navigateNext(fromEl, evt) {
+  if (fromEl.id === 'fNameEn') {
+    const val = fromEl.value.trim();
+    if (val) runSetLink(val);
+  }
+  if (fromEl.id === 'fMrp') {
+    const mrp = parseFloat(fromEl.value) || 0;
+    if (mrp > 0) {
+      const brand = document.getElementById('fBrand').value.trim();
+      const bd = allBrandsData.find(b => eqCI(b.name, brand));
+      if (bd) {
+        if (bd.s_less > 0) document.getElementById('fPrice').value = roundPrice(mrp * (1 - bd.s_less / 100));
+        if (bd.p_less > 0) document.getElementById('fPurchasePrice').value = (mrp * (1 - bd.p_less / 100)).toFixed(2);
+      }
+    }
+  }
+  if (fromEl.id === 'fPrice') {
+    const v = parseFloat(fromEl.value) || 0;
+    if (v > 0) fromEl.value = roundPrice(v);
+  }
+  if (fromEl.id === 'fSku') {
+    const val = fromEl.value.trim();
+    const warnEl = document.getElementById('fSkuWarn');
+    if (val) {
+      const editId = parseInt(document.getElementById('editId').value) || 0;
+      const block = (_copyMode && _copyOriginalSku && val === _copyOriginalSku) ||
+                    allParts.some(p => p.sku && p.sku.toLowerCase() === val.toLowerCase() && p.id !== editId);
+      warnEl.style.display = block ? '' : 'none';
+      if (block) return;
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+  if (fromEl.id === 'brandDisplay') {
+    const name  = document.getElementById('fNameEn').value.trim();
+    const alias = document.getElementById('fNameHi').value.trim();
+    const brand = document.getElementById('fBrand').value.trim();
+    const warnEl = document.getElementById('fBrandWarn');
+    if (brand && (name || alias)) {
+      const editId = parseInt(document.getElementById('editId').value) || 0;
+      const dup = allParts.some(p => {
+        if (p.id === editId) return false;
+        if (!eqCI(p.brand, brand)) return false;
+        return (name && eqCI(p.name_en, name)) || (alias && eqCI(p.name_hi, alias));
+      });
+      warnEl.style.display = dup ? '' : 'none';
+      fromEl.style.borderBottom = dup ? '2px solid #e63946' : '';
+      if (dup) return;
+    } else {
+      warnEl.style.display = 'none';
+      fromEl.style.borderBottom = '';
+    }
+  }
   const all = getFocusableList();
   const idx = all.indexOf(fromEl);
   if (idx >= 0 && idx < all.length - 1) all[idx + 1].focus();
@@ -1343,13 +1573,6 @@ function navigateGroupPrev(fromEl) {
   const target = all[Math.max(0, idx - 1)];
   if (target && target !== fromEl) target.focus();
 }
-
-document.getElementById('partForm').addEventListener('focusin', e => {
-  if (e.target.matches && e.target.matches(FORM_SEL)) _lastFocused = e.target;
-});
-document.getElementById('groupForm').addEventListener('focusin', e => {
-  if (e.target.matches && e.target.matches(FORM_SEL)) _lastGroupFocused = e.target;
-});
 
 function wireFormNav(formId, nextFn, prevFn) {
   document.querySelectorAll(`#${formId} input[type="text"], #${formId} input[type="number"]`).forEach(input => {
@@ -1382,41 +1605,120 @@ function wireFormNav(formId, nextFn, prevFn) {
   });
 }
 
-// ── Brand + gUnder panel wiring ──
+// ══ EVENT WIRING ══════════════════════════════════════════════════
+document.getElementById('partForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  if (document.getElementById('modalTitle').textContent.includes('Alteration') && !id) {
+    API.toast('Item ID error — close and reopen this item', 'error');
+    return;
+  }
+  const fd = new FormData();
+  fd.append('name_en', document.getElementById('fNameEn').value);
+  fd.append('name_hi', document.getElementById('fNameHi').value);
+  fd.append('sku', document.getElementById('fSku').value);
+  fd.append('category', document.getElementById('fCategory').value);
+  fd.append('brand', document.getElementById('fBrand').value);
+  fd.append('compatible_models', document.getElementById('fModels').value);
+  fd.append('mrp', document.getElementById('fMrp').value);
+  fd.append('price', document.getElementById('fPrice').value);
+  fd.append('purchase_price', document.getElementById('fPurchasePrice').value);
+  fd.append('stock', document.getElementById('fStock').value);
+  fd.append('unit', document.getElementById('fUnit').value);
+  fd.append('description', document.getElementById('fDesc') ? document.getElementById('fDesc').value : '');
+  if (id) fd.append('is_active', document.getElementById('fActiveSelect').value);
+  fd.append('linked_part_id', _linkedPartId || '');
+  const img = pendingImageFile || document.getElementById('fImage').files[0];
+  if (img) fd.append('image', img);
+  const res = id
+    ? await API.req('PUT', '/api/admin/parts/' + id, fd)
+    : await API.req('POST', '/api/admin/parts', fd);
+  if (res.ok) { API.toast(id ? 'Part updated!' : 'Part added!'); closePartModal(); await loadAll(); }
+  else API.toast(res.message || 'Error', 'error');
+});
+
+document.getElementById('partForm').addEventListener('focusin', e => {
+  if (e.target.matches && e.target.matches(FORM_SEL)) _lastFocused = e.target;
+});
+document.getElementById('groupForm').addEventListener('focusin', e => {
+  if (e.target.matches && e.target.matches(FORM_SEL)) _lastGroupFocused = e.target;
+});
+
+document.getElementById('underDisplay').addEventListener('blur', function() {
+  if (!groupPanelOpen) return;
+  setTimeout(function() {
+    if (!document.getElementById('groupPanel').contains(document.activeElement)) {
+      groupPanelOpen = false; groupSearchQuery = '';
+      document.getElementById('groupPanel').style.display = 'none';
+      document.getElementById('underDisplay').classList.remove('active');
+    }
+  }, 0);
+});
+
+document.getElementById('partModal').addEventListener('mousedown', e => {
+  if (!groupPanelOpen) return;
+  const panel = document.getElementById('groupPanel');
+  const under = document.getElementById('underDisplay');
+  if (!panel.contains(e.target) && !under.contains(e.target)) {
+    groupPanelOpen = false; groupSearchQuery = '';
+    panel.style.display = 'none';
+    under.classList.remove('active');
+  }
+});
+
 document.getElementById('brandDisplay').addEventListener('blur', function() {
   setTimeout(() => { if (!document.getElementById('brandPanel').contains(document.activeElement)) closeBrandPanel(); }, 150);
 });
 document.getElementById('brandDisplay').addEventListener('focus', function() {
   if (brandSearchQuery && !brandPanelOpen) openBrandPanel();
 });
-document.getElementById('newBrandInput').addEventListener('keydown', async function(e) {
+document.getElementById('brandDisplay').addEventListener('mousedown', function() {
+  document.getElementById('fBrandWarn').style.display = 'none';
+  this.style.borderBottom = '';
+});
+
+document.getElementById('newBrandInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault(); e.stopImmediatePropagation();
-    const val = this.value.trim();
-    if (val) {
-      try {
-        const res = await API.post('/api/admin/brands', { name: val });
-        if (res.ok) {
-          if (!allBrands.includes(val)) allBrands.push(val);
-          allBrands.sort((a, b) => a.localeCompare(b));
-        }
-      } catch(err) {}
-      document.getElementById('fBrand').value = val;
-      document.getElementById('brandValue').textContent = val;
-      brandSearchQuery = '';
-      closeBrandPanel();
-      closeBrandCreate();
-      document.getElementById('brandDisplay').focus();
-      navigateNext(document.getElementById('brandDisplay'));
-    } else {
-      closeBrandCreate();
-      document.getElementById('brandDisplay').focus();
-    }
+    if (this.value.trim()) document.getElementById('newBrandPLess').focus();
     return;
   }
   if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeBrandCreate(); document.getElementById('brandDisplay').focus(); return; }
   e.stopImmediatePropagation();
 });
+document.getElementById('newBrandPLess').addEventListener('keydown', function(e) {
+  e.stopImmediatePropagation();
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('newBrandSLess').focus(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); closeBrandCreate(); document.getElementById('brandDisplay').focus(); }
+});
+document.getElementById('newBrandSLess').addEventListener('keydown', async function(e) {
+  e.stopImmediatePropagation();
+  if (e.key === 'Escape') { e.preventDefault(); closeBrandCreate(); document.getElementById('brandDisplay').focus(); return; }
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const name = document.getElementById('newBrandInput').value.trim();
+  if (!name) { closeBrandCreate(); document.getElementById('brandDisplay').focus(); return; }
+  const p_less = parseFloat(document.getElementById('newBrandPLess').value) || 0;
+  const s_less = parseFloat(document.getElementById('newBrandSLess').value) || 0;
+  const res = await API.post('/api/admin/brands', { name, p_less, s_less, old_name: brandAlterOriginalName });
+  if (res.ok) {
+    const tName = res.name || name;
+    const obj = { name: tName, p_less, s_less };
+    const idx = allBrandsData.findIndex(b => eqCI(b.name, tName));
+    if (idx >= 0) allBrandsData[idx] = obj; else allBrandsData.push(obj);
+    allBrands = allBrandsData.map(b => b.name).sort((a, b) => a.localeCompare(b));
+    document.getElementById('fBrand').value = tName;
+    document.getElementById('brandValue').textContent = tName;
+  } else {
+    API.toast(res.message || 'Brand save failed', 'error');
+  }
+  brandSearchQuery = '';
+  closeBrandPanel();
+  closeBrandCreate();
+  document.getElementById('brandDisplay').focus();
+  navigateNext(document.getElementById('brandDisplay'));
+});
+
 document.getElementById('gUnderDisplay').addEventListener('blur', function() {
   setTimeout(() => { if (!document.getElementById('gUnderPanel').contains(document.activeElement)) closeGUnderPanel(); }, 0);
 });
@@ -1437,22 +1739,9 @@ document.getElementById('newGUnderInput').addEventListener('keydown', async func
   e.stopImmediatePropagation();
 });
 
-// ── Name duplicate check (registered before wireFormNav so stopImmediatePropagation blocks it) ──
-document.getElementById('fNameEn').addEventListener('keydown', function(e) {
-  if (e.key !== 'Enter') return;
-  const val = this.value.trim();
-  if (!val) return;
-  const editId = parseInt(document.getElementById('editId').value) || 0;
-  const dup = allParts.find(p => p.name_en.toLowerCase() === val.toLowerCase() && p.id !== editId);
-  if (dup) {
-    e.preventDefault(); e.stopImmediatePropagation();
-    document.getElementById('fNameEnWarn').style.display = '';
-    return;
-  }
-  document.getElementById('fNameEnWarn').style.display = 'none';
-});
 document.getElementById('fNameEn').addEventListener('input', function() {
-  document.getElementById('fNameEnWarn').style.display = 'none';
+  _linkedPartId = 0;
+  document.getElementById('linkPreview').style.display = 'none';
 });
 
 document.getElementById('gName').addEventListener('keydown', function(e) {
@@ -1472,10 +1761,39 @@ document.getElementById('gName').addEventListener('input', function() {
   document.getElementById('gNameWarn').style.display = 'none';
 });
 
+document.getElementById('fSku').addEventListener('input', function() {
+  document.getElementById('fSkuWarn').style.display = 'none';
+  if (_copyMode && _copyOriginalSku)
+    this.style.borderBottom = (this.value === _copyOriginalSku) ? '2px solid #e63946' : '';
+});
+
+document.getElementById('fNameHi').addEventListener('input', function() {
+  if (_copyMode && _copyOriginalAlias)
+    this.style.borderBottom = (this.value === _copyOriginalAlias) ? '2px solid #e63946' : '';
+});
+
+document.getElementById('fImage').addEventListener('change', function() {
+  if (this.files[0]) setPendingImage(this.files[0]);
+});
+
+document.addEventListener('paste', function(e) {
+  if (!document.getElementById('partModal').classList.contains('open')) return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (file) setPendingImage(file);
+      return;
+    }
+  }
+});
+
 wireFormNav('partForm', navigateNext, navigatePrev);
 wireFormNav('groupForm', navigateGroupNext, navigateGroupPrev);
 
-// ── Confirm capture listener (runs before all element handlers) ──
+// ══ GLOBAL KEYDOWN ════════════════════════════════════════════════
 document.addEventListener('keydown', function(e) {
   if (!_confirmMode) return;
   e.preventDefault();
@@ -1486,7 +1804,6 @@ document.addEventListener('keydown', function(e) {
   else if (e.key === 'Escape') { _confirmMode === 'quit' ? confirmAction(true) : confirmAction(false); }
 }, true);
 
-// ── Global Keyboard Handler ──
 document.addEventListener('keydown', e => {
   if (_confirmMode) return;
 
@@ -1494,17 +1811,25 @@ document.addEventListener('keydown', e => {
   const modalOpen = document.getElementById('partModal').classList.contains('open');
   const groupModalOpen = document.getElementById('groupModal').classList.contains('open');
 
-  // Ctrl+Enter — Alter (open edit for selected item)
   if (e.ctrlKey && !e.altKey && e.key === 'Enter' && !modalOpen && !groupModalOpen) {
     e.preventDefault();
     const row = _visibleRows[_cursor];
-    if (!row) return;
-    if (row.type === 'item') openEditById(row.part.id);
-    else if (row.type === 'group' && row.group) openGroupEdit(row.group);
+    if (row && row.type === 'item') { openEditById(row.part.id); return; }
+    if (row && row.type === 'group' && row.group) { openGroupEdit(row.group); return; }
+    if (_groupPath.length > 1) {
+      const grp = groups.find(g => eqCI(g.name, _groupPath[_groupPath.length - 1]));
+      if (grp) openGroupEdit(grp);
+    }
     return;
   }
 
-  // Alt shortcuts
+  if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c') && !modalOpen && !groupModalOpen) {
+    e.preventDefault();
+    const row = _visibleRows[_cursor];
+    if (row && row.type === 'item') openCopy(row.part);
+    return;
+  }
+
   if (e.altKey && !e.ctrlKey) {
     const k = e.key.toLowerCase();
     if (k === 'c' && !inInput && !modalOpen && !groupModalOpen) { e.preventDefault(); openAdd(); return; }
@@ -1541,7 +1866,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // List navigation when no modal open and not in input
   if (!modalOpen && !groupModalOpen && !inInput) {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -1561,7 +1885,6 @@ document.addEventListener('keydown', e => {
     }
   }
 
-  // Escape
   if (e.key === 'Escape') {
     if (groupPanelOpen) { toggleGroupPanel(); return; }
     if (groupModalOpen) { showGroupQuitConfirm(); return; }
@@ -1569,7 +1892,6 @@ document.addEventListener('keydown', e => {
     if (!inInput && _groupPath.length > 1) { drillUp(); return; }
   }
 
-  // Backspace nav inside modals
   if (e.key === 'Backspace' && !inInput && modalOpen) { e.preventDefault(); navigatePrev(_lastFocused); return; }
   if (e.key === 'Backspace' && !inInput && groupModalOpen) { e.preventDefault(); navigateGroupPrev(_lastGroupFocused); return; }
 });

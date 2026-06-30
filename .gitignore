@@ -22,3 +22,12 @@ public/uploads/*
 # OS / editor cruft
 Thumbs.db
 .DS_Store
+
+# Android build outputs and secrets
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/app/bsmotor-release.keystore
+*.keystore
+*.jks

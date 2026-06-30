@@ -15,6 +15,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 const toTitleCase = s => s ? s.trim().replace(/\b\w/g, c => c.toUpperCase()) : s;
+const resolveCategory = cat => {
+  if (!cat) return null;
+  const g = adb.prepare('SELECT name FROM stock_groups WHERE name=? COLLATE NOCASE').get(cat);
+  return g ? g.name : cat;
+};
 
 const requireAdmin = (req, res, next) => {
   if (!req.session.user || req.session.user.role !== 'admin')
@@ -41,7 +46,7 @@ router.get('/parts', requireAdmin, (req, res) => {
   let sql = 'SELECT * FROM parts WHERE 1=1';
   const params = [];
   if (q)         { sql += ' AND (name_en LIKE ? OR sku LIKE ? OR brand LIKE ?)'; const lq = `%${q}%`; params.push(lq, lq, lq); }
-  if (category)  { sql += ' AND category=?'; params.push(category); }
+  if (category)  { sql += ' AND category=? COLLATE NOCASE'; params.push(category); }
   if (brand)     { sql += ' AND brand=?'; params.push(brand); }
   if (low_stock) { sql += ' AND stock <= 5'; }
   sql += ' ORDER BY name_en';
@@ -49,18 +54,20 @@ router.get('/parts', requireAdmin, (req, res) => {
 });
 
 router.post('/parts', requireAdmin, upload.single('image'), (req, res) => {
-  const { name_en, name_hi, sku, category, brand, compatible_models, price, purchase_price, stock, unit, description } = req.body;
+  const { name_en, name_hi, sku, category, brand, compatible_models, price, purchase_price, mrp, stock, unit, description, linked_part_id } = req.body;
   if (!name_en) return res.json({ ok: false, message: 'Item name is required' });
   if (!price)   return res.json({ ok: false, message: 'Selling price is required' });
   const finalSku = sku || null;
   const image    = req.file ? '/uploads/' + req.file.filename : null;
+  const linkId   = parseInt(linked_part_id) || null;
   try {
-    adb.prepare(`INSERT INTO parts (name_en,name_hi,sku,category,brand,compatible_models,price,purchase_price,stock,unit,image,description)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
+    const info = adb.prepare(`INSERT INTO parts (name_en,name_hi,sku,category,brand,compatible_models,price,purchase_price,mrp,stock,unit,image,description,linked_part_id)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(toTitleCase(name_en), toTitleCase(name_hi) || toTitleCase(name_en), finalSku,
-           category || null, brand || null, compatible_models || null,
-           parseFloat(price), parseFloat(purchase_price || 0), parseInt(stock || 0),
-           unit || 'pc', image, description || null);
+           resolveCategory(category), brand || null, compatible_models || null,
+           parseFloat(price), parseFloat(purchase_price || 0), parseFloat(mrp || 0), parseInt(stock || 0),
+           unit || 'pc', image, description || null, linkId);
+    if (linkId) adb.prepare('UPDATE parts SET linked_part_id=? WHERE id=?').run(info.lastInsertRowid, linkId);
     res.json({ ok: true });
   } catch(e) {
     if (e.message.includes('UNIQUE')) return res.json({ ok: false, message: 'Part No. already exists — use a unique Part No.' });
@@ -69,20 +76,26 @@ router.post('/parts', requireAdmin, upload.single('image'), (req, res) => {
 });
 
 router.put('/parts/:id', requireAdmin, upload.single('image'), (req, res) => {
-  const { name_en, name_hi, sku, category, brand, compatible_models, price, purchase_price, stock, unit, description, is_active } = req.body;
-  const existing = adb.prepare('SELECT * FROM parts WHERE id=?').get(req.params.id);
+  const { name_en, name_hi, sku, category, brand, compatible_models, price, purchase_price, mrp, stock, unit, description, is_active, linked_part_id } = req.body;
+  const id = parseInt(req.params.id);
+  const existing = adb.prepare('SELECT * FROM parts WHERE id=?').get(id);
   if (!existing) return res.status(404).json({ ok: false });
-  const image = req.file ? '/uploads/' + req.file.filename : existing.image;
+  const image  = req.file ? '/uploads/' + req.file.filename : existing.image;
+  const linkId = linked_part_id !== undefined ? (parseInt(linked_part_id) || null) : existing.linked_part_id;
   try {
+    if (existing.linked_part_id && existing.linked_part_id !== linkId)
+      adb.prepare('UPDATE parts SET linked_part_id=NULL WHERE id=?').run(existing.linked_part_id);
     adb.prepare(`UPDATE parts SET name_en=?,name_hi=?,sku=?,category=?,brand=?,compatible_models=?,
-      price=?,purchase_price=?,stock=?,unit=?,image=?,description=?,is_active=? WHERE id=?`)
+      price=?,purchase_price=?,mrp=?,stock=?,unit=?,image=?,description=?,is_active=?,linked_part_id=? WHERE id=?`)
       .run(toTitleCase(name_en) || existing.name_en, toTitleCase(name_hi) || existing.name_hi,
-           sku || existing.sku, category || existing.category, brand || existing.brand,
+           sku || existing.sku, resolveCategory(category) || existing.category, brand || existing.brand,
            compatible_models || existing.compatible_models,
            parseFloat(price || existing.price), parseFloat(purchase_price || existing.purchase_price),
-           parseInt(stock || existing.stock), unit || existing.unit, image,
+           parseFloat(mrp != null ? mrp : existing.mrp || 0), parseInt(stock || existing.stock), unit || existing.unit, image,
            description || existing.description, is_active != null ? parseInt(is_active) : existing.is_active,
-           req.params.id);
+           linkId, id);
+    if (linkId && linkId !== existing.linked_part_id)
+      adb.prepare('UPDATE parts SET linked_part_id=? WHERE id=?').run(id, linkId);
     res.json({ ok: true });
   } catch(e) {
     if (e.message.includes('UNIQUE')) return res.json({ ok: false, message: 'Part No. already exists — use a unique Part No.' });
@@ -93,6 +106,8 @@ router.put('/parts/:id', requireAdmin, upload.single('image'), (req, res) => {
 router.delete('/parts/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   try {
+    const part = adb.prepare('SELECT linked_part_id FROM parts WHERE id=?').get(id);
+    if (part && part.linked_part_id) adb.prepare('UPDATE parts SET linked_part_id=NULL WHERE id=?').run(part.linked_part_id);
     adb.prepare('DELETE FROM cdb.cart    WHERE part_id=?').run(id);
     adb.prepare('DELETE FROM cdb.ratings WHERE part_id=?').run(id);
     adb.prepare('DELETE FROM order_items  WHERE part_id=?').run(id);
@@ -295,20 +310,26 @@ router.delete('/accountbooks/vouchers/:id', requireAdmin, (req, res) => {
 });
 
 router.get('/accountbooks/preview/order/:id', requireAdmin, (req, res) => {
-  const order = adb.prepare(`SELECT o.*, COALESCE(u.name,'Guest') as customer_name, COALESCE(u.phone,'—') as customer_phone
-    FROM orders o LEFT JOIN cdb.users u ON u.id=o.consumer_id WHERE o.id=?`).get(req.params.id);
-  if (!order) return res.json({ ok:false, message:'Not found' });
-  const items = adb.prepare(`SELECT oi.qty, oi.unit_price, oi.total, p.name_en, p.brand, p.sku, p.unit, p.image
-    FROM order_items oi JOIN parts p ON p.id=oi.part_id WHERE oi.order_id=?`).all(order.id);
-  res.json({ ok:true, order, items });
+  try {
+    console.log('[preview] order', req.params.id);
+    const order = adb.prepare(`SELECT o.*, COALESCE(u.name,'Guest') as customer_name, COALESCE(u.phone,'—') as customer_phone
+      FROM orders o LEFT JOIN cdb.users u ON u.id=o.consumer_id WHERE o.id=?`).get(req.params.id);
+    if (!order) return res.json({ ok:false, message:'Order not found' });
+    const items = adb.prepare(`SELECT oi.qty, oi.unit_price, oi.total, p.name_en, p.brand, p.sku, p.unit
+      FROM order_items oi JOIN parts p ON p.id=oi.part_id WHERE oi.order_id=?`).all(order.id);
+    res.json({ ok:true, order, items });
+  } catch(e) { res.json({ ok:false, message:e.message }); }
 });
 
 router.get('/accountbooks/preview/purchase/:id', requireAdmin, (req, res) => {
-  const purchase = adb.prepare('SELECT * FROM purchases WHERE id=?').get(req.params.id);
-  if (!purchase) return res.json({ ok:false, message:'Not found' });
-  const items = adb.prepare(`SELECT pi.qty, pi.unit_price, pi.total, p.name_en, p.brand, p.sku, p.unit
-    FROM purchase_items pi JOIN parts p ON p.id=pi.part_id WHERE pi.purchase_id=?`).all(purchase.id);
-  res.json({ ok:true, purchase, items });
+  try {
+    console.log('[preview] purchase', req.params.id);
+    const purchase = adb.prepare('SELECT * FROM purchases WHERE id=?').get(req.params.id);
+    if (!purchase) return res.json({ ok:false, message:'Purchase not found' });
+    const items = adb.prepare(`SELECT pi.qty, pi.unit_price, pi.total, p.name_en, p.brand, p.sku, p.unit
+      FROM purchase_items pi JOIN parts p ON p.id=pi.part_id WHERE pi.purchase_id=?`).all(purchase.id);
+    res.json({ ok:true, purchase, items });
+  } catch(e) { res.json({ ok:false, message:e.message }); }
 });
 
 router.post('/accountbooks/vouchers', requireAdmin, (req, res) => {
@@ -371,10 +392,10 @@ router.get('/groups', requireAdmin, (req, res) => {
 });
 
 router.post('/groups', requireAdmin, (req, res) => {
-  const { name, parent } = req.body;
+  const { name, parent, set_linking } = req.body;
   if (!name) return res.json({ ok: false, message: 'Name required' });
   try {
-    adb.prepare('INSERT INTO stock_groups (name,parent) VALUES (?,?)').run(toTitleCase(name), parent || 'Primary');
+    adb.prepare('INSERT INTO stock_groups (name,parent,set_linking) VALUES (?,?,?)').run(toTitleCase(name), parent || 'Primary', set_linking ? 1 : 0);
     res.json({ ok: true });
   } catch(e) {
     if (e.message.includes('UNIQUE')) return res.json({ ok: false, message: 'Group already exists' });
@@ -383,10 +404,16 @@ router.post('/groups', requireAdmin, (req, res) => {
 });
 
 router.put('/groups/:id', requireAdmin, (req, res) => {
-  const { name, parent } = req.body;
+  const { name, parent, set_linking } = req.body;
   if (!name) return res.json({ ok: false, message: 'Name required' });
   try {
-    adb.prepare('UPDATE stock_groups SET name=?,parent=? WHERE id=?').run(toTitleCase(name), parent || 'Primary', req.params.id);
+    const grp = adb.prepare('SELECT * FROM stock_groups WHERE id=?').get(req.params.id);
+    const newName = toTitleCase(name);
+    if (grp) {
+      adb.prepare('UPDATE parts SET category=? WHERE category=? COLLATE NOCASE').run(newName, grp.name);
+      adb.prepare('UPDATE stock_groups SET parent=? WHERE parent=? COLLATE NOCASE').run(newName, grp.name);
+    }
+    adb.prepare('UPDATE stock_groups SET name=?,parent=?,set_linking=? WHERE id=?').run(newName, parent || 'Primary', set_linking ? 1 : 0, req.params.id);
     res.json({ ok: true });
   } catch(e) {
     if (e.message.includes('UNIQUE')) return res.json({ ok: false, message: 'Group name already exists' });
@@ -411,18 +438,91 @@ router.delete('/groups/:id', requireAdmin, (req, res) => {
 
 // ── BRANDS ─────────────────────────────────────────────────────────────────────
 router.get('/brands', requireAdmin, (req, res) => {
-  res.json(adb.prepare('SELECT name FROM brands ORDER BY name').all().map(r => r.name));
+  res.json(adb.prepare('SELECT name, p_less, s_less FROM brands ORDER BY name').all());
 });
 
 router.post('/brands', requireAdmin, (req, res) => {
-  const { name } = req.body;
+  const { name, p_less, s_less, old_name } = req.body;
   if (!name) return res.json({ ok: false, message: 'Name required' });
   try {
-    adb.prepare('INSERT OR IGNORE INTO brands (name) VALUES (?)').run(toTitleCase(name));
-    res.json({ ok: true });
+    const n = toTitleCase(name);
+    const lookupName = old_name ? old_name : n;
+    const existing = adb.prepare('SELECT id FROM brands WHERE name=? COLLATE NOCASE').get(lookupName);
+    if (existing) {
+      adb.prepare('UPDATE brands SET name=?, p_less=?, s_less=? WHERE id=?')
+        .run(n, parseFloat(p_less)||0, parseFloat(s_less)||0, existing.id);
+    } else {
+      adb.prepare('INSERT INTO brands (name, p_less, s_less) VALUES (?,?,?)').run(n, parseFloat(p_less)||0, parseFloat(s_less)||0);
+    }
+    res.json({ ok: true, name: n });
   } catch(e) {
     res.json({ ok: false, message: e.message });
   }
+});
+
+// ── INVOICES (Sales / Purchase / Credit Note / Debit Note) ────────────────────
+router.get('/invoices', requireAdmin, (req, res) => {
+  const { type, from, to } = req.query;
+  let sql = 'SELECT * FROM invoices WHERE 1=1';
+  const p = [];
+  if (type) { sql += ' AND type=?'; p.push(type); }
+  if (from) { sql += ' AND date>=?'; p.push(from); }
+  if (to)   { sql += ' AND date<=?'; p.push(to); }
+  sql += ' ORDER BY date DESC, id DESC';
+  res.json(adb.prepare(sql).all(...p));
+});
+
+router.get('/invoices/:id', requireAdmin, (req, res) => {
+  const inv = adb.prepare('SELECT * FROM invoices WHERE id=?').get(req.params.id);
+  if (!inv) return res.json({ ok: false, message: 'Not found' });
+  const items = adb.prepare(`SELECT ii.*, p.name_en, p.brand, p.sku
+    FROM invoice_items ii LEFT JOIN parts p ON p.id=ii.part_id
+    WHERE ii.invoice_id=? ORDER BY ii.id`).all(inv.id);
+  res.json({ ok: true, inv, items });
+});
+
+router.post('/invoices', requireAdmin, (req, res) => {
+  const { type, party, date, notes, paid, items } = req.body;
+  if (!type || !date || !Array.isArray(items) || !items.length)
+    return res.json({ ok: false, message: 'Type, date and items are required' });
+  const prefixes = { sales:'SI', purchase:'PI', credit_note:'CN', debit_note:'DN' };
+  const inv_no   = (prefixes[type] || 'INV') + Date.now();
+  const total    = items.reduce((s, i) => s + (parseFloat(i.unit_price)||0) * (parseFloat(i.qty)||0), 0);
+  const deltas   = { sales:-1, purchase:1, credit_note:1, debit_note:-1 };
+  const delta    = deltas[type] ?? 0;
+  try {
+    const inv = adb.prepare(
+      'INSERT INTO invoices (type,inv_no,date,party,total,paid,notes) VALUES (?,?,?,?,?,?,?)'
+    ).run(type, inv_no, date, party||null, total, parseFloat(paid)||0, notes||null);
+    const insItem = adb.prepare(
+      'INSERT INTO invoice_items (invoice_id,part_id,description,qty,unit_price,total) VALUES (?,?,?,?,?,?)'
+    );
+    for (const item of items) {
+      const qty   = parseFloat(item.qty)        || 1;
+      const price = parseFloat(item.unit_price) || 0;
+      insItem.run(inv.lastInsertRowid, item.part_id||null, item.description, qty, price, qty*price);
+      if (item.part_id && delta !== 0)
+        adb.prepare('UPDATE parts SET stock = stock + ? WHERE id=?').run(delta * qty, item.part_id);
+    }
+    res.json({ ok: true, inv_no });
+  } catch(e) { res.json({ ok: false, message: e.message }); }
+});
+
+router.delete('/invoices/:id', requireAdmin, (req, res) => {
+  const inv = adb.prepare('SELECT * FROM invoices WHERE id=?').get(req.params.id);
+  if (!inv) return res.json({ ok: false, message: 'Not found' });
+  const deltas = { sales:1, purchase:-1, credit_note:-1, debit_note:1 };
+  const delta  = deltas[inv.type] ?? 0;
+  try {
+    const items = adb.prepare('SELECT * FROM invoice_items WHERE invoice_id=?').all(inv.id);
+    for (const item of items) {
+      if (item.part_id && delta !== 0)
+        adb.prepare('UPDATE parts SET stock = stock + ? WHERE id=?').run(delta * item.qty, item.part_id);
+    }
+    adb.prepare('DELETE FROM invoice_items WHERE invoice_id=?').run(inv.id);
+    adb.prepare('DELETE FROM invoices WHERE id=?').run(inv.id);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, message: e.message }); }
 });
 
 module.exports = router;

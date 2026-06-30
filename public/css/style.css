@@ -498,15 +498,163 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .landing-btns .btn-admin { background: #fff; color: var(--secondary); }
 .landing-btns a:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 
-/* Responsive */
+/* Responsive — Admin */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
   .admin-main { margin-left: 0; }
   .bsm-navbar nav { display: none; }
-  .parts-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .bsm-hero h1 { font-size: 1.8rem; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Bottom Navigation Bar (consumer mobile) ──────────────────────────────── */
+.bsm-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: #152a46;
+  border-top: 1.5px solid rgba(212,160,23,.3);
+  z-index: 300;
+  justify-content: space-around;
+  align-items: stretch;
+  box-shadow: 0 -3px 16px rgba(0,0,0,.3);
+}
+.bnav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .1rem; flex: 1; color: #aac4de; text-decoration: none;
+  font-size: .6rem; font-weight: 600; padding: .4rem .2rem;
+  letter-spacing: .02em; position: relative;
+  transition: color .15s;
+}
+.bnav-item.active, .bnav-item:active { color: #d4a017; }
+.bnav-item .bnav-icon { font-size: 1.3rem; line-height: 1; }
+.bnav-badge {
+  position: absolute; top: 4px; right: calc(50% - 20px);
+  background: #d4a017; color: #0a1628; border-radius: 50%;
+  min-width: 16px; height: 16px; font-size: .55rem; font-weight: 900;
+  display: none; align-items: center; justify-content: center;
+}
+
+/* ── Consumer Mobile Responsive ───────────────────────────────────────────── */
+@media (max-width: 700px) {
+
+  /* Prevent horizontal overflow */
+  body { overflow-x: hidden; }
+
+  /* Push page above bottom nav */
+  body:has(.bsm-bottom-nav) { padding-bottom: 60px; }
+
+  /* Show bottom nav */
+  .bsm-bottom-nav { display: flex; }
+
+  /* ── Header compact ── */
+  .bsm-header-row {
+    flex-wrap: wrap;
+    padding: .45rem .75rem .2rem;
+    min-height: auto;
+    gap: .3rem;
+  }
+  .bsm-logo { flex: 1; order: 1; }
+  .bsm-logo a { font-size: 1.3rem; }
+  .bsm-logo a span { font-size: 1.3rem; }
+
+  /* Hide location & lang on mobile (account in bottom nav) */
+  .bsm-location { display: none; }
+  .bsm-lang     { display: none; }
+
+  /* Account button — icon only */
+  .bsm-account  { order: 2; }
+  .bsm-account .acc-text { display: none; }
+  .acc-avatar { width: 30px; height: 30px; font-size: .75rem; }
+
+  /* Cart button */
+  .bsm-cart { order: 3; }
+  .bsm-cart span[style*="font-size:.82rem"] { display: none; }
+
+  /* Search — full width second row */
+  .bsm-search {
+    order: 10; flex: none; width: 100%;
+    margin-bottom: .2rem;
+  }
+  .bsm-search input { font-size: .9rem; padding: .5rem .75rem; }
+  .bsm-search button { padding: .5rem .75rem; font-size: .9rem; }
+
+  /* ── Nav strip compact ── */
+  .bsm-nav-strip { padding: 0 .5rem; min-height: 36px; }
+  .bsm-nav-strip a { font-size: .72rem; padding: .38rem .5rem; }
+  .bsm-nav-utils { display: none; } /* moved to bottom nav */
+  .nav-promo { display: none; }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    flex-wrap: nowrap; overflow-x: auto;
+    padding: .45rem .75rem; gap: .6rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-bar select { font-size: .82rem; padding: .3rem .55rem; }
+  .filter-bar label  { font-size: .82rem; white-space: nowrap; }
+
+  /* ── Parts grid — 2 columns ── */
+  .parts-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: .6rem;
+    padding: .6rem .6rem 1rem;
+  }
+
+  /* ── Part cards — compact ── */
+  .part-card img, .part-card .no-img { height: 110px; }
+  .part-card .no-img { font-size: 2rem; }
+  .part-card .card-body { padding: .55rem; }
+  .part-card .part-name { font-size: .82rem; line-height: 1.25; }
+  .part-card .part-name-hi { font-size: .72rem; }
+  .part-card .part-price { font-size: .95rem; font-weight: 800; margin: .3rem 0; }
+  .part-card .card-footer-meta { font-size: .68rem; margin-bottom: .35rem; }
+  .part-card .btn-add {
+    padding: .48rem .4rem; font-size: .78rem; border-radius: 6px;
+    min-height: 36px;
+  }
+  .part-card .brand-badge { font-size: .6rem; padding: .2rem .55rem; }
+
+  /* ── Cart page ── */
+  .cart-layout {
+    grid-template-columns: 1fr;
+    padding: 0 .6rem 1.5rem;
+    gap: 1rem;
+  }
+  .cart-col-header { padding: .8rem 1rem; border-radius: 10px; }
+  .cart-page-title { font-size: 1.1rem; }
+  .cart-summary-card { position: static; }
+
+  /* Cart item cards — more compact on mobile */
+  .ci-card { gap: .6rem; padding: .7rem; border-radius: 10px; }
+  .ci-img { width: 60px; height: 60px; }
+  .ci-name { font-size: .85rem; }
+  .ci-right { gap: .35rem; }
+  .qty-stepper button { width: 26px; height: 26px; font-size: .9rem; }
+  .qty-stepper span { min-width: 26px; font-size: .82rem; }
+  .ci-row-total { font-size: .88rem; }
+
+  /* ── Orders page ── */
+  .order-card { padding: 1rem; }
+  .order-header { flex-wrap: wrap; gap: .4rem; }
+  .order-no { font-size: .88rem; }
+  .order-meta { font-size: .8rem; gap: .5rem; }
+
+  /* ── Profile / contact pages ── */
+  .page-wrap { padding: 0 .75rem; }
+  .profile-grid, .form-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Login overlays ── */
+  .bsm-panel { padding: 1.5rem 1.25rem; margin: .5rem; border-radius: 16px; }
+  .bsm-panel-logo { font-size: 1.6rem; }
+
+  /* ── Global ── */
+  .page-wrap { max-width: 100%; }
+  h2, .section-title { font-size: 1.2rem; }
 }
 
 /* Misc */

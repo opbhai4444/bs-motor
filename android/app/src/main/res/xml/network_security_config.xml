@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Allow both HTTPS (Render) and HTTP (local LAN server) -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Local LAN — any 192.168.x.x:3000 or 10.x.x.x:3000 -->
+        <domain includeSubdomains="false">192.168.1.1</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BS Motors gear icon for splash screen (108dp, centred on dark navy) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer gear ring -->
+    <path
+        android:fillColor="#d4a017"
+        android:pathData="
+M54,18
+l4.5,8.5 9.5,-2 2,9.5 8.5,4.5 -4.5,8.5 5,7.5 -7.5,5 0,9.5 -9.5,0 -4.5,8.5 -8.5,-4.5 -7.5,5 -5,-7.5 -9.5,0 0,-9.5 -7.5,-5 5,-7.5 -4.5,-8.5 8.5,-4.5 2,-9.5 9.5,2Z"/>
+
+    <!-- Inner circle (cutout feel) -->
+    <path
+        android:fillColor="#0a1628"
+        android:pathData="M54,38 A16,16 0 1,0 54.001,38Z"/>
+
+    <!-- Wrench / spanner shape inside gear -->
+    <path
+        android:fillColor="#d4a017"
+        android:pathData="
+M49,46 L59,56 57,58 47,48Z
+M52,44 A6,6 0 0,1 58,50 A6,6 0 0,1 52,56 A6,6 0 0,1 46,50 A6,6 0 0,1 52,44Z
+M52,47 A3,3 0 1,0 52.001,47Z"/>
+</vector>

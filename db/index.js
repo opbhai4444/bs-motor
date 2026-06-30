@@ -152,6 +152,33 @@ adb.exec(`
 
 // Migrate existing journal_entries to add voucher_type if missing
 try { adb.exec("ALTER TABLE journal_entries ADD COLUMN voucher_type TEXT DEFAULT 'journal'"); } catch(e) {}
+try { adb.exec('ALTER TABLE parts ADD COLUMN linked_part_id INTEGER'); } catch(e) {}
+try { adb.exec('ALTER TABLE stock_groups ADD COLUMN set_linking INTEGER DEFAULT 0'); } catch(e) {}
+try { adb.exec('ALTER TABLE brands ADD COLUMN p_less REAL DEFAULT 0'); } catch(e) {}
+try { adb.exec('ALTER TABLE brands ADD COLUMN s_less REAL DEFAULT 0'); } catch(e) {}
+try { adb.exec('ALTER TABLE parts ADD COLUMN mrp REAL DEFAULT 0'); } catch(e) {}
+try { adb.exec(`DELETE FROM brands WHERE id NOT IN (SELECT MAX(id) FROM brands GROUP BY LOWER(name))`); } catch(e) {}
+try { adb.exec(`CREATE TABLE IF NOT EXISTS invoices (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  type       TEXT    NOT NULL,
+  inv_no     TEXT    UNIQUE NOT NULL,
+  date       TEXT    NOT NULL,
+  party      TEXT,
+  total      REAL    DEFAULT 0,
+  paid       REAL    DEFAULT 0,
+  notes      TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)`); } catch(e) {}
+try { adb.exec(`CREATE TABLE IF NOT EXISTS invoice_items (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  invoice_id  INTEGER NOT NULL,
+  part_id     INTEGER,
+  description TEXT    NOT NULL,
+  qty         REAL    NOT NULL DEFAULT 1,
+  unit_price  REAL    NOT NULL DEFAULT 0,
+  total       REAL    NOT NULL DEFAULT 0,
+  FOREIGN KEY (invoice_id) REFERENCES invoices(id)
+)`); } catch(e) {}
 
 // Seed default admin
 if (!adb.prepare('SELECT id FROM users WHERE role=?').get('admin')) {
@@ -185,11 +212,11 @@ if (adb.prepare('SELECT COUNT(*) as c FROM parts').get().c === 0) {
     const seed = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
     const insGroup = adb.prepare('INSERT OR IGNORE INTO stock_groups (name,parent) VALUES (?,?)');
     (seed.stock_groups || []).forEach(g => insGroup.run(g.name, g.parent || 'Primary'));
-    const insBrand = adb.prepare('INSERT OR IGNORE INTO brands (name) VALUES (?)');
-    (seed.brands || []).forEach(b => insBrand.run(b.name));
-    const insPart = adb.prepare(`INSERT INTO parts
-      (name_en,name_hi,sku,category,brand,compatible_models,price,purchase_price,stock,unit,description,is_active)
-      VALUES (@name_en,@name_hi,@sku,@category,@brand,@compatible_models,@price,@purchase_price,@stock,@unit,@description,@is_active)`);
+    const insBrand = adb.prepare('INSERT OR IGNORE INTO brands (name, p_less, s_less) VALUES (?, ?, ?)');
+    (seed.brands || []).forEach(b => insBrand.run(b.name, b.p_less || 0, b.s_less || 0));
+    const insPart = adb.prepare(`INSERT OR IGNORE INTO parts
+      (name_en,name_hi,sku,category,brand,compatible_models,price,purchase_price,mrp,stock,unit,description,is_active)
+      VALUES (@name_en,@name_hi,@sku,@category,@brand,@compatible_models,@price,@purchase_price,@mrp,@stock,@unit,@description,@is_active)`);
     adb.transaction(() => (seed.parts || []).forEach(p => insPart.run(p)))();
     console.log(`Catalog seeded from snapshot: ${(seed.parts || []).length} parts`);
   }

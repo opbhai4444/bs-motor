@@ -1,0 +1,26 @@
+{
+  "appId": "com.bsmotors.shop",
+  "appName": "BS Motors",
+  "webDir": "public",
+  "server": {
+    "url": "https://bsmotor.onrender.com/consumer/index.html",
+    "cleartext": true,
+    "androidScheme": "https"
+  },
+  "android": {
+    "minWebViewVersion": 60
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#0a1628",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#0a1628"
+    }
+  }
+}

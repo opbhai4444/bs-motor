@@ -217,6 +217,47 @@ const ConsumerNav = {
     // Remove old navbar if still present in the page HTML
     document.querySelectorAll('.bsm-navbar, .bsm-hero').forEach(el => el.remove());
 
+    // ── Mobile bottom navigation bar ────────────────────────────────────────
+    const path = window.location.pathname;
+    const bnav = document.createElement('nav');
+    bnav.className = 'bsm-bottom-nav';
+    const isHome    = path.includes('index') || path === '/consumer/' || path === '/consumer';
+    const isCart    = path.includes('cart');
+    const isOrders  = path.includes('orders');
+    const isAccount = path.includes('profile') || path.includes('login') || path.includes('register');
+    bnav.innerHTML = `
+      <a href="/consumer/index.html" class="bnav-item ${isHome ? 'active' : ''}">
+        <span class="bnav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="#" class="bnav-item" id="bnavSearch">
+        <span class="bnav-icon">🔍</span><span>Search</span>
+      </a>
+      <a href="/consumer/cart.html" class="bnav-item ${isCart ? 'active' : ''}">
+        <span class="bnav-icon" style="position:relative">🛒<span class="bnav-badge" id="bnavCartBadge">0</span></span>
+        <span>Cart</span>
+      </a>
+      <a href="/consumer/orders.html" class="bnav-item ${isOrders ? 'active' : ''}">
+        <span class="bnav-icon">📋</span><span>Orders</span>
+      </a>
+      <a href="#" class="bnav-item ${isAccount ? 'active' : ''}" id="bnavAccBtn">
+        <span class="bnav-icon">👤</span><span>Account</span>
+      </a>`;
+    document.body.appendChild(bnav);
+    document.getElementById('bnavSearch').onclick = e => {
+      e.preventDefault();
+      const inp = document.getElementById('bsmSearchInput');
+      if (inp) { inp.focus(); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    };
+    document.getElementById('bnavAccBtn').onclick = e => {
+      e.preventDefault();
+      if (this._user) {
+        document.getElementById('bsmAccDrop').style.display =
+          document.getElementById('bsmAccDrop').style.display === 'none' ? 'block' : 'none';
+      } else {
+        this.openLogin();
+      }
+    };
+
     this._wire();
   },
 
@@ -329,9 +370,15 @@ const ConsumerNav = {
 
   _setCart(n) {
     const el = document.getElementById('bsmCartCnt');
-    if (!el) return;
-    if (n > 0) { el.textContent = n; el.style.display = 'flex'; }
-    else el.style.display = 'none';
+    if (el) {
+      if (n > 0) { el.textContent = n; el.style.display = 'flex'; }
+      else el.style.display = 'none';
+    }
+    const badge = document.getElementById('bnavCartBadge');
+    if (badge) {
+      if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.style.display = 'flex'; }
+      else badge.style.display = 'none';
+    }
   },
 
   // ── Search ──────────────────────────────────────────────────────────────────
