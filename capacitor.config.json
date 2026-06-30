@@ -3,7 +3,7 @@
   "appName": "BS Motors",
   "webDir": "public",
   "server": {
-    "url": "https://bsmotor.onrender.com/consumer/index.html",
+    "url": "https://bs-motor.onrender.com/consumer/index.html",
     "cleartext": true,
     "androidScheme": "https"
   },
