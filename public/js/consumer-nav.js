@@ -218,7 +218,6 @@ const ConsumerNav = {
     document.querySelectorAll('.bsm-navbar, .bsm-hero').forEach(el => el.remove());
 
     // ── Mobile bottom navigation bar ────────────────────────────────────────
-    const path = window.location.pathname;
     const bnav = document.createElement('nav');
     bnav.className = 'bsm-bottom-nav';
     const isHome    = path.includes('index') || path === '/consumer/' || path === '/consumer';
